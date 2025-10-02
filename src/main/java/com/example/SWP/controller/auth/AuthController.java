@@ -2,7 +2,6 @@ package com.example.SWP.controller.auth;
 
 import com.example.SWP.dto.request.RegisterRequest;
 import com.example.SWP.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,22 +10,32 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
     private final UserService userService;
 
+    // Register
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody RegisterRequest request, HttpServletRequest servletRequest) {
-        String siteURL = servletRequest.getRequestURL().toString().replace(servletRequest.getServletPath(), "");
-        String result = userService.register(request, siteURL);
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        String result = userService.register(request);
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/verify")
-    public ResponseEntity<String> verifyAccount(@RequestParam("code") String code) {
-        boolean verified = userService.verify(code);
+    // Verify OTP
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        boolean verified = userService.verifyOtp(email, otp);
         if (verified) {
-            return ResponseEntity.ok("Email verified successfully! You can now login.");
+            return ResponseEntity.ok("OTP verified successfully! You can now login.");
         } else {
-            return ResponseEntity.badRequest().body("Invalid or expired verification code.");
+            return ResponseEntity.badRequest().body("Invalid or expired OTP.");
         }
     }
+
+    // Resend OTP
+    @PostMapping("/resend-otp")
+    public ResponseEntity<String> resendOtp(@RequestParam String email) {
+        String result = userService.resendOtp(email);
+        return ResponseEntity.ok(result);
+    }
 }
+

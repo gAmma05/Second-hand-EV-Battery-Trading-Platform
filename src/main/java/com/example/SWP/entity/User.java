@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Data
@@ -22,5 +24,6 @@ public class User {
     String fullName;
     String role;
     boolean enabled;
-    String verificationCode;
+    String otpCode;
+    LocalDateTime otpExpiry;
 }
