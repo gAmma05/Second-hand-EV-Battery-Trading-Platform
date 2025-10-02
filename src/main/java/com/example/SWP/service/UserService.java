@@ -12,45 +12,48 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.Random;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
-
 public class UserService {
 
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
     JavaMailSender mailSender;
 
-    public String register(RegisterRequest request, String siteURL) {
+    // Register user và gửi OTP
+    public String register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             return "Email is already in use!";
         }
 
-        String verificationCode = UUID.randomUUID().toString();
+        // Tạo OTP 6 chữ số
+        String otp = String.valueOf(new Random().nextInt(900000) + 100000);
 
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER.name())
                 .enabled(false)
-                .verificationCode(verificationCode)
+                .otpCode(otp)
+                .otpExpiry(LocalDateTime.now().plusMinutes(5)) // OTP hiệu lực 5 phút
                 .build();
 
         userRepository.save(user);
 
-        sendVerificationEmail(user, siteURL);
+        sendOtpEmail(user, otp);
 
-        return "Registration successful! Please check your email to verify your account.";
+        return "Registration successful! Please check your email for OTP.";
     }
 
-    private void sendVerificationEmail(User user, String siteURL) {
-        String subject = "Please verify your registration";
-        String verifyURL = siteURL + "/api/auth/verify?code=" + user.getVerificationCode();
-        String message = "Dear user,\nPlease click the link below to verify your email:\n" + verifyURL;
+    // Gửi OTP qua email
+    private void sendOtpEmail(User user, String otp) {
+        String subject = "Your OTP for registration";
+        String message = "Dear user,\nYour OTP is: " + otp + "\nIt will expire in 5 minutes.";
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(user.getEmail());
@@ -60,15 +63,34 @@ public class UserService {
         mailSender.send(mailMessage);
     }
 
-    public boolean verify(String code) {
-        User user = userRepository.findByVerificationCode(code).orElse(null);
-        if (user == null || user.isEnabled()) {
-            return false;
-        }
+    // Verify OTP
+    public boolean verifyOtp(String email, String otp) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null || user.isEnabled()) return false;
+
+        if (!otp.equals(user.getOtpCode())) return false;
+        if (user.getOtpExpiry().isBefore(LocalDateTime.now())) return false;
 
         user.setEnabled(true);
-        user.setVerificationCode(null);
+        user.setOtpCode(null);
+        user.setOtpExpiry(null);
         userRepository.save(user);
         return true;
+    }
+
+    // Resend OTP mới, OTP cũ tự động invalid
+    public String resendOtp(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) return "Email not found.";
+        if (user.isEnabled()) return "Account already verified.";
+
+        String newOtp = String.valueOf(new Random().nextInt(900000) + 100000);
+        user.setOtpCode(newOtp);
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user);
+
+        sendOtpEmail(user, newOtp);
+
+        return "A new OTP has been sent.";
     }
 }
