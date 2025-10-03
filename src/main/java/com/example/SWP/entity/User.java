@@ -26,4 +26,6 @@ public class User {
     boolean enabled;
     String otpCode;
     LocalDateTime otpExpiry;
+    int otpAttempts;
+    LocalDateTime otpLockedUntil;
 }
