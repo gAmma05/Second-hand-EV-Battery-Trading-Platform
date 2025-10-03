@@ -2,6 +2,7 @@ package com.example.SWP.service;
 
 import com.example.SWP.dto.request.RegisterRequest;
 import com.example.SWP.entity.User;
+import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,22 +26,21 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     JavaMailSender mailSender;
 
-    // Register user và gửi OTP
     public String register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             return "Email is already in use!";
         }
 
-        // Tạo OTP 6 chữ số
         String otp = String.valueOf(new Random().nextInt(900000) + 100000);
 
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER.name())
+                .fullName(request.getFullName())
                 .enabled(false)
                 .otpCode(otp)
-                .otpExpiry(LocalDateTime.now().plusMinutes(5)) // OTP hiệu lực 5 phút
+                .otpExpiry(LocalDateTime.now().plusMinutes(5))
                 .build();
 
         userRepository.save(user);
@@ -50,7 +50,6 @@ public class UserService {
         return "Registration successful! Please check your email for OTP.";
     }
 
-    // Gửi OTP qua email
     private void sendOtpEmail(User user, String otp) {
         String subject = "Your OTP for registration";
         String message = "Dear user,\nYour OTP is: " + otp + "\nIt will expire in 5 minutes.";
@@ -63,22 +62,40 @@ public class UserService {
         mailSender.send(mailMessage);
     }
 
-    // Verify OTP
-    public boolean verifyOtp(String email, String otp) {
+    public OtpStatus verifyOtp(String email, String otp) {
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null || user.isEnabled()) return false;
+        if (user == null) {
+            return OtpStatus.INVALID;
+        }
 
-        if (!otp.equals(user.getOtpCode())) return false;
-        if (user.getOtpExpiry().isBefore(LocalDateTime.now())) return false;
+        if (user.getOtpLockedUntil() != null && user.getOtpLockedUntil().isAfter(LocalDateTime.now())) {
+            return OtpStatus.LOCKED;
+        }
 
-        user.setEnabled(true);
-        user.setOtpCode(null);
-        user.setOtpExpiry(null);
-        userRepository.save(user);
-        return true;
+        if (user.getOtpCode() != null && user.getOtpExpiry().isAfter(LocalDateTime.now()) && user.getOtpCode().equals(otp)) {
+            user.setEnabled(true);
+            user.setOtpCode(null);
+            user.setOtpAttempts(0);
+            user.setOtpLockedUntil(null);
+            userRepository.save(user);
+            return OtpStatus.SUCCESS;
+        } else {
+            int attempts = user.getOtpAttempts() + 1;
+            user.setOtpAttempts(attempts);
+
+            if (attempts >= 5) {
+                user.setOtpLockedUntil(LocalDateTime.now().plusMinutes(30));
+                user.setOtpAttempts(0);
+                userRepository.save(user);
+                return OtpStatus.LOCKED;
+            }
+
+            userRepository.save(user);
+            return OtpStatus.INVALID;
+        }
     }
 
-    // Resend OTP mới, OTP cũ tự động invalid
+
     public String resendOtp(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return "Email not found.";
