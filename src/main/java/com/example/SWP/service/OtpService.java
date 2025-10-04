@@ -69,6 +69,16 @@ public class OtpService {
         String attemptKey = getAttemptKey(email);
         String lockKey = getLockKey(email);
 
+        String lockedUntilStr = redisTemplate.opsForValue().get(lockKey);
+        if (lockedUntilStr != null) {
+            LocalDateTime lockedUntil = LocalDateTime.parse(lockedUntilStr);
+            if (lockedUntil.isAfter(LocalDateTime.now())) {
+                return OtpStatus.LOCKED;
+            } else {
+                redisTemplate.delete(lockKey);
+            }
+        }
+
         String cachedOtp = redisTemplate.opsForValue().get(otpKey);
         if (cachedOtp != null && cachedOtp.equals(otpInput)) {
             redisTemplate.delete(otpKey);
