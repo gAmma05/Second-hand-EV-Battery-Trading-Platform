@@ -24,8 +24,4 @@ public class User {
     String fullName;
     String role;
     boolean enabled;
-    String otpCode;
-    LocalDateTime otpExpiry;
-    int otpAttempts;
-    LocalDateTime otpLockedUntil;
 }
