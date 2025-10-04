@@ -1,5 +1,6 @@
 package com.example.SWP.controller.auth;
 
+import com.example.SWP.dto.request.BasicLoginRequest;
 import com.example.SWP.dto.request.RegisterRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.enums.OtpStatus;
@@ -7,6 +8,9 @@ import com.example.SWP.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,11 +31,15 @@ public class AuthController {
         return ResponseEntity.ok(authService.verifyOtp(email, otp));
     }
 
+    @PostMapping("/basic-login")
+    public ResponseEntity<Map<String, Object>> basicLogin(@RequestBody BasicLoginRequest dto) {
+        String accessToken = authService.basicLogin(dto);
 
-//    @PostMapping("/login")
-//    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-//        String token = authService.login(request);
-//        return ResponseEntity.ok(new LoginResponse(token));
-//    }
+        Map<String, Object> body = new HashMap<>();
+        body.put("accessToken", accessToken);
+
+        return ResponseEntity.ok(body);
+    }
+
 }
 
