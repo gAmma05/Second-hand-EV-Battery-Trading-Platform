@@ -1,14 +1,29 @@
 package com.example.SWP.service;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.SWP.dto.request.BasicLoginRequest;
 import com.example.SWP.dto.request.RegisterRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.OtpStatus;
-import com.nimbusds.jose.*;
+import com.example.SWP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Optional;
 
 
 @Service
@@ -20,6 +35,16 @@ public class AuthService {
     UserService userService;
     OtpService otpService;
     MailService mailService;
+    UserRepository userRepository;
+    PasswordEncoder passwordEncoder;
+
+    @NonFinal
+    @Value("${jwt.secret}")
+    String jwtSecret;
+
+    @NonFinal
+    @Value("${jwt.issuer}")
+    String jwtIssuer;
 
     public ApiResponse<String> register(RegisterRequest request) {
         String email = request.getEmail();
@@ -79,6 +104,44 @@ public class AuthService {
                         : "Invalid or expired OTP.")
                 .data(status)
                 .build();
+    }
+
+
+    public String basicLogin(BasicLoginRequest basicLoginRequest) {
+        Optional<User> result = userRepository.findByEmail(basicLoginRequest.getEmail());
+
+        if (result.isEmpty() || !result.get().isEnabled() ||!passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong username or password!");
+        }
+
+        User user = result.get();
+
+        Date now = Date.from(Instant.now());
+        Date expiryDate = Date.from(Instant.now().plus(30, ChronoUnit.DAYS));
+
+        Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
+        return JWT.create()
+                .withSubject(String.valueOf(user.getId()))
+                .withIssuer(jwtIssuer)
+                .withIssuedAt(now)
+                .withExpiresAt(expiryDate)
+                .sign(algorithm);
+    }
+
+
+    public Optional<User> verifyAccessToken(String accessToken) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
+            DecodedJWT decodedJWT = JWT.require(algorithm)
+                    .withIssuer(jwtIssuer)
+                    .build()
+                    .verify(accessToken);
+
+            Long userId = Long.valueOf(decodedJWT.getSubject());
+            return userRepository.findById(userId);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 }
 
