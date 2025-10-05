@@ -9,11 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -32,14 +29,9 @@ public class AuthController {
     }
 
     @PostMapping("/basic-login")
-    public ResponseEntity<Map<String, Object>> basicLogin(@RequestBody BasicLoginRequest dto) {
-        String accessToken = authService.basicLogin(dto);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("accessToken", accessToken);
-
-        return ResponseEntity.ok(body);
+    public ResponseEntity<ApiResponse<String>> login(@RequestBody BasicLoginRequest req) {
+        String token = authService.basicLogin(req);
+        return ResponseEntity.ok(ApiResponse.<String>builder().success(true).data(token).build());
     }
-
 }
 
