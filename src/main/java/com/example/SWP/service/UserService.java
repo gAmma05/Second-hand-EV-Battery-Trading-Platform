@@ -2,6 +2,7 @@ package com.example.SWP.service;
 
 import com.example.SWP.dto.request.RegisterRequest;
 import com.example.SWP.entity.User;
+import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
 import com.example.SWP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class UserService {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER.name())
+                .role(Role.BUYER)
                 .fullName(request.getFullName())
                 .enabled(false)
                 .build();
