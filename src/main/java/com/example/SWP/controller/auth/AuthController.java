@@ -1,11 +1,13 @@
 package com.example.SWP.controller.auth;
 
 import com.example.SWP.dto.request.BasicLoginRequest;
+import com.example.SWP.dto.request.GoogleLoginRequest;
 import com.example.SWP.dto.request.RegisterRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,14 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/google")
+    private ResponseEntity googleLogin(@RequestBody GoogleLoginRequest glr) {
+        String accessToken = authService.processGoogleToken(glr);
+        return new ResponseEntity(new HashMap<String, Object>() {{
+            put("accessToken", accessToken);
+        }}, HttpStatus.CREATED);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> register(@RequestBody RegisterRequest request) {

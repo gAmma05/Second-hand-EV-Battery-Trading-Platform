@@ -4,11 +4,18 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.SWP.dto.request.BasicLoginRequest;
+import com.example.SWP.dto.request.GoogleLoginRequest;
 import com.example.SWP.dto.request.RegisterRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.User;
+import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.OtpStatus;
+import com.example.SWP.enums.Role;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.jwt.JwtForGoogleService;
+import com.example.SWP.service.token.GoogleClientService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
@@ -32,11 +39,15 @@ import java.util.Optional;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class AuthService {
 
+    private GoogleClientService googleClientService;
+
     UserService userService;
     OtpService otpService;
     MailService mailService;
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
+
+    private JwtForGoogleService jwtForGoogleService;
 
     @NonFinal
     @Value("${jwt.secret}")
@@ -110,7 +121,7 @@ public class AuthService {
     public String basicLogin(BasicLoginRequest basicLoginRequest) {
         Optional<User> result = userRepository.findByEmail(basicLoginRequest.getEmail());
 
-        if (result.isEmpty() || !result.get().isEnabled() ||!passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
+        if (result.isEmpty() || !result.get().isEnabled() || !passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong username or password!");
         }
 
@@ -142,6 +153,43 @@ public class AuthService {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    //GOOGLE (Dung)
+
+    @Transactional
+    public String processGoogleToken(GoogleLoginRequest googleLoginRequest) {
+        GoogleIdToken.Payload payload = googleClientService.verifyGoogleIdToken(googleLoginRequest);
+
+        if (payload == null) {
+            throw new RuntimeException("Failed to verify Google ID token.");
+        }
+
+        String email = payload.getEmail();
+        String userId = payload.getSubject();
+        String fullName = (String) payload.get("name");
+
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            if (user.getProvider() != AuthProvider.GOOGLE) {
+                throw new RuntimeException("User is already registered with different provider.");
+            }
+
+            user.setFullName(fullName);
+            userRepository.save(user);
+            return jwtForGoogleService.generateAccessToken(user);
+        }
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setFullName(fullName);
+        newUser.setProvider(AuthProvider.GOOGLE);
+        newUser.setRole(Role.valueOf(Role.BUYER.name()));
+        newUser.setEnabled(true);
+
+        userRepository.save(newUser);
+
+        return jwtForGoogleService.generateAccessToken(newUser);
     }
 }
 
