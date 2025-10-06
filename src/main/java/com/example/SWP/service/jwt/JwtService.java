@@ -12,16 +12,20 @@ import java.util.Date;
 
 @Service
 
-public class JwtForGoogleService {
+public class JwtService {
     @Value("${jwt.secret}")
     private String secretKey;
 
     @Value("${jwt.access-expiration}")
     private long accessExpiration;
 
+    @Value("${jwt.issuer}")
+    private String issuer;
+
     public String generateAccessToken(User user) {
         return JWT.create()
                 .withSubject(user.getEmail())
+                .withIssuer(issuer)
                 .withClaim("role", user.getRole().toString())
                 .withClaim("provider", user.getProvider().toString())
                 .withIssuedAt(new Date())
@@ -29,9 +33,8 @@ public class JwtForGoogleService {
                 .sign(Algorithm.HMAC256(secretKey));
     }
 
-    public String validateAccessToken(String token) {
-        JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secretKey)).build();
-        DecodedJWT jwt = verifier.verify(token);
-        return jwt.getSubject();
+    public DecodedJWT decode(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        return JWT.require(algorithm).withIssuer(issuer).build().verify(token);
     }
 }
