@@ -12,7 +12,7 @@ import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.repository.UserRepository;
-import com.example.SWP.service.jwt.JwtForGoogleService;
+import com.example.SWP.service.jwt.JwtService;
 import com.example.SWP.service.token.GoogleClientService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.transaction.Transactional;
@@ -47,7 +47,7 @@ public class AuthService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
 
-    private JwtForGoogleService jwtForGoogleService;
+    private JwtService jwtService;
 
     @NonFinal
     @Value("${jwt.secret}")
@@ -127,33 +127,9 @@ public class AuthService {
 
         User user = result.get();
 
-        Date now = Date.from(Instant.now());
-        Date expiryDate = Date.from(Instant.now().plus(30, ChronoUnit.DAYS));
-
-        Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
-        return JWT.create()
-                .withSubject(String.valueOf(user.getId()))
-                .withIssuer(jwtIssuer)
-                .withIssuedAt(now)
-                .withExpiresAt(expiryDate)
-                .sign(algorithm);
+        return jwtService.generateAccessToken(user);
     }
 
-
-    public Optional<User> verifyAccessToken(String accessToken) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
-            DecodedJWT decodedJWT = JWT.require(algorithm)
-                    .withIssuer(jwtIssuer)
-                    .build()
-                    .verify(accessToken);
-
-            Long userId = Long.valueOf(decodedJWT.getSubject());
-            return userRepository.findById(userId);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
 
     //GOOGLE (Dung)
 
@@ -178,7 +154,7 @@ public class AuthService {
 
             user.setFullName(fullName);
             userRepository.save(user);
-            return jwtForGoogleService.generateAccessToken(user);
+            return jwtService.generateAccessToken(user);
         }
         User newUser = new User();
         newUser.setEmail(email);
@@ -189,7 +165,7 @@ public class AuthService {
 
         userRepository.save(newUser);
 
-        return jwtForGoogleService.generateAccessToken(newUser);
+        return jwtService.generateAccessToken(newUser);
     }
 }
 
