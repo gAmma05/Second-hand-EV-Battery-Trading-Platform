@@ -30,6 +30,7 @@ public class UserService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.BUYER)
                 .fullName(request.getFullName())
+                .provider(AuthProvider.MANUAL)
                 .enabled(false)
                 .build();
         userRepository.save(user);
