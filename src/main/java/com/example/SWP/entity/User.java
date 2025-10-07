@@ -21,18 +21,18 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-
     @Column(unique = true)
     String email;
-
     @Column(unique = true)
     String googleId;
-
     String password;
     String fullName;
+    String address;
+    String phone;
+    String avatar;
+    LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
     AuthProvider provider;
-
     @Enumerated(EnumType.STRING)
     Role role;
     boolean enabled;
