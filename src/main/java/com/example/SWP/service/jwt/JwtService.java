@@ -19,6 +19,9 @@ public class JwtService {
     @Value("${jwt.access-expiration}")
     private long accessExpiration;
 
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
+
     @Value("${jwt.issuer}")
     private String issuer;
 
@@ -32,6 +35,18 @@ public class JwtService {
                 .withExpiresAt(new Date(System.currentTimeMillis() + accessExpiration))
                 .sign(Algorithm.HMAC256(secretKey));
     }
+
+    public String generateRefreshToken(User user) {
+        return JWT.create()
+                .withSubject(user.getEmail())
+                .withIssuer(issuer)
+                .withClaim("role", user.getRole().toString())
+                .withClaim("provider", user.getProvider().toString())
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + refreshExpiration))
+                .sign(Algorithm.HMAC256(secretKey));
+    }
+
 
     public DecodedJWT decode(String token) {
         Algorithm algorithm = Algorithm.HMAC256(secretKey);

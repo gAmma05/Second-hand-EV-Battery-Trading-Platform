@@ -53,7 +53,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception ex) {
-                // token invalid or expired — ignore so request stays unauthenticated
+
             }
         }
 
