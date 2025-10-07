@@ -29,7 +29,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -134,7 +136,9 @@ public class AuthService {
     //GOOGLE (Dung)
 
     @Transactional
-    public String processGoogleToken(GoogleLoginRequest googleLoginRequest) {
+    public List<String> processGoogleToken(GoogleLoginRequest googleLoginRequest) {
+        List<String> tokenList = new ArrayList<>();
+
         GoogleIdToken.Payload payload = googleClientService.verifyGoogleIdToken(googleLoginRequest);
 
         if (payload == null) {
@@ -154,10 +158,14 @@ public class AuthService {
 
             user.setFullName(fullName);
             userRepository.save(user);
-            return jwtService.generateAccessToken(user);
+            tokenList.add(jwtService.generateAccessToken(user));
+            tokenList.add(jwtService.generateRefreshToken(user));
+
+            return tokenList;
         }
         User newUser = new User();
         newUser.setEmail(email);
+        newUser.setGoogleId(userId);
         newUser.setFullName(fullName);
         newUser.setProvider(AuthProvider.GOOGLE);
         newUser.setRole(Role.valueOf(Role.BUYER.name()));
@@ -165,7 +173,10 @@ public class AuthService {
 
         userRepository.save(newUser);
 
-        return jwtService.generateAccessToken(newUser);
+        tokenList.add(jwtService.generateAccessToken(newUser));
+        tokenList.add(jwtService.generateRefreshToken(newUser));
+
+        return tokenList;
     }
 }
 
