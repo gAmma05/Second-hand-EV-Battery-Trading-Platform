@@ -32,10 +32,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:5173");
-        configuration.addAllowedMethod("GET");
-        configuration.addAllowedMethod("POST");
-        configuration.addAllowedMethod("PUT");
-        configuration.addAllowedMethod("DELETE");
+        configuration.addAllowedOrigin("http://localhost:8080");
+        configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -48,7 +46,14 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
                         .requestMatchers("/auth/**", "/public/**").permitAll()
+//                        .requestMatchers("/api/auth/google").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/seller/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/buyer/**").hasAnyRole("BUYER", "ADMIN")
