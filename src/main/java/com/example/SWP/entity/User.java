@@ -25,6 +25,9 @@ public class User {
     @Column(unique = true)
     String email;
 
+    @Column(unique = true)
+    String googleId;
+
     String password;
     String fullName;
     @Enumerated(EnumType.STRING)
