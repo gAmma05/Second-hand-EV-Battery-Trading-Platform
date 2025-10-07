@@ -25,14 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 
-<<<<<<< HEAD
-=======
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
->>>>>>> main
 import java.util.Optional;
 
 

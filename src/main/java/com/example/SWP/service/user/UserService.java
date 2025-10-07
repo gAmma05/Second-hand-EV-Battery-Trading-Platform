@@ -1,6 +1,7 @@
 package com.example.SWP.service.user;
 
 import com.example.SWP.dto.request.RegisterRequest;
+import com.example.SWP.dto.request.UpdateUserRequest;
 import com.example.SWP.dto.response.UserProfileResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
@@ -60,5 +61,23 @@ public class UserService {
 
         return userMapper.toUserProfileResponse(user);
     }
+
+    public UserProfileResponse updateUserProfile(Authentication authentication, UpdateUserRequest request) {
+        String email = authentication.getName();
+        User user = findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        user.setFullName(request.getFullName());
+        user.setAddress(request.getAddress());
+        user.setPhone(request.getPhone());
+        user.setAvatar(request.getAvatar());
+
+        userRepository.save(user);
+
+        return userMapper.toUserProfileResponse(user);
+    }
+
 }
 
