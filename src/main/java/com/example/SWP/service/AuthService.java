@@ -1,8 +1,5 @@
 package com.example.SWP.service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.SWP.dto.request.BasicLoginRequest;
 import com.example.SWP.dto.request.GoogleLoginRequest;
 import com.example.SWP.dto.request.RegisterRequest;
@@ -14,6 +11,7 @@ import com.example.SWP.enums.Role;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.jwt.JwtService;
 import com.example.SWP.service.token.GoogleClientService;
+import com.example.SWP.service.user.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Optional;
 
 
