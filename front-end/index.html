@@ -3,42 +3,160 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Login Google</title>
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 360px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        hr {
+            margin: 25px 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+
+        pre {
+            text-align: left;
+            background: #eee;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
 </head>
 
 <body>
-<!-- Update the data-client_id -->
-<div id="g_id_onload" data-client_id="934817882257-vnikhqmiev71pr8e9iu2ij3c00dbfv1d.apps.googleusercontent.com"
-     data-context="signin" data-ux_mode="popup" data-callback="loginGoogle" data-itp_support="true">
+<div class="login-container">
+    <h2>Đăng nhập</h2>
+
+    <!-- Form đăng nhập thường -->
+    <form id="normal-login-form">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button type="submit">Đăng nhập</button>
+    </form>
+
+    <hr>
+
+    <!-- Đăng nhập Google -->
+    <div id="g_id_onload"
+         data-client_id="934817882257-vnikhqmiev71pr8e9iu2ij3c00dbfv1d.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="loginGoogle"
+         data-itp_support="true">
+    </div>
+
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="rectangular"
+         data-theme="outline"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="left">
+    </div>
+
+    <pre id="server-response-dislay"></pre>
 </div>
 
-<div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with"
-     data-size="large" data-logo_alignment="left">
-</div>
-
-<pre id="server-response-dislay"></pre>
-
+<!-- Google script -->
 <script src="https://accounts.google.com/gsi/client" async></script>
+<<<<<<< HEAD
 <script>
     const url = "http://localhost:8080/auth/google"
+=======
+>>>>>>> main
 
-    async function loginGoogle(data) {
-        const response = await fetch(url, {
+<script>
+    const normalLoginUrl = "http://localhost:8080/api/auth/login"; // API đăng nhập thường
+    const googleLoginUrl = "http://localhost:8080/api/auth/google"; // API đăng nhập Google
+
+    // ====== Đăng nhập thường ======
+    const form = document.getElementById("normal-login-form");
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const response = await fetch(normalLoginUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                credential: data.credential
-            })
-        })
-        const serverData = await response.json()
+            body: JSON.stringify({ email, password })
+        });
 
-        const pre = document.getElementById("server-response-dislay")
-        const code = document.createElement("code")
-        code.innerHTML = JSON.stringify(serverData, null, 4)
-        pre.innerHTML = ""
-        pre.appendChild(code)
+        const data = await response.json();
+        displayResponse(data);
+    });
+
+    // ====== Đăng nhập Google ======
+    async function loginGoogle(data) {
+        const response = await fetch(googleLoginUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ credential: data.credential })
+        });
+        const serverData = await response.json();
+        displayResponse(serverData);
+    }
+
+    // ====== Hiển thị kết quả ======
+    function displayResponse(data) {
+        const pre = document.getElementById("server-response-dislay");
+        const code = document.createElement("code");
+        code.innerHTML = JSON.stringify(data, null, 4);
+        pre.innerHTML = "";
+        pre.appendChild(code);
     }
 </script>
 </body>
