@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("/webjars/**").permitAll()
                         .requestMatchers("/auth/**", "/public/**").permitAll()
+//                        .requestMatchers("/api/auth/google").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/seller/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/buyer/**").hasAnyRole("BUYER", "ADMIN")

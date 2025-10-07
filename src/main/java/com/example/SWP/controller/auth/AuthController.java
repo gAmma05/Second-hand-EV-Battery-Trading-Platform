@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -24,10 +25,14 @@ public class AuthController {
 
     @PostMapping("/google")
     private ResponseEntity googleLogin(@RequestBody GoogleLoginRequest glr) {
-        String accessToken = authService.processGoogleToken(glr);
-        return new ResponseEntity(new HashMap<String, Object>() {{
-            put("accessToken", accessToken);
-        }}, HttpStatus.CREATED);
+        List<String> tokens = authService.processGoogleToken(glr);
+        String accessToken = tokens.get(0);
+        String refreshToken = tokens.get(1);
+        Map<String, Object> tokenBody = new HashMap<>();
+        tokenBody.put("accessToken", accessToken);
+        tokenBody.put("refreshToken", refreshToken);
+        return ResponseEntity.status(HttpStatus.OK).body(tokenBody);
+
     }
 
 
