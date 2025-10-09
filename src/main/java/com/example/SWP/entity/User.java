@@ -33,6 +33,7 @@ public class User {
     String storeName;
     String storeDescription;
     String socialMedia;
+    boolean status;
 
     LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
