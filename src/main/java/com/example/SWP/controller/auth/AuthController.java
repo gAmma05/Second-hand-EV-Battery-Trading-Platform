@@ -2,7 +2,7 @@ package com.example.SWP.controller.auth;
 
 import com.example.SWP.dto.request.BasicLoginRequest;
 import com.example.SWP.dto.request.GoogleLoginRequest;
-import com.example.SWP.dto.request.RegisterRequest;
+import com.example.SWP.dto.request.CreateUserRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.service.AuthService;
@@ -19,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+
 public class AuthController {
 
     private final AuthService authService;
@@ -50,7 +51,7 @@ public class AuthController {
             description = "Email is already in use or user already verified"
     )
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<String>> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<String>> register(@RequestBody CreateUserRequest request) {
         ApiResponse<String> response = authService.register(request);
         if (!response.isSuccess()) {
             return ResponseEntity
