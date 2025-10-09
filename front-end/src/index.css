@@ -1,8 +1,0 @@
-@import "tailwindcss";
-body {
-  background-image: url('/panner.png');
-  background-size: cover;       /* Ảnh phủ toàn bộ */
-  background-position: center;  /* Căn giữa */
-  background-attachment: fixed; /* Giữ cố định khi scroll */
-  background-repeat: no-repeat; /* Không lặp */
-}
