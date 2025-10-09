@@ -55,7 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**", "/public/**").permitAll()
 //                        .requestMatchers("/api/auth/google").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/seller/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/seller/**").hasAnyRole("SELLER", "ADMIN")
                         .requestMatchers("/buyer/**").hasAnyRole("BUYER", "ADMIN")
                         .anyRequest().authenticated()
                 )
