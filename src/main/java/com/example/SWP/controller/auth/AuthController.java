@@ -33,7 +33,6 @@ public class AuthController {
         tokenBody.put("accessToken", accessToken);
         tokenBody.put("refreshToken", refreshToken);
         return ResponseEntity.status(HttpStatus.OK).body(tokenBody);
-
     }
 
 
