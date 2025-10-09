@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 public class SellerService {
 
     UserRepository userRepository;
-    SellerMapper sellerMapper;
 
     public void upgradeToSeller(Authentication authentication, UpgradeToSellerRequest request) {
         String email = authentication.getName();
@@ -27,7 +26,9 @@ public class SellerService {
         }
 
         user.setRole(Role.SELLER);
-        sellerMapper.updateUserFromUpgradeToSellerRequest(request, user);
+        user.setStoreName(request.getShopName());
+        user.setStoreDescription(request.getShopDescription());
+        user.setSocialMedia(request.getSocialMedia());
         userRepository.save(user);
     }
 }
