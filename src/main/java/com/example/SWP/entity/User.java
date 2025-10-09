@@ -30,6 +30,10 @@ public class User {
     String address;
     String phone;
     String avatar;
+    String storeName;
+    String storeDescription;
+    String socialMedia;
+
     LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
     AuthProvider provider;
