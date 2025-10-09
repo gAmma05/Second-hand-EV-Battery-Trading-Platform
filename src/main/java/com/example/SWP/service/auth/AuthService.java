@@ -1,4 +1,4 @@
-package com.example.SWP.service;
+package com.example.SWP.service.auth;
 
 import com.example.SWP.dto.request.auth.BasicLoginRequest;
 import com.example.SWP.dto.request.auth.GoogleLoginRequest;
@@ -10,7 +10,8 @@ import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.jwt.JwtService;
-import com.example.SWP.service.token.GoogleClientService;
+import com.example.SWP.service.mail.MailService;
+import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.user.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.transaction.Transactional;

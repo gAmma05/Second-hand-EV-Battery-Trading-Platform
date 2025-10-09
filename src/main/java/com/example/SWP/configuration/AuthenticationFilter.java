@@ -2,7 +2,7 @@ package com.example.SWP.configuration;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.SWP.service.jwt.JwtService;
-import com.example.SWP.service.security.CustomUserDetailsService;
+import com.example.SWP.service.auth.CustomUserDetailsService;
 import io.micrometer.common.lang.NonNullApi;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -18,7 +18,6 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-
 public class Post {
 
     @Id
@@ -27,7 +26,7 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
-    Seller seller;
+    User user;
 
     String productType;
     String title;
@@ -56,9 +55,10 @@ public class Post {
     Set<PaymentType> paymentTypes = new HashSet<>();
 
     String address;
+    boolean isTrusted;
 
     boolean isPriority;
 
     @Enumerated(EnumType.STRING)
-    private PostStatus status;
+    PostStatus status;
 }
