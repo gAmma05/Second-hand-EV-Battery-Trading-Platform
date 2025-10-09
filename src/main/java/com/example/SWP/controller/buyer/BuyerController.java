@@ -1,6 +1,5 @@
 package com.example.SWP.controller.buyer;
 
-import com.example.SWP.dto.request.UpgradeToSellerRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.service.seller.SellerService;
 import lombok.RequiredArgsConstructor;

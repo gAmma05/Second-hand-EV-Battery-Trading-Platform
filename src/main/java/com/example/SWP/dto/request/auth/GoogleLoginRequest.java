@@ -1,4 +1,4 @@
-package com.example.SWP.dto.request;
+package com.example.SWP.dto.request.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
