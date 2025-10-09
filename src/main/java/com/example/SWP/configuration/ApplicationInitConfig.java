@@ -32,6 +32,7 @@ public class ApplicationInitConfig {
                         .password(passwordEncoder.encode("admin"))
                         .fullName("admin")
                         .enabled(true)
+                        .status(true)
                         .role(Role.ADMIN)
                         .provider(AuthProvider.MANUAL)
                         .build();
