@@ -1,8 +1,8 @@
 package com.example.SWP.service.user;
 
-import com.example.SWP.dto.request.RegisterRequest;
+import com.example.SWP.dto.request.CreateUserRequest;
 import com.example.SWP.dto.request.UpdateUserRequest;
-import com.example.SWP.dto.response.UserProfileResponse;
+import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
@@ -29,7 +29,7 @@ public class UserService {
         return userRepository.findByEmail(email).orElse(null);
     }
 
-    public void createInactiveUser(RegisterRequest request) {
+    public void createInactiveUser(CreateUserRequest request) {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -46,7 +46,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public UserProfileResponse getUserProfile(Authentication authentication) {
+    public UserResponse getUserProfile(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             log.error("Authentication is null or not authenticated");
             return null;
@@ -59,10 +59,10 @@ public class UserService {
             return null;
         }
 
-        return userMapper.toUserProfileResponse(user);
+        return userMapper.toUserResponse(user);
     }
 
-    public UserProfileResponse updateUserProfile(Authentication authentication, UpdateUserRequest request) {
+    public UserResponse updateUserProfile(Authentication authentication, UpdateUserRequest request) {
         String email = authentication.getName();
         User user = findByEmail(email);
         if (user == null) {
@@ -76,7 +76,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        return userMapper.toUserProfileResponse(user);
+        return userMapper.toUserResponse(user);
     }
 
 }
