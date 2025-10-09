@@ -2,7 +2,7 @@ package com.example.SWP.service;
 
 import com.example.SWP.dto.request.BasicLoginRequest;
 import com.example.SWP.dto.request.GoogleLoginRequest;
-import com.example.SWP.dto.request.RegisterRequest;
+import com.example.SWP.dto.request.CreateUserRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
@@ -25,14 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 
-<<<<<<< HEAD
-=======
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
->>>>>>> main
 import java.util.Optional;
 
 
@@ -60,7 +54,7 @@ public class AuthService {
     @Value("${jwt.issuer}")
     String jwtIssuer;
 
-    public ApiResponse<String> register(RegisterRequest request) {
+    public ApiResponse<String> register(CreateUserRequest request) {
         String email = request.getEmail();
 
         User user = userService.findByEmail(email);
