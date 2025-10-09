@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserProfileResponse {
+public class UserResponse {
     private String email;
     private String fullName;
     private Role role;
@@ -15,4 +15,5 @@ public class UserProfileResponse {
     private String avatar;
     private String phone;
     private String address;
+    private boolean status;
 }
