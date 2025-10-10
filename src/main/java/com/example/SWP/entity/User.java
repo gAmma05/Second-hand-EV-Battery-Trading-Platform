@@ -4,16 +4,9 @@ import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
 import com.example.SWP.enums.SellerPlan;
 import jakarta.persistence.*;
-<<<<<<< HEAD
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-=======
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
->>>>>>> origin/locbe
 
 import java.time.LocalDateTime;
 
