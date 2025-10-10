@@ -12,4 +12,6 @@ public class UpgradeToSellerRequest {
     private String shopName;
     private String shopDescription;
     private String socialMedia;
+    private int remainingPostCredits;
+    private int cooldownDuration;
 }

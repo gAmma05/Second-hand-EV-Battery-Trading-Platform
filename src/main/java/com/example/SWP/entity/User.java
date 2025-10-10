@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -30,9 +31,9 @@ public class User {
     String address;
     String phone;
     String avatar;
-    String storeName;
-    String storeDescription;
-    String socialMedia;
+    private String storeName;
+    private String storeDescription;
+    private String socialMedia;
     boolean status;
 
     LocalDateTime createdAt;
