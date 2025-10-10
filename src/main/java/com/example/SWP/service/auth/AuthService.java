@@ -1,14 +1,9 @@
 package com.example.SWP.service.auth;
 
-<<<<<<< HEAD:src/main/java/com/example/SWP/service/AuthService.java
-import com.example.SWP.dto.request.BasicLoginRequest;
-import com.example.SWP.dto.request.GoogleLoginRequest;
-import com.example.SWP.dto.request.CreateUserRequest;
-=======
 import com.example.SWP.dto.request.auth.BasicLoginRequest;
 import com.example.SWP.dto.request.auth.GoogleLoginRequest;
 import com.example.SWP.dto.request.auth.CreateUserRequest;
->>>>>>> origin/locbe:src/main/java/com/example/SWP/service/auth/AuthService.java
+
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
