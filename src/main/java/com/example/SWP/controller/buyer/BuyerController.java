@@ -1,10 +1,6 @@
 package com.example.SWP.controller.buyer;
 
-<<<<<<< HEAD
-import com.example.SWP.dto.request.UpgradeToSellerRequest;
-=======
 import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
->>>>>>> origin/locbe
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.service.seller.SellerService;
 import lombok.RequiredArgsConstructor;
