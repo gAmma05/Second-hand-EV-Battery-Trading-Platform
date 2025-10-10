@@ -1,4 +1,4 @@
-package com.example.SWP.service.security;
+package com.example.SWP.service.auth;
 
 import com.example.SWP.entity.User;
 import com.example.SWP.repository.UserRepository;

@@ -1,4 +1,4 @@
-package com.example.SWP.service;
+package com.example.SWP.service.mail;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

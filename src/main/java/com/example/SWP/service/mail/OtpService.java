@@ -1,4 +1,4 @@
-package com.example.SWP.service;
+package com.example.SWP.service.mail;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.enums.OtpStatus;

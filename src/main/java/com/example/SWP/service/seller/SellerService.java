@@ -1,5 +1,6 @@
 package com.example.SWP.service.seller;
 
+import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.Role;
 import com.example.SWP.repository.UserRepository;

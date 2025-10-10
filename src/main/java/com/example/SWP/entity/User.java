@@ -2,6 +2,7 @@ package com.example.SWP.entity;
 
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
+import com.example.SWP.enums.SellerPlan;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -32,12 +33,14 @@ public class User {
     String storeName;
     String storeDescription;
     String socialMedia;
-    boolean status;
+    int remainingPosts;
 
     LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
     AuthProvider provider;
     @Enumerated(EnumType.STRING)
     Role role;
+    SellerPlan sellerPlan;
     boolean enabled;
+    boolean status;
 }
