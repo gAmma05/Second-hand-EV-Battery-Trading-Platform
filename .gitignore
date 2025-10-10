@@ -32,6 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 
-## File which contains secret key, app password -> Mustn't push this on codebase
-src/main/resources/application.properties
-src/main/resources/application.properties.txt
+echo src/main/resources/application.properties >> .gitignore
+git add .gitignore
+git commit -m "Ignore application.properties"
+git push origin locbe --force
