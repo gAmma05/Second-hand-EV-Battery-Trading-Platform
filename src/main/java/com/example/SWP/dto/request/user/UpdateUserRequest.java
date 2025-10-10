@@ -1,4 +1,4 @@
-package com.example.SWP.dto.request.auth;
+package com.example.SWP.dto.request.user;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,8 +8,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreateUserRequest {
-    String email;
-    String password;
+public class UpdateUserRequest {
     String fullName;
+    String phone;
+    String address;
+    String avatar;
 }

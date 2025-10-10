@@ -1,11 +1,17 @@
 package com.example.SWP.controller.auth;
 
+<<<<<<< HEAD
 import com.example.SWP.dto.request.BasicLoginRequest;
 import com.example.SWP.dto.request.GoogleLoginRequest;
 import com.example.SWP.dto.request.CreateUserRequest;
+=======
+import com.example.SWP.dto.request.auth.BasicLoginRequest;
+import com.example.SWP.dto.request.auth.GoogleLoginRequest;
+import com.example.SWP.dto.request.auth.CreateUserRequest;
+>>>>>>> origin/locbe
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.enums.OtpStatus;
-import com.example.SWP.service.AuthService;
+import com.example.SWP.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,7 +39,6 @@ public class AuthController {
         tokenBody.put("accessToken", accessToken);
         tokenBody.put("refreshToken", refreshToken);
         return ResponseEntity.status(HttpStatus.OK).body(tokenBody);
-
     }
 
 
