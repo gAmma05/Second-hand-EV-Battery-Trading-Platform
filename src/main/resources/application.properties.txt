@@ -3,7 +3,7 @@ spring.application.name=SWP
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.username=minedungytb@gmail.com
-spring.mail.password=ngsg ozqs ojiy jmqt
+spring.mail.password=
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
@@ -27,7 +27,7 @@ spring.data.redis.password=
 spring.data.redis.ssl.enabled=false
 
 # Jwt
-jwt.secret=c0a3e1656b0cb66fcca940db11ff3a40
+jwt.secret=
 jwt.access-expiration=900000
 jwt.refresh-expiration=604800000
 jwt.issuer=localhost:8080
