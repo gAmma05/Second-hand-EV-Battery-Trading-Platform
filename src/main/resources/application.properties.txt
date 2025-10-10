@@ -36,4 +36,3 @@ jwt.issuer=localhost:8080
 spring.security.oauth2.client.registration.google.client-id=
 spring.security.oauth2.client.registration.google.client-secret=
 
-sB8K1m2h3Jq4Tz9X1v7R5pQ2oL6uC0nD
