@@ -1,7 +1,5 @@
 package com.example.SWP.controller.admin;
 
-import com.example.SWP.dto.request.AdminCreateUserRequest;
-import com.example.SWP.dto.request.AdminUpdateUserRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.service.admin.AdminUserService;
