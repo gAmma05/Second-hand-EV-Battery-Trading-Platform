@@ -31,17 +31,10 @@ public class User {
     String address;
     String phone;
     String avatar;
-<<<<<<< HEAD
-    private String storeName;
-    private String storeDescription;
-    private String socialMedia;
-    boolean status;
-=======
     String storeName;
     String storeDescription;
     String socialMedia;
     int remainingPosts;
->>>>>>> origin/locbe
 
     LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
