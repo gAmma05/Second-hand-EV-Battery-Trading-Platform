@@ -1,6 +1,6 @@
-package com.example.SWP.service.token;
+package com.example.SWP.service.auth;
 
-import com.example.SWP.dto.request.GoogleLoginRequest;
+import com.example.SWP.dto.request.auth.GoogleLoginRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
