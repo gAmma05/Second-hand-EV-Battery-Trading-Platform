@@ -40,6 +40,7 @@ public class User {
     AuthProvider provider;
     @Enumerated(EnumType.STRING)
     Role role;
+    @Enumerated(EnumType.STRING)
     SellerPlan sellerPlan;
     boolean enabled;
     boolean status;
