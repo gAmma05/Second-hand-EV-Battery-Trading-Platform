@@ -36,6 +36,7 @@ public class User {
     String socialMedia;
     int remainingPosts;
 
+
     LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
     AuthProvider provider;
