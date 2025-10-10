@@ -30,13 +30,4 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
-<<<<<<< HEAD
 .vscode/
-=======
-.vscode/
-
-echo src/main/resources/application.properties >> .gitignore
-git add .gitignore
-git commit -m "Ignore application.properties"
-git push origin locbe --force
->>>>>>> origin/locbe
