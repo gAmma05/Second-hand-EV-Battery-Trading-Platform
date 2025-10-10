@@ -1,9 +1,8 @@
 package com.example.SWP.service.admin;
 
-import com.example.SWP.dto.request.AdminCreateUserRequest;
-import com.example.SWP.dto.request.AdminUpdateUserRequest;
-import com.example.SWP.dto.request.CreateUserRequest;
-import com.example.SWP.dto.request.UpdateUserRequest;
+import com.example.SWP.dto.request.admin.AdminCreateUserRequest;
+import com.example.SWP.dto.request.admin.AdminUpdateUserRequest;
+
 import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;

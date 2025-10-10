@@ -1,4 +1,4 @@
-package com.example.SWP.dto.request;
+package com.example.SWP.dto.request.buyer;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,8 +8,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreateUserRequest {
-    String email;
-    String password;
-    String fullName;
+public class UpgradeToSellerRequest {
+    String shopName;
+    String shopDescription;
+    String socialMedia;
 }

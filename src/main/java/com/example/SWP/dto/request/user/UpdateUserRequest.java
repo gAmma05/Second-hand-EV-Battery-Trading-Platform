@@ -1,4 +1,4 @@
-package com.example.SWP.dto.request;
+package com.example.SWP.dto.request.user;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

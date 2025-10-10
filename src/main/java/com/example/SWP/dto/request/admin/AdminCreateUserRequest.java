@@ -1,5 +1,6 @@
-package com.example.SWP.dto.request;
+package com.example.SWP.dto.request.admin;
 
+import com.example.SWP.enums.Role;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -8,7 +9,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BasicLoginRequest {
+public class AdminCreateUserRequest {
     String email;
     String password;
+    String fullName;
+    Role role;
 }

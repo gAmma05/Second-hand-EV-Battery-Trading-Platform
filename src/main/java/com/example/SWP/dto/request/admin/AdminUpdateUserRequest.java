@@ -1,4 +1,4 @@
-package com.example.SWP.dto.request;
+package com.example.SWP.dto.request.admin;
 
 import com.example.SWP.enums.Role;
 import lombok.*;
@@ -9,9 +9,12 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AdminCreateUserRequest {
+public class AdminUpdateUserRequest {
     String email;
-    String password;
     String fullName;
+    String phone;
+    String address;
+    String avatar;
     Role role;
+    Boolean status;
 }
