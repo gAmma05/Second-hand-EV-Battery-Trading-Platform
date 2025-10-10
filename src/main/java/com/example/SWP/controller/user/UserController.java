@@ -1,10 +1,7 @@
 package com.example.SWP.controller.user;
 
-<<<<<<< HEAD
-import com.example.SWP.dto.request.UpdateUserRequest;
-=======
 import com.example.SWP.dto.request.user.UpdateUserRequest;
->>>>>>> origin/locbe
+
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.service.user.UserService;
