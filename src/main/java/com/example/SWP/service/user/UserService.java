@@ -74,6 +74,7 @@ public class UserService {
         user.setAddress(request.getAddress());
         user.setPhone(request.getPhone());
         user.setAvatar(request.getAvatar());
+        user.setStatus(true);
 
         userRepository.save(user);
 

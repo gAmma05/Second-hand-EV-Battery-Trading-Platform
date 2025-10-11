@@ -4,6 +4,8 @@ import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.Role;
+import com.example.SWP.enums.SellerPlan;
+import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,13 +25,15 @@ public class SellerService {
                 .orElseThrow(() -> new RuntimeException("User does not exist"));
 
         if (user.getRole() == Role.SELLER) {
-            throw new RuntimeException("User is already a seller");
+            throw new BusinessException("User is already a seller", 400);
         }
 
         user.setRole(Role.SELLER);
         user.setStoreName(request.getShopName());
         user.setStoreDescription(request.getShopDescription());
         user.setSocialMedia(request.getSocialMedia());
+        user.setRemainingPosts(3);
+        user.setSellerPlan(SellerPlan.BASIC);
         userRepository.save(user);
     }
 }
