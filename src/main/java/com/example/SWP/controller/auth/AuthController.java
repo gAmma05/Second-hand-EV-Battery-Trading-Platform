@@ -61,23 +61,16 @@ public class AuthController {
 
     //Dang ky tai khoan va nhan ma OTP ve m
     @PostMapping("/register")
-<<<<<<< HEAD
+
     public ResponseEntity<?> register(@Valid @RequestBody CreateUserRequest request) {
 
         validator.validateEmail(request);
         validator.validatePassword(request);
 
-        ApiResponse<String> response = authService.register(request);
-        if (!response.isSuccess()) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(response);
-        }
-=======
-    public ResponseEntity<ApiResponse<String>> register(@RequestBody CreateUserRequest request) {
+
         String message = authService.register(request);
 
->>>>>>> main
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.<String>builder()
