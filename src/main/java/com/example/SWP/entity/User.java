@@ -45,5 +45,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     SellerPlan sellerPlan;
     boolean enabled;
+
+
     boolean status;
 }
