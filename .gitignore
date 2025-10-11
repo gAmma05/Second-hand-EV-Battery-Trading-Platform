@@ -33,8 +33,6 @@ build/
 .vscode/
 
 ## File which contains secret key, app password -> Mustn't push this on codebase
-.env
-
-src/main/resources/application.properties.txt
+src/main/resources/.env
 
 

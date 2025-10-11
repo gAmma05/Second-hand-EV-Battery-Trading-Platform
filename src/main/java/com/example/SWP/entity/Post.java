@@ -40,7 +40,7 @@ public class Post {
     LocalDateTime expiryDate;
 
     int viewCount;
-    int linkCount;
+    int likeCount;
 
     @ElementCollection(targetClass = DeliveryMethod.class)
     @Enumerated(EnumType.STRING)

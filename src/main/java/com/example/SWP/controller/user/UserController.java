@@ -1,5 +1,6 @@
 package com.example.SWP.controller.user;
 
+import com.example.SWP.dto.request.user.ChangePasswordRequest;
 import com.example.SWP.dto.request.user.UpdateUserRequest;
 
 
@@ -47,4 +48,20 @@ public class UserController {
                 .data(updatedProfile)
                 .build());
     }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            Authentication authentication,
+            @RequestBody ChangePasswordRequest request
+    ) {
+        userService.changePassword(authentication, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Password changed successfully")
+                        .build()
+        );
+    }
+
 }
