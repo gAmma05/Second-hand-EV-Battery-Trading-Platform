@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class PostController {
-    PostService postService;
+    private final PostService postService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Post>> createPost(

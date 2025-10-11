@@ -1,6 +1,7 @@
-package com.example.SWP.exception;
+package com.example.SWP.exception.handler;
 
 import com.example.SWP.dto.response.ApiResponse;
+import com.example.SWP.exception.BusinessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

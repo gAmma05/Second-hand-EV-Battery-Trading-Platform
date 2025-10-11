@@ -51,15 +51,13 @@ public class UserService {
 
     public UserResponse getUserProfile(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            log.error("Authentication is null or not authenticated");
-            return null;
+            throw new BusinessException("User is not authenticated", 401);
         }
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
-            log.error("User not found: {}", email);
-            return null;
+            throw new BusinessException("User is not found", 404);
         }
 
         return userMapper.toUserResponse(user);

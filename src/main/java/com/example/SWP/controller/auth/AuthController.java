@@ -5,7 +5,9 @@ import com.example.SWP.dto.request.auth.*;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.service.auth.AuthService;
+import com.example.SWP.validator.auth.CreateUserRequestValidator;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,8 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+
+    private final CreateUserRequestValidator validator;
 
     @PostMapping("/google")
     private ResponseEntity googleLogin(@RequestBody GoogleLoginRequest glr) {
@@ -46,14 +50,26 @@ public class AuthController {
     )
 
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "Password and confirm password does not match"
+    )
+
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "401",
             description = "Email is already in use or user already verified"
     )
 
     //Dang ky tai khoan va nhan ma OTP ve m
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<String>> register(@RequestBody CreateUserRequest request) {
+
+    public ResponseEntity<?> register(@Valid @RequestBody CreateUserRequest request) {
+
+        validator.validateEmail(request);
+        validator.validatePassword(request);
+
+
         String message = authService.register(request);
+
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

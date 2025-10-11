@@ -18,13 +18,6 @@ public class GoogleAuthValidator {
         }
     }
 
-//    private void validateEmailVerified(Map<String, Object> claims) {
-//        Boolean emailVerified = (Boolean) claims.get("email_verified");
-//        if(emailVerified == null || !emailVerified){
-//            throw new IllegalArgumentException("Email is not verified.");
-//        }
-//    }
-
     private void validateName(Map<String, Object> claims) {
         String name = (String) claims.get("name");
         if (name == null || name.isEmpty()) {

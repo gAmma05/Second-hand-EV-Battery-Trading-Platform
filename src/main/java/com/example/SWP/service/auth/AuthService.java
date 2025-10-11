@@ -88,7 +88,7 @@ public class AuthService {
         Optional<User> result = userRepository.findByEmail(basicLoginRequest.getEmail());
 
         if (result.isEmpty() || !result.get().isEnabled() || !passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong username or password!");
+            throw new BusinessException("Invalid email or password", 400);
         }
 
         User user = result.get();
