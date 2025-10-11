@@ -1,7 +1,5 @@
 package com.example.SWP.service.mail;
 
-import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

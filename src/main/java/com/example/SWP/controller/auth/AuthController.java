@@ -4,7 +4,6 @@ import com.example.SWP.dto.request.auth.*;
 
 
 import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +50,7 @@ public class AuthController {
             description = "Email is already in use or user already verified"
     )
 
-    //Dang ky tai khoan va nhan ma OTP ve mail
+    //Dang ky tai khoan va nhan ma OTP ve m
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> register(@RequestBody CreateUserRequest request) {
         String message = authService.register(request);
