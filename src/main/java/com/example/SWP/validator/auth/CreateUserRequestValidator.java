@@ -10,6 +10,9 @@ public class CreateUserRequestValidator{
     private static final String EMAIL_REGEX =
             "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
 
+    private static final String PASSWORD_REGEX =
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$";
+
     public void validateEmail(CreateUserRequest request){
         if(request.getEmail() == null || request.getEmail().isEmpty()){
             throw new BusinessException("Email is required.", 400);
@@ -28,6 +31,10 @@ public class CreateUserRequestValidator{
 
         if(!request.getPassword().equals(request.getConfirmPassword())){
             throw new BusinessException("Password and Confirm Password does not match", 400);
+        }
+
+        if(!request.getPassword().matches(PASSWORD_REGEX)){
+            throw new BusinessException("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one special character.", 400);
         }
     }
 }
