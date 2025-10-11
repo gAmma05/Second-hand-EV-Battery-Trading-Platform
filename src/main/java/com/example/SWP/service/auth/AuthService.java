@@ -9,7 +9,7 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.enums.Role;
-import com.example.SWP.exception.ValidationException;
+import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.jwt.JwtService;
 import com.example.SWP.service.mail.MailService;
@@ -122,7 +122,7 @@ public class AuthService {
         Optional<User> result = userRepository.findByEmail(basicLoginRequest.getEmail());
 
         if (result.isEmpty() || !result.get().isEnabled() || !passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
-            throw new ValidationException("Invalid email or password");
+            throw new BusinessException("Invalid email or password", 400);
         }
 
         User user = result.get();

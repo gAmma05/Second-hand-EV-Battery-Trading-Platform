@@ -7,6 +7,7 @@ import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
+import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.UserMapper;
 import com.example.SWP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,15 +50,13 @@ public class UserService {
 
     public UserResponse getUserProfile(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            log.error("Authentication is null or not authenticated");
-            return null;
+            throw new BusinessException("User is not authenticated", 401);
         }
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
-            log.error("User not found: {}", email);
-            return null;
+            throw new BusinessException("User is not found", 404);
         }
 
         return userMapper.toUserResponse(user);
