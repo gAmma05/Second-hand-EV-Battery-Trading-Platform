@@ -31,7 +31,6 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        //Kiem tra con luot dang hay khong
         if (user.getRemainingPosts() <= 0) {
             throw new RuntimeException("You have no remaining post slots. Please upgrade your plan or wait for reset.");
         }

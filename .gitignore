@@ -35,4 +35,7 @@ build/
 ## File which contains secret key, app password -> Mustn't push this on codebase
 .env
 
+### Front end ###
+/front-end/
+
 
