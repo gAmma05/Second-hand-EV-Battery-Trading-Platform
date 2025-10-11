@@ -1,7 +1,7 @@
 package com.example.SWP.validator.auth;
 
 import com.example.SWP.dto.request.auth.CreateUserRequest;
-import com.example.SWP.exception.ValidationException;
+import com.example.SWP.exception.BusinessException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,23 +12,22 @@ public class CreateUserRequestValidator{
 
     public void validateEmail(CreateUserRequest request){
         if(request.getEmail() == null || request.getEmail().isEmpty()){
-            throw new ValidationException("Email is required.");
+            throw new BusinessException("Email is required.", 400);
         }
 
         if(!request.getEmail().matches(EMAIL_REGEX)){
-            throw new ValidationException("Email is not valid.");
+            throw new BusinessException("Email is not valid.", 401);
         }
     }
 
     public void validatePassword(CreateUserRequest request){
 
-
         if(request.getPassword() == null || request.getPassword().isEmpty()){
-            throw new ValidationException("Password is required.");
+            throw new BusinessException("Password is required.", 400);
         }
 
         if(!request.getPassword().equals(request.getConfirmPassword())){
-            throw new ValidationException("Password and Confirm Password does not match");
+            throw new BusinessException("Password and Confirm Password does not match", 400);
         }
     }
 }
