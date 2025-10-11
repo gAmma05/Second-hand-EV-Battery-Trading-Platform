@@ -4,10 +4,8 @@ import com.example.SWP.dto.request.auth.BasicLoginRequest;
 import com.example.SWP.dto.request.auth.GoogleLoginRequest;
 import com.example.SWP.dto.request.auth.CreateUserRequest;
 
-import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
-import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.UserRepository;
@@ -19,9 +17,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,8 +35,7 @@ import java.util.Optional;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class AuthService {
 
-    private GoogleClientService googleClientService;
-
+    GoogleClientService googleClientService;
     UserService userService;
     OtpService otpService;
     MailService mailService;
@@ -49,23 +44,12 @@ public class AuthService {
 
     private JwtService jwtService;
 
-    @NonFinal
-    @Value("${jwt.secret}")
-    String jwtSecret;
-
-    @NonFinal
-    @Value("${jwt.issuer}")
-    String jwtIssuer;
-
-    public ApiResponse<String> register(CreateUserRequest request) {
+    public String register(CreateUserRequest request) {
         String email = request.getEmail();
 
         User user = userService.findByEmail(email);
         if (user != null && user.isEnabled()) {
-            return ApiResponse.<String>builder()
-                    .success(false)
-                    .message("Email is already in use!")
-                    .build();
+            throw new BusinessException("Email is already in use!", 400);
         }
 
         boolean isNewUser = (user == null);
@@ -76,45 +60,27 @@ public class AuthService {
             log.info("User {} exists but not verified. Resending OTP.", email);
         }
 
-        ApiResponse<String> response = otpService.generateAndStoreOtp(email);
+        String otp = otpService.generateAndStoreOtp(email);
 
-        if (!response.isSuccess()) {
-            return response;
-        }
+        mailService.sendOtpEmail(email, otp);
 
-
-        mailService.sendOtpEmail(email, response.getData());
-
-        return ApiResponse.<String>builder()
-                .success(true)
-                .message(isNewUser
-                        ? "Registration successful! Please check your email for OTP."
-                        : "Account already exists but not verified. A new OTP has been sent.")
-                .build();
+        return isNewUser
+                ? "Registration successful! Please check your email for OTP."
+                : "Account already exists but not verified. A new OTP has been sent.";
     }
 
-    public ApiResponse<OtpStatus> verifyOtp(String email, String otpInput) {
+
+    public void verifyRegister(String email, String otpInput) {
         User user = userService.findByEmail(email);
-        if (user == null || user.isEnabled()) {
-            return ApiResponse.<OtpStatus>builder()
-                    .success(false)
-                    .message("Invalid request or user already verified.")
-                    .data(OtpStatus.INVALID)
-                    .build();
+        if (user == null) {
+            throw new BusinessException("User does not exist", 404);
+        }
+        if (user.isEnabled()) {
+            throw new BusinessException("User is already verified", 400);
         }
 
-        OtpStatus status = otpService.verifyOtp(email, otpInput);
-        if (status == OtpStatus.SUCCESS) {
-            userService.enableUser(user);
-        }
-
-        return ApiResponse.<OtpStatus>builder()
-                .success(status == OtpStatus.SUCCESS)
-                .message(status == OtpStatus.SUCCESS
-                        ? "Account verified successfully!"
-                        : "Invalid or expired OTP.")
-                .data(status)
-                .build();
+        otpService.verifyOtp(email, otpInput);
+        userService.enableUser(user);
     }
 
 
@@ -132,7 +98,6 @@ public class AuthService {
 
 
     //GOOGLE (Dung)
-
     @Transactional
     public List<String> processGoogleToken(GoogleLoginRequest googleLoginRequest) {
         List<String> tokenList = new ArrayList<>();
@@ -175,6 +140,32 @@ public class AuthService {
         tokenList.add(jwtService.generateRefreshToken(newUser));
 
         return tokenList;
+    }
+
+    public String forgotPassword(String email) {
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            throw new BusinessException("User does not exist", 404);
+        }
+
+        String otp = otpService.generateAndStoreOtp(email);
+        mailService.sendOtpEmail(email, otp);
+
+        return "OTP has been sent to your email.";
+    }
+
+    public String resetPassword(String email, String otpInput, String newPassword) {
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            throw new BusinessException("User does not exist", 404);
+        }
+
+        otpService.verifyOtp(email, otpInput);
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        return "Password has been reset successfully!";
     }
 }
 

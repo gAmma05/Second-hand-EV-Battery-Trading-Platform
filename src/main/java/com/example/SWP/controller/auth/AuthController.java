@@ -1,12 +1,9 @@
 package com.example.SWP.controller.auth;
 
-import com.example.SWP.dto.request.auth.BasicLoginRequest;
-import com.example.SWP.dto.request.auth.GoogleLoginRequest;
-import com.example.SWP.dto.request.auth.CreateUserRequest;
+import com.example.SWP.dto.request.auth.*;
 
 
 import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.enums.OtpStatus;
 import com.example.SWP.service.auth.AuthService;
 import com.example.SWP.validator.auth.CreateUserRequestValidator;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,7 +58,10 @@ public class AuthController {
             responseCode = "401",
             description = "Email is already in use or user already verified"
     )
+
+    //Dang ky tai khoan va nhan ma OTP ve m
     @PostMapping("/register")
+<<<<<<< HEAD
     public ResponseEntity<?> register(@Valid @RequestBody CreateUserRequest request) {
 
         validator.validateEmail(request);
@@ -73,11 +73,18 @@ public class AuthController {
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(response);
         }
+=======
+    public ResponseEntity<ApiResponse<String>> register(@RequestBody CreateUserRequest request) {
+        String message = authService.register(request);
+
+>>>>>>> main
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(response);
+                .body(ApiResponse.<String>builder()
+                        .success(true)
+                        .message(message)
+                        .build());
     }
-
 
     @Operation(
             summary = "Verify account",
@@ -92,19 +99,20 @@ public class AuthController {
             responseCode = "401",
             description = "Invalid OTP or user already verified"
     )
-    @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<OtpStatus>> verifyOtp(
+
+    //Verify email thong qua ma otp
+    @PostMapping("/verify-register")
+    public ResponseEntity<ApiResponse<Void>> verifyRegister(
             @RequestParam String email,
-            @RequestParam String otp) {
-        ApiResponse<OtpStatus> response = authService.verifyOtp(email, otp);
-        if (!response.isSuccess()) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(response);
-        }
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+            @RequestParam String otp
+    ) {
+        authService.verifyRegister(email, otp);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Account verified successfully!")
+                        .build()
+        );
     }
 
 
@@ -122,6 +130,8 @@ public class AuthController {
             responseCode = "401",
             description = "Wrong username or password"
     )
+
+    // Login co ban voi email va password
     @PostMapping("/basic-login")
     public ResponseEntity<Map<String, Object>> basicLogin(@RequestBody BasicLoginRequest dto) {
         String accessToken = authService.basicLogin(dto);
@@ -132,5 +142,28 @@ public class AuthController {
         return ResponseEntity.ok(body);
     }
 
+    // Gửi OTP forgot password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        String message = authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message(message)
+                        .build()
+        );
+    }
+
+    // Verify OTP và reset password
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        String message = authService.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message(message)
+                        .build()
+        );
+    }
 }
 

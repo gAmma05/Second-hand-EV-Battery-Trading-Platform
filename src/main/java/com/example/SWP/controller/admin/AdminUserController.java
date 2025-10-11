@@ -1,6 +1,9 @@
 package com.example.SWP.controller.admin;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 import com.example.SWP.dto.request.admin.AdminCreateUserRequest;
 import com.example.SWP.dto.request.admin.AdminUpdateUserRequest;
 

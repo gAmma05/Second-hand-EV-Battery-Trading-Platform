@@ -33,10 +33,14 @@ build/
 .vscode/
 
 ## File which contains secret key, app password -> Mustn't push this on codebase
+<<<<<<< HEAD
 .env
 
 ### Front end ###
 /front-end/
 
+=======
+src/main/resources/.env
+>>>>>>> main
 
 

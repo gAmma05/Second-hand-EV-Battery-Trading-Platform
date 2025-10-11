@@ -59,7 +59,7 @@ public class PostService {
                 .postDate(LocalDateTime.now())
                 .expiryDate(LocalDateTime.now().plusDays(expireDays))
                 .viewCount(0)
-                .linkCount(0)
+                .likeCount(0)
                 .build();
 
         if (user.getSellerPlan() == SellerPlan.BASIC) {
