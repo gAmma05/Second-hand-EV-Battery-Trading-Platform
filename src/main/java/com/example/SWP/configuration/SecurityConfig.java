@@ -53,9 +53,9 @@ public class SecurityConfig {
                                 .requestMatchers("/swagger-ui.html").permitAll()
                                 .requestMatchers("/webjars/**").permitAll()
                                 .requestMatchers("/auth/**", "/public/**").permitAll()
-                                .requestMatchers("/seller/payment/notify").permitAll()
-                                .requestMatchers("/seller/payment/return").permitAll()
-//                        .requestMatchers("/api/auth/google").permitAll()
+                                .requestMatchers("/seller/package-payment/create").permitAll()
+                                .requestMatchers("/seller/package-payment/vnpay-return").permitAll()
+
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/seller/**").hasAnyRole("SELLER", "ADMIN")
                                 .requestMatchers("/buyer/**").hasAnyRole("BUYER", "ADMIN")
