@@ -4,7 +4,7 @@ import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.PostStatus;
-import com.example.SWP.enums.SellerPlan;
+import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;
@@ -62,10 +62,10 @@ public class PostService {
                 .likeCount(0)
                 .build();
 
-        if (user.getSellerPlan() == SellerPlan.BASIC) {
+        if (user.getSellerPlan() == SellerPackageType.BASIC) {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
-        } else if (user.getSellerPlan() == SellerPlan.PREMIUM) {
+        } else if (user.getSellerPlan() == SellerPackageType.PREMIUM) {
             post.setStatus(PostStatus.PENDING);
         }
 
@@ -100,9 +100,9 @@ public class PostService {
         post.setPaymentTypes(request.getPaymentTypes());
         post.setUpdateDate(LocalDateTime.now());
 
-        if (user.getSellerPlan() == SellerPlan.BASIC) {
+        if (user.getSellerPlan() == SellerPackageType.BASIC) {
             post.setStatus(PostStatus.POSTED);
-        } else if (user.getSellerPlan() == SellerPlan.PREMIUM) {
+        } else if (user.getSellerPlan() == SellerPackageType.PREMIUM) {
             post.setStatus(PostStatus.PENDING);
         }
 

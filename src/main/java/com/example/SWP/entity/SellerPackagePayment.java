@@ -1,6 +1,5 @@
 package com.example.SWP.entity;
 
-import com.example.SWP.enums.PaymentMethod;
 import com.example.SWP.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,13 +8,13 @@ import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "package_payments")
+@Table(name = "seller_package_payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PackagePayment {
+public class SellerPackagePayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -36,5 +35,5 @@ public class PackagePayment {
 
     @ManyToOne
     @JoinColumn(name = "package_id")
-    Package boughtPackage;
+    SellerPackage boughtPackage;
 }
