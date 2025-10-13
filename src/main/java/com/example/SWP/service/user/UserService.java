@@ -86,12 +86,10 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User not found", 404));
 
-        // Kiem tra mat khau hien tai
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BusinessException("Current password is incorrect", 400);
         }
 
-        // Cap nhat mat khau moi
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }

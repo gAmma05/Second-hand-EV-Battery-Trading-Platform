@@ -36,7 +36,6 @@ public class User {
     String socialMedia;
     int remainingPosts;
 
-
     LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
     AuthProvider provider;
@@ -44,6 +43,7 @@ public class User {
     Role role;
     @Enumerated(EnumType.STRING)
     SellerPlan sellerPlan;
+    LocalDateTime planExpiry;
     boolean enabled;
 
 
