@@ -1,5 +1,6 @@
 package com.example.SWP.controller.seller;
 
+import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.Package;
 import com.example.SWP.entity.PackagePayment;
 import com.example.SWP.entity.User;
@@ -42,27 +43,32 @@ public class PackagePaymentController {
 
 
     @GetMapping("/vnpay-return")
-    public ResponseEntity<?> vnpayReturn(@RequestParam Map<String, String> params) {
+    public ResponseEntity<ApiResponse<Void>> vnpayReturn(@RequestParam Map<String, String> params) {
         try {
             String orderId = params.get("vnp_TxnRef");
             String responseCode = params.get("vnp_ResponseCode");
 
             PackagePayment payment = packagePaymentService.updatePackagePayment(orderId, responseCode);
 
-            Map<String, Object> result = new HashMap<>();
-            result.put("orderId", orderId);
-            result.put("status", payment.getStatus());
-            result.put("amount", payment.getAmount());
-            result.put("updatedAt", payment.getUpdatedAt());
-            result.put("planType", payment.getBoughtPackage().getPlanType());
-            result.put("message",
-                    payment.getStatus() == PaymentStatus.SUCCESS
-                            ? "Payment successful"
-                            : "Payment failed");
+            String message = (payment.getStatus() == PaymentStatus.SUCCESS)
+                    ? "Payment successful"
+                    : "Payment failed";
 
-            return ResponseEntity.ok(result);
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                    .success(true)
+                    .message(message)
+                    .build();
+
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
+                    .success(false)
+                    .message("Payment error: " + e.getMessage())
+                    .build();
+
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
 }
