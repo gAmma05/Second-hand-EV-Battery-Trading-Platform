@@ -125,7 +125,7 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public List<Post> getPostsBySeller(Authentication authentication) {
+    public List<Post> getMyPosts(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));

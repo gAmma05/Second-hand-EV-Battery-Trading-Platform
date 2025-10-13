@@ -52,7 +52,7 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Post>>> getMyPosts(Authentication authentication) {
-        List<Post> posts = postService.getPostsBySeller(authentication);
+        List<Post> posts = postService.getMyPosts(authentication);
         return ResponseEntity.ok(
                 ApiResponse.<List<Post>>builder()
                         .success(true)

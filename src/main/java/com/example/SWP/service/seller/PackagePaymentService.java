@@ -54,7 +54,7 @@ public class PackagePaymentService {
         vnp_Params.put("vnp_Amount", String.valueOf(pkg.getPrice() * 100));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", payment.getOrderId());
-        vnp_Params.put("vnp_OrderInfo", "Mua gói " + pkg.getPlanType());
+        vnp_Params.put("vnp_OrderInfo", "Purchase package " + pkg.getPlanType());
         vnp_Params.put("vnp_OrderType", "billpayment");
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnp_Config.getReturnUrl());
@@ -98,13 +98,38 @@ public class PackagePaymentService {
         PackagePayment packagePayment = packagePaymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new BusinessException("PackagePayment not found", 404));
 
+        //Thanh toan thanh cong
         if ("00".equals(responseCode)) {
             packagePayment.setStatus(PaymentStatus.SUCCESS);
+
             User user = packagePayment.getUser();
             Package pkg = packagePayment.getBoughtPackage();
+
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime expiry = user.getPlanExpiry();
+
+            //Goi van con han
+            boolean isStillActive = expiry != null && expiry.isAfter(now);
+
+            LocalDateTime newExpiry;
+            if (isStillActive) {
+                //Neu goi van con han thi van giu so luot dang cu
+                newExpiry = expiry.plusDays(pkg.getDurationDays());
+
+                int oldRemaining = user.getRemainingPosts();
+                int newTotalPosts = oldRemaining + pkg.getPostLimit();
+                user.setRemainingPosts(newTotalPosts);
+            } else {
+                //Neu het han thi xoa so luot dang cu
+                newExpiry = now.plusDays(pkg.getDurationDays());
+                user.setRemainingPosts(pkg.getPostLimit());
+            }
+
             user.setSellerPlan(pkg.getPlanType());
-            user.setPlanExpiry(LocalDateTime.now().plusDays(pkg.getDurationDays()));
+            user.setPlanExpiry(newExpiry);
+
             userRepository.save(user);
+
         } else {
             packagePayment.setStatus(PaymentStatus.FAILED);
         }
@@ -113,4 +138,5 @@ public class PackagePaymentService {
         packagePayment.setUpdatedAt(LocalDateTime.now());
         return packagePaymentRepository.save(packagePayment);
     }
+
 }
