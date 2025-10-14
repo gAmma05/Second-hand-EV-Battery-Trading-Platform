@@ -67,9 +67,7 @@ public class AuthController {
         validator.validateEmail(request);
         validator.validatePassword(request);
 
-
         String message = authService.register(request);
-
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -124,16 +122,12 @@ public class AuthController {
             description = "Wrong username or password"
     )
 
-    // Login co ban voi email va password
     @PostMapping("/basic-login")
     public ResponseEntity<Map<String, Object>> basicLogin(@RequestBody BasicLoginRequest dto) {
-        String accessToken = authService.basicLogin(dto);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("accessToken", accessToken);
-
-        return ResponseEntity.ok(body);
+        Map<String, Object> response = authService.basicLogin(dto);
+        return ResponseEntity.ok(response);
     }
+
 
     // Gửi OTP forgot password
     @PostMapping("/forgot-password")
