@@ -63,7 +63,6 @@ public class AuthService {
         String otp = otpService.generateAndStoreOtp(email);
 
         mailService.sendOtpEmail(email, otp);
-
         return isNewUser
                 ? "Registration successful! Please check your email for OTP."
                 : "Account already exists but not verified. A new OTP has been sent.";
