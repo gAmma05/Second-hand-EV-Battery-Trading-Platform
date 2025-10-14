@@ -4,10 +4,12 @@ import com.example.SWP.dto.request.auth.BasicLoginRequest;
 import com.example.SWP.dto.request.auth.GoogleLoginRequest;
 import com.example.SWP.dto.request.auth.CreateUserRequest;
 
+import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.mapper.UserMapper;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.jwt.JwtService;
 import com.example.SWP.service.mail.MailService;
@@ -24,9 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
@@ -41,8 +41,8 @@ public class AuthService {
     MailService mailService;
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
-
-    private JwtService jwtService;
+    UserMapper userMapper;
+    JwtService jwtService;
 
     public String register(CreateUserRequest request) {
         String email = request.getEmail();
@@ -84,17 +84,25 @@ public class AuthService {
     }
 
 
-    public String basicLogin(BasicLoginRequest basicLoginRequest) {
+    public Map<String, Object> basicLogin(BasicLoginRequest basicLoginRequest) {
         Optional<User> result = userRepository.findByEmail(basicLoginRequest.getEmail());
 
-        if (result.isEmpty() || !result.get().isEnabled() || !passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
+        if (result.isEmpty() || !result.get().isEnabled() ||
+                !passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
             throw new BusinessException("Invalid email or password", 400);
         }
 
         User user = result.get();
+        UserResponse userResponse = userMapper.toUserResponse(user);
+        String accessToken = jwtService.generateAccessToken(user);
 
-        return jwtService.generateAccessToken(user);
+        Map<String, Object> body = new HashMap<>();
+        body.put("accessToken", accessToken);
+        body.put("user", userResponse);
+
+        return body;
     }
+
 
 
     //GOOGLE (Dung)

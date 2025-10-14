@@ -58,6 +58,7 @@ public class Post {
     boolean isTrusted;
 
     boolean isPriority;
+    LocalDateTime priorityExpire;
 
     @Enumerated(EnumType.STRING)
     PostStatus status;

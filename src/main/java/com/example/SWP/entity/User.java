@@ -2,7 +2,7 @@ package com.example.SWP.entity;
 
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
-import com.example.SWP.enums.SellerPlan;
+import com.example.SWP.enums.SellerPackageType;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -42,10 +42,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     Role role;
     @Enumerated(EnumType.STRING)
-    SellerPlan sellerPlan;
+    SellerPackageType sellerPlan;
     LocalDateTime planExpiry;
     boolean enabled;
-
 
     boolean status;
 }
