@@ -20,9 +20,9 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PaymentService {
 
-    PackagePaymentRepository packagePaymentRepository;
+    SellerPackagePaymentRepository packagePaymentRepository;
     UserRepository userRepository;
-    PackageRepository packageRepository;
+    SellerPackageRepository packageRepository;
     VnPayService vnPayService;
     PostRepository postRepository;
     PriorityPackageRepository priorityPackageRepository;
@@ -45,7 +45,7 @@ public class PaymentService {
 
         SellerPackagePayment payment = SellerPackagePayment.builder()
                 .user(user)
-                .boughtPackage(pkg)
+                .sellerPackage(pkg)
                 .amount(pkg.getPrice())
                 .status(PaymentStatus.PENDING)
                 .orderId(String.valueOf(System.currentTimeMillis()))
@@ -59,15 +59,15 @@ public class PaymentService {
 
 
     public SellerPackagePayment sellerPackagePaymentReturn(String orderId, String responseCode) {
-        SellerPackagePayment packagePayment = packagePaymentRepository.findByOrderId(orderId)
+        SellerPackagePayment payment = packagePaymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new BusinessException("PackagePayment not found", 404));
 
         //Thanh toan thanh cong
         if ("00".equals(responseCode)) {
-            packagePayment.setStatus(PaymentStatus.SUCCESS);
+            payment.setStatus(PaymentStatus.SUCCESS);
 
-            User user = packagePayment.getUser();
-            SellerPackage pkg = packagePayment.getBoughtPackage();
+            User user = payment.getUser();
+            SellerPackage sellerPackage = payment.getSellerPackage();
 
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime expiry = user.getPlanExpiry();
@@ -78,29 +78,29 @@ public class PaymentService {
             LocalDateTime newExpiry;
             if (isStillActive) {
                 //Neu goi van con han thi van giu so luot dang cu
-                newExpiry = expiry.plusDays(pkg.getDurationDays());
+                newExpiry = expiry.plusDays(sellerPackage.getDurationDays());
 
                 int oldRemaining = user.getRemainingPosts();
-                int newTotalPosts = oldRemaining + pkg.getPostLimit();
+                int newTotalPosts = oldRemaining + sellerPackage.getPostLimit();
                 user.setRemainingPosts(newTotalPosts);
             } else {
                 //Neu het han thi xoa so luot dang cu
-                newExpiry = now.plusDays(pkg.getDurationDays());
-                user.setRemainingPosts(pkg.getPostLimit());
+                newExpiry = now.plusDays(sellerPackage.getDurationDays());
+                user.setRemainingPosts(sellerPackage.getPostLimit());
             }
 
-            user.setSellerPlan(pkg.getType());
+            user.setSellerPackageId(sellerPackage.getId());
             user.setPlanExpiry(newExpiry);
 
             userRepository.save(user);
 
         } else {
-            packagePayment.setStatus(PaymentStatus.FAILED);
+            payment.setStatus(PaymentStatus.FAILED);
         }
 
-        packagePayment.setVnpResponseCode(responseCode);
-        packagePayment.setUpdatedAt(LocalDateTime.now());
-        return packagePaymentRepository.save(packagePayment);
+        payment.setVnpResponseCode(responseCode);
+        payment.setUpdatedAt(LocalDateTime.now());
+        return packagePaymentRepository.save(payment);
     }
 
     public String priorityPackagePayment(String email, Long postId, Long priorityPackageId) {
@@ -137,12 +137,16 @@ public class PaymentService {
             payment.setStatus(PaymentStatus.SUCCESS);
 
             Post post = payment.getPost();
-            post.setPriority(true);
+            post.setPriorityPackageId(payment.getPriorityPackage().getId());
             post.setExpiryDate(LocalDateTime.now().plusDays(payment.getPriorityPackage().getDurationDays()));
 
             postRepository.save(post);
         } else {
             payment.setStatus(PaymentStatus.FAILED);
+
+            Post post = payment.getPost();
+            post.setPriorityPackageId(null);
+            postRepository.save(post);
         }
 
         payment.setVnpResponseCode(responseCode);

@@ -2,9 +2,6 @@ package com.example.SWP.dto.request.seller;
 
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
-import com.example.SWP.enums.PriorityPackageType;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,13 +12,12 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreatePostRequest {
+public class UpdatePostRequest {
     String productType;
     String title;
     String description;
     double price;
     String address;
-    Long priorityPackageId;
     Set<DeliveryMethod> deliveryMethods;
     Set<PaymentType> paymentTypes;
 }

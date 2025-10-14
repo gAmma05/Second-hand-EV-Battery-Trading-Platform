@@ -1,13 +1,16 @@
 package com.example.SWP.controller.seller;
 
 import com.example.SWP.dto.request.seller.CreatePostRequest;
+import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.dto.response.ApiResponse;
+import com.example.SWP.dto.response.CreatePostResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.service.seller.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,28 +20,30 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class PostController {
-    private final PostService postService;
+    PostService postService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Post>> createPost(
+    public ResponseEntity<ApiResponse<CreatePostResponse>> createPost(
             Authentication authentication,
             @RequestBody CreatePostRequest request
     ) {
-        Post post = postService.createPost(authentication, request);
+        CreatePostResponse response = postService.createPost(authentication, request);
+
         return ResponseEntity.ok(
-                ApiResponse.<Post>builder()
+                ApiResponse.<CreatePostResponse>builder()
                         .success(true)
                         .message("Post created successfully")
-                        .data(post)
+                        .data(response)
                         .build()
         );
     }
+
 
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse<Post>> updatePost(
             Authentication authentication,
             @PathVariable Long postId,
-            @RequestBody CreatePostRequest request
+            @RequestBody UpdatePostRequest request
     ) {
         Post updatedPost = postService.updatePost(authentication, postId, request);
         return ResponseEntity.ok(

@@ -41,8 +41,7 @@ public class User {
     AuthProvider provider;
     @Enumerated(EnumType.STRING)
     Role role;
-    @Enumerated(EnumType.STRING)
-    SellerPackageType sellerPlan;
+    Long sellerPackageId;
     LocalDateTime planExpiry;
     boolean enabled;
 
