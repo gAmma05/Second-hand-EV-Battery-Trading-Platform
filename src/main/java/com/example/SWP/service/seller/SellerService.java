@@ -4,7 +4,7 @@ import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.Role;
-import com.example.SWP.enums.SellerPlan;
+import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class SellerService {
         user.setStoreDescription(request.getShopDescription());
         user.setSocialMedia(request.getSocialMedia());
         user.setRemainingPosts(3);
-        user.setSellerPlan(SellerPlan.BASIC);
+        user.setSellerPlan(SellerPackageType.BASIC);
         userRepository.save(user);
     }
 }

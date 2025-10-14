@@ -1,9 +1,11 @@
 package com.example.SWP.configuration;
 
-import com.example.SWP.entity.Package;
+import com.example.SWP.entity.PriorityPackage;
+import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.*;
 import com.example.SWP.repository.PackageRepository;
+import com.example.SWP.repository.PriorityPackageRepository;
 import com.example.SWP.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,26 +25,40 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner {
 
     final PackageRepository packageRepository;
+    final PriorityPackageRepository priorityPackageRepository;
     final UserRepository userRepository;
     final PasswordEncoder passwordEncoder;
 
-    @Value("${package.basic.price}")
-    int basicPrice;
+    @Value("${seller-package.basic.price}")
+    int basicPrice_sellerPackage;
 
-    @Value("${package.basic.durationDays}")
-    int basicDurationDays;
+    @Value("${seller-package.basic.durationDays}")
+    int basicDurationDays_sellerPackage;
 
-    @Value("${package.basic.maxPosts}")
-    int basicMaxPosts;
+    @Value("${seller-package.basic.maxPosts}")
+    int basicMaxPosts_sellerPackage;
 
-    @Value("${package.premium.price}")
-    int premiumPrice;
+    @Value("${seller-package.premium.price}")
+    int premiumPrice_sellerPackage;
 
-    @Value("${package.premium.durationDays}")
-    int premiumDurationDays;
+    @Value("${seller-package.premium.durationDays}")
+    int premiumDurationDays_sellerPackage;
 
-    @Value("${package.premium.maxPosts}")
-    int premiumMaxPosts;
+    @Value("${seller-package.premium.maxPosts}")
+    int premiumMaxPosts_sellerPackage;
+
+    @Value("${priority-package.basic.price}")
+    int basicPrice_priorityPackage;
+
+    @Value("${priority-package.basic.durationDays}")
+    int basicDurationDays_priorityPackage;
+
+    @Value("${priority-package.premium.price}")
+    int premiumPrice_priorityPackage;
+
+    @Value("${priority-package.premium.durationDays}")
+    int premiumDurationDays_priorityPackage;
+
 
     @Override
     public void run(String... args) {
@@ -50,24 +66,44 @@ public class DataInitializer implements CommandLineRunner {
         //Tao package
         if (packageRepository.count() == 0) {
 
-            Package basic = Package.builder()
-                    .planType(SellerPlan.BASIC)
-                    .price(basicPrice)
-                    .durationDays(basicDurationDays)
-                    .postLimit(basicMaxPosts)
+            SellerPackage basic = SellerPackage.builder()
+                    .type(SellerPackageType.BASIC)
+                    .price(basicPrice_sellerPackage)
+                    .durationDays(basicDurationDays_sellerPackage)
+                    .postLimit(basicMaxPosts_sellerPackage)
                     .build();
 
-            Package premium = Package.builder()
-                    .planType(SellerPlan.PREMIUM)
-                    .price(premiumPrice)
-                    .durationDays(premiumDurationDays)
-                    .postLimit(premiumMaxPosts)
+            SellerPackage premium = SellerPackage.builder()
+                    .type(SellerPackageType.PREMIUM)
+                    .price(premiumPrice_sellerPackage)
+                    .durationDays(premiumDurationDays_sellerPackage)
+                    .postLimit(premiumMaxPosts_sellerPackage)
                     .build();
 
             packageRepository.saveAll(List.of(basic, premium));
-            log.info("Packages (BASIC, PREMIUM) loaded from application.properties");
+            log.info("Seller packages (BASIC, PREMIUM) loaded from application.properties");
         } else {
-            log.info("Packages already exist, skipping initialization");
+            log.info("Seller packages already exist, skipping initialization");
+        }
+
+        if (priorityPackageRepository.count() == 0) {
+
+            PriorityPackage basicPriority = PriorityPackage.builder()
+                    .type(PriorityPackageType.BASIC)
+                    .price(basicPrice_priorityPackage)
+                    .durationDays(basicDurationDays_priorityPackage)
+                    .build();
+
+            PriorityPackage premiumPriority = PriorityPackage.builder()
+                    .type(PriorityPackageType.PREMIUM)
+                    .price(premiumPrice_priorityPackage)
+                    .durationDays(premiumDurationDays_priorityPackage)
+                    .build();
+
+            priorityPackageRepository.saveAll(List.of(basicPriority, premiumPriority));
+            log.info("Priority packages (BASIC, PREMIUM) loaded from application.properties");
+        } else {
+            log.info("Priority packages already exist, skipping initialization");
         }
 
         //Tao admin

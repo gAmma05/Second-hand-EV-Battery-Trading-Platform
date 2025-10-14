@@ -1,6 +1,6 @@
 package com.example.SWP.enums;
 
-public enum SellerPlan {
+public enum PriorityPackageType {
     BASIC,
     PREMIUM
 }
