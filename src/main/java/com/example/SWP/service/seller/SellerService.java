@@ -33,7 +33,6 @@ public class SellerService {
         user.setStoreDescription(request.getShopDescription());
         user.setSocialMedia(request.getSocialMedia());
         user.setRemainingPosts(3);
-        user.setSellerPlan(SellerPackageType.BASIC);
         userRepository.save(user);
     }
 }

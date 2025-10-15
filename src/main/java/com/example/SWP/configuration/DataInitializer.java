@@ -4,7 +4,7 @@ import com.example.SWP.entity.PriorityPackage;
 import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.*;
-import com.example.SWP.repository.PackageRepository;
+import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.PriorityPackageRepository;
 import com.example.SWP.repository.UserRepository;
 import lombok.AccessLevel;
@@ -24,7 +24,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DataInitializer implements CommandLineRunner {
 
-    final PackageRepository packageRepository;
+    final SellerPackageRepository packageRepository;
     final PriorityPackageRepository priorityPackageRepository;
     final UserRepository userRepository;
     final PasswordEncoder passwordEncoder;

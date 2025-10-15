@@ -35,5 +35,5 @@ public class SellerPackagePayment {
 
     @ManyToOne
     @JoinColumn(name = "package_id")
-    SellerPackage boughtPackage;
+    SellerPackage sellerPackage;
 }

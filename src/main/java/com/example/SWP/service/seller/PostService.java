@@ -1,13 +1,18 @@
 package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.seller.CreatePostRequest;
+import com.example.SWP.dto.request.seller.UpdatePostRequest;
+import com.example.SWP.dto.response.CreatePostResponse;
 import com.example.SWP.entity.Post;
+import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.PostRepository;
+import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.payment.VnPayService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
@@ -25,6 +30,8 @@ public class PostService {
 
     PostRepository postRepository;
     UserRepository userRepository;
+    SellerPackageRepository sellerPackageRepository;
+    PaymentService paymentService;
 
     @NonFinal
     @Value("${post.expire.days}")
@@ -34,8 +41,9 @@ public class PostService {
     @Value("${post.update.limitDays}")
     int limitDays;
 
-    public Post createPost(Authentication authentication, CreatePostRequest request) {
+    public CreatePostResponse createPost(Authentication authentication, CreatePostRequest request) {
         String email = authentication.getName();
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
@@ -46,6 +54,11 @@ public class PostService {
             );
         }
 
+        SellerPackage sellerPackage = null;
+        if (user.getSellerPackageId() != null) {
+            sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
+        }
+
         Post post = Post.builder()
                 .user(user)
                 .productType(request.getProductType())
@@ -53,7 +66,7 @@ public class PostService {
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .address(request.getAddress())
-                .isPriority(request.isPriority())
+                .priorityPackageId(request.getPriorityPackageId())
                 .deliveryMethods(request.getDeliveryMethods())
                 .paymentTypes(request.getPaymentTypes())
                 .postDate(LocalDateTime.now())
@@ -62,19 +75,41 @@ public class PostService {
                 .likeCount(0)
                 .build();
 
-        if (user.getSellerPlan() == SellerPackageType.BASIC) {
+        //Neu chua mua goi
+        if (sellerPackage == null) {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
-        } else if (user.getSellerPlan() == SellerPackageType.PREMIUM) {
-            post.setStatus(PostStatus.PENDING);
+        }
+        //Neu mua goi
+        else {
+            switch (sellerPackage.getType()) {
+                case BASIC -> {
+                    post.setStatus(PostStatus.POSTED);
+                    post.setTrusted(false);
+                }
+                case PREMIUM -> {
+                    post.setStatus(PostStatus.PENDING);
+                }
+            }
         }
 
         user.setRemainingPosts(user.getRemainingPosts() - 1);
+        userRepository.save(user);
 
-        return postRepository.save(post);
+        post = postRepository.save(post);
+
+        String paymentUrl = null;
+        if (request.getPriorityPackageId() != null) {
+            paymentUrl = paymentService.priorityPackagePayment(user.getEmail(), post.getId(), request.getPriorityPackageId());
+        }
+
+        return CreatePostResponse.builder()
+                .post(post)
+                .paymentUrl(paymentUrl)
+                .build();
     }
 
-    public Post updatePost(Authentication authentication, Long postId, CreatePostRequest request) {
+    public Post updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
@@ -86,8 +121,8 @@ public class PostService {
             throw new BusinessException("You do not have permission to update this post", 403);
         }
 
-        if (post.getExpiryDate().isBefore(LocalDateTime.now().minusDays(limitDays))) {
-            throw new BusinessException("You cannot update an expired post after " + limitDays + " days", 400);
+        if (post.getPostDate().plusDays(limitDays).isBefore(LocalDateTime.now())) {
+            throw new BusinessException("You cannot update this post after " + limitDays + " days from posting", 400);
         }
 
         post.setProductType(request.getProductType());
@@ -95,19 +130,33 @@ public class PostService {
         post.setDescription(request.getDescription());
         post.setPrice(request.getPrice());
         post.setAddress(request.getAddress());
-        post.setPriority(request.isPriority());
         post.setDeliveryMethods(request.getDeliveryMethods());
         post.setPaymentTypes(request.getPaymentTypes());
         post.setUpdateDate(LocalDateTime.now());
 
-        if (user.getSellerPlan() == SellerPackageType.BASIC) {
+        SellerPackage sellerPackage = null;
+        if (user.getSellerPackageId() != null) {
+            sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
+        }
+
+        if (sellerPackage == null) {
             post.setStatus(PostStatus.POSTED);
-        } else if (user.getSellerPlan() == SellerPackageType.PREMIUM) {
-            post.setStatus(PostStatus.PENDING);
+            post.setTrusted(false);
+        } else {
+            switch (sellerPackage.getType()) {
+                case BASIC -> {
+                    post.setStatus(PostStatus.POSTED);
+                    post.setTrusted(false);
+                }
+                case PREMIUM -> {
+                    post.setStatus(PostStatus.PENDING);
+                }
+            }
         }
 
         return postRepository.save(post);
     }
+
 
     public void deletePost(Authentication authentication, Long postId) {
         String email = authentication.getName();
