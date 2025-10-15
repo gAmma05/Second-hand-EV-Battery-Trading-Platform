@@ -18,15 +18,16 @@ import java.util.Set;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     Long id;
 
     String title;
     String content;
-    LocalDateTime createdAt;
+    LocalDateTime createdAt = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "notification")
-    Set<User> receiverList;
+    @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
+    Set<UserNotification> userNotifications;
 }
+

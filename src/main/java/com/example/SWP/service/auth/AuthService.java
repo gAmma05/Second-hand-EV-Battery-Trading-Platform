@@ -157,7 +157,7 @@ public class AuthService {
     }
 
     private void createNotification(User user, String title, String content) {
-        notificationService.sendNotificationToOneUser(user.getId(), title, content);
+        notificationService.sendNotificationToOneUser(user.getEmail(), title, content);
     }
 
     public String forgotPassword(String email) {
