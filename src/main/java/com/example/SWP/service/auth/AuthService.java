@@ -14,6 +14,7 @@ import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.jwt.JwtService;
 import com.example.SWP.service.mail.MailService;
 import com.example.SWP.service.mail.OtpService;
+import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.transaction.Transactional;
@@ -39,6 +40,7 @@ public class AuthService {
     UserService userService;
     OtpService otpService;
     MailService mailService;
+    NotificationService notificationService;
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
@@ -81,6 +83,9 @@ public class AuthService {
 
         otpService.verifyOtp(email, otpInput);
         userService.enableUser(user);
+        createNotification(user, "Welcome to Second-hand EV Battery Trading Platform!", "You have successfully registered to our platform. " +
+                "Please fill in your profile information to complete your profile before purchasing. " +
+                "Thank you!");
     }
 
 
@@ -102,7 +107,6 @@ public class AuthService {
 
         return body;
     }
-
 
 
     //GOOGLE (Dung)
@@ -144,10 +148,18 @@ public class AuthService {
 
         userRepository.save(newUser);
 
+        createNotification(newUser, "Welcome to Second-hand EV Battery Trading Platform!", "You have successfully registered to our platform. " +
+                "Please fill in your profile information to complete your profile before purchasing. " +
+                "Thank you!");
+
         tokenList.add(jwtService.generateAccessToken(newUser));
         tokenList.add(jwtService.generateRefreshToken(newUser));
 
         return tokenList;
+    }
+
+    private void createNotification(User user, String title, String content) {
+        notificationService.sendNotificationToOneUser(user.getId(), title, content);
     }
 
     public String forgotPassword(String email) {
@@ -172,6 +184,8 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+
+        createNotification(user, "Reset password", "You have successfully changed the password");
 
         return "Password has been reset successfully!";
     }
