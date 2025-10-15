@@ -8,9 +8,11 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.NotificationRepository;
 import com.example.SWP.repository.UserNotificationRepository;
 import com.example.SWP.repository.UserRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Service
 public class NotificationService {
@@ -28,16 +30,16 @@ public class NotificationService {
         this.userNotificationRepository = userNotificationRepository;
     }
 
-    public void sendNotificationToOneUser(Long id, String title, String content) {
+    public void sendNotificationToOneUser(String email, String title, String content) {
         if (title == null || content == null) {
             return;
         }
 
-        if (!userRepository.existsById(id)) {
-            throw new BusinessException("User does not exist", 404);
+        if(email == null){
+            throw new BusinessException("Email is null", 400);
         }
 
-        User user = userRepository.getReferenceById(id);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("User not found", 404));
 
         Notification notification = new Notification();
         notification.setTitle(title);
@@ -89,6 +91,14 @@ public class NotificationService {
 
         userNotification.setRead(true);
         userNotificationRepository.save(userNotification);
+    }
+
+    public Set<UserNotification> getUnreadNotifications(Authentication authentication){
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+
+        return userNotificationRepository.findByUserAndIsReadFalse(user);
     }
 
 }

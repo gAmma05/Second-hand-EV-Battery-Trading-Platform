@@ -29,8 +29,10 @@ public class UserNotification {
     @JoinColumn(name = "id")
     Notification notification;
 
+    @Column(name = "is_read")
     boolean isRead;
 
+    @Column(name = "received_at")
     LocalDateTime receivedAt = LocalDateTime.now();
 
     public UserNotification(User user, Notification notification) {
