@@ -11,19 +11,21 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-
 @Table(name = "user_notification")
 @NoArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-
 public class UserNotification {
+
     @EmbeddedId
     UserNotificationKey id;
 
     @ManyToOne
     @MapsId("userId")
     @JoinColumn(name = "user_id")
+<<<<<<< HEAD
     @JsonIgnore
+=======
+>>>>>>> main
     User user;
 
     @ManyToOne

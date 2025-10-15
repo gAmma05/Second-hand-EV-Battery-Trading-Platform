@@ -8,22 +8,23 @@ import lombok.experimental.FieldDefaults;
 import java.io.Serializable;
 import java.util.Objects;
 
-@Data
-
-@NoArgsConstructor
-
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Embeddable
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserNotificationKey implements Serializable {
 
+<<<<<<< HEAD
     Long userId;
 
-    Long notificationId;
+=======
+    @Column(name = "user_id")
+    Long userId;
 
-    public UserNotificationKey(Long userId, Long notificationId) {
-        this.userId = userId;
-        this.notificationId = notificationId;
-    }
+    @Column(name = "notification_id")
+>>>>>>> main
+    Long notificationId;
 
     @Override
     public boolean equals(Object o) {
@@ -39,3 +40,4 @@ public class UserNotificationKey implements Serializable {
         return Objects.hash(userId, notificationId);
     }
 }
+

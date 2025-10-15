@@ -28,6 +28,26 @@ public class SellerService {
             throw new BusinessException("User is already a seller", 400);
         }
 
+        if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
+            throw new BusinessException("Please update your full name before upgrading to seller", 400);
+        }
+        if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+            throw new BusinessException("Please update your phone number before upgrading to seller", 400);
+        }
+        if (user.getAddress() == null || user.getAddress().trim().isEmpty()) {
+            throw new BusinessException("Please update your address before upgrading to seller", 400);
+        }
+
+        if (request.getShopName() == null || request.getShopName().trim().isEmpty()) {
+            throw new BusinessException("Shop name is required", 400);
+        }
+        if (request.getShopDescription() == null || request.getShopDescription().trim().isEmpty()) {
+            throw new BusinessException("Shop description is required", 400);
+        }
+        if (request.getSocialMedia() == null || request.getSocialMedia().trim().isEmpty()) {
+            throw new BusinessException("Social Media is required", 400);
+        }
+
         user.setRole(Role.SELLER);
         user.setStoreName(request.getShopName());
         user.setStoreDescription(request.getShopDescription());
@@ -35,4 +55,5 @@ public class SellerService {
         user.setRemainingPosts(3);
         userRepository.save(user);
     }
+
 }
