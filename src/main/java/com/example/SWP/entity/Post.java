@@ -3,6 +3,7 @@ package com.example.SWP.entity;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import com.example.SWP.enums.PostStatus;
+import com.example.SWP.enums.PriorityPackageType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -57,7 +58,7 @@ public class Post {
     String address;
     boolean isTrusted;
 
-    boolean isPriority;
+    Long priorityPackageId;
     LocalDateTime priorityExpire;
 
     @Enumerated(EnumType.STRING)
