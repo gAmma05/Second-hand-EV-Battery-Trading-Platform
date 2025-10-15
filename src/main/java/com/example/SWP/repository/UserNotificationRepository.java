@@ -9,6 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface UserNotificationRepository extends JpaRepository<UserNotification, UserNotificationKey> {
-    Set<UserNotification> findByUserId(Long userId);
-    Set<UserNotification> findByUserAndIsReadFalse(User user);
+    List<UserNotification> findByUserId(Long userId);
+    List<UserNotification> findAllByUser(User user);
 }

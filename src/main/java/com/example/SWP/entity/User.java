@@ -1,6 +1,7 @@
 package com.example.SWP.entity;
 
 import com.example.SWP.entity.notification.Notification;
+import com.example.SWP.entity.notification.UserNotification;
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
 import com.example.SWP.enums.SellerPackageType;
@@ -10,6 +11,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 
@@ -50,5 +52,5 @@ public class User {
     boolean status;
 
     @OneToMany(mappedBy = "user")
-    Set<Notification> notificationList;
+    List<UserNotification> userNotifications;
 }

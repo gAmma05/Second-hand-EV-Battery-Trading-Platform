@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -28,5 +29,5 @@ public class Notification {
     LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "notification")
-    Set<User> receiverList;
+    List<UserNotification> userNotifications;
 }

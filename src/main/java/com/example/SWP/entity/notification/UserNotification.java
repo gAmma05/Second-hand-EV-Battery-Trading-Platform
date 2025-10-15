@@ -1,6 +1,7 @@
 package com.example.SWP.entity.notification;
 
 import com.example.SWP.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,12 +22,13 @@ public class UserNotification {
 
     @ManyToOne
     @MapsId("userId")
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
     User user;
 
     @ManyToOne
     @MapsId("notificationId")
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "notification_id")
     Notification notification;
 
     @Column(name = "is_read")

@@ -16,10 +16,8 @@ import java.util.Objects;
 @Embeddable
 public class UserNotificationKey implements Serializable {
 
-    @Column(name = "id")
     Long userId;
 
-    @Column(name = "id")
     Long notificationId;
 
     public UserNotificationKey(Long userId, Long notificationId) {
