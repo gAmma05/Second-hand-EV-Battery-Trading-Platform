@@ -65,19 +65,6 @@ public class PaymentController {
         }
     }
 
-    @GetMapping("/priority-package")
-    public ResponseEntity<Map<String, Object>> priorityPackagePayment(
-            @RequestParam Long postId,
-            @RequestParam Long priorityPackageId,
-            Authentication authentication) {
-
-        String paymentUrl = packagePaymentService.priorityPackagePayment(authentication.getName(), postId, priorityPackageId);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("paymentUrl", paymentUrl);
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/priority-package/return")
     public ResponseEntity<ApiResponse<Void>> priorityPackageReturn(@RequestParam Map<String, String> params) {
         try {

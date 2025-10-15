@@ -56,8 +56,6 @@ public class AuthService {
 
         if (isNewUser) {
             userService.createInactiveUser(request);
-        } else {
-            log.info("User {} exists but not verified. Resending OTP.", email);
         }
 
         String otp = otpService.generateAndStoreOtp(email);
