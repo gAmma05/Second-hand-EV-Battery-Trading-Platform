@@ -58,8 +58,6 @@ public class AuthService {
 
         if (isNewUser) {
             userService.createInactiveUser(request);
-        } else {
-            log.info("User {} exists but not verified. Resending OTP.", email);
         }
 
         String otp = otpService.generateAndStoreOtp(email);
@@ -159,7 +157,7 @@ public class AuthService {
     }
 
     private void createNotification(User user, String title, String content) {
-        notificationService.sendNotificationToOneUser(user.getId(), title, content);
+        notificationService.sendNotificationToOneUser(user.getEmail(), title, content);
     }
 
     public String forgotPassword(String email) {

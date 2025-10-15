@@ -10,23 +10,22 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-
 @Table(name = "user_notification")
 @NoArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-
 public class UserNotification {
+
     @EmbeddedId
     UserNotificationKey id;
 
     @ManyToOne
     @MapsId("userId")
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "user_id")
     User user;
 
     @ManyToOne
     @MapsId("notificationId")
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "notification_id")
     Notification notification;
 
     @Column(name = "is_read")
