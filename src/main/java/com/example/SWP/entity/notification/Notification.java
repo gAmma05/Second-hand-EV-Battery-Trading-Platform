@@ -1,5 +1,6 @@
 package com.example.SWP.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -25,8 +27,7 @@ public class Notification {
     String title;
     String content;
     LocalDateTime createdAt;
-    boolean isRead;
 
     @OneToMany(mappedBy = "notification")
-    List<User> receiverList = new ArrayList<>();
+    Set<User> receiverList;
 }
