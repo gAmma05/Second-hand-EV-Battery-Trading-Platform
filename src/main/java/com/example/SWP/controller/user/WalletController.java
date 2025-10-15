@@ -1,35 +1,161 @@
 package com.example.SWP.controller.user;
 
+import com.example.SWP.dto.request.user.wallet.DepositRequest;
+import com.example.SWP.dto.request.user.wallet.WithdrawRequest;
+import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.wallet.WalletTransaction;
+import com.example.SWP.enums.PaymentStatus;
 import com.example.SWP.service.user.WalletService;
+import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user/wallet")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class WalletController {
 
     WalletService walletService;
 
-    //Tạo VNPay để nạp tiền
+    // Tạo VNPay để nạp tiền
     @PostMapping("/deposit")
-    public ResponseEntity<String> deposit(Principal principal, @RequestParam BigDecimal amount) {
-        String paymentUrl = walletService.deposit(principal.getName(), amount);
-        return ResponseEntity.ok(paymentUrl);
+    public ResponseEntity<ApiResponse<String>> deposit(
+            Authentication authentication,
+            @Valid @RequestBody DepositRequest request) {
+
+        // Gọi service để tạo URL thanh toán
+        String paymentUrl = walletService.deposit(authentication.getName(), request.getAmount());
+
+        // Trả về ApiResponse có chứa paymentUrl
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .message("Payment URL generated successfully")
+                .data(paymentUrl)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
-    //Xu li VNPay Return
+
+    //Xử lý VNPay return
     @GetMapping("/vnpay-return/deposit")
-    public ResponseEntity<WalletTransaction> handleDepositVNPayReturn(
+    public ResponseEntity<?> handleDepositVNPayReturn(
             @RequestParam String vnp_TxnRef,
             @RequestParam String vnp_ResponseCode,
             @RequestParam(required = false) String vnp_BankCode) {
-        WalletTransaction tx = walletService.handleDepositVNPayReturn(vnp_TxnRef, vnp_ResponseCode, vnp_BankCode);
-        return ResponseEntity.ok(tx);
+        try {
+            WalletTransaction transaction = walletService.handleDepositVNPayReturn(vnp_TxnRef, vnp_ResponseCode, vnp_BankCode);
+
+            boolean isSuccess = transaction.getStatus() == PaymentStatus.SUCCESS;
+
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                    .success(isSuccess)
+                    .message(isSuccess ? "Payment successful" : "Payment failed")
+                    .build();
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
+                    .success(false)
+                    .message("Payment error: " + e.getMessage())
+                    .build();
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
+
+    //Xu li rut tien
+    @PostMapping("/withdraw")
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+            Authentication authentication,
+            @Valid @RequestBody WithdrawRequest request) {
+
+        try {
+            WalletTransaction transaction = walletService.withdraw(
+                    authentication.getName(),
+                    request.getAmount(),
+                    request.getBankAccount()
+            );
+
+            boolean isSuccess = transaction.getStatus() == PaymentStatus.SUCCESS;
+
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                    .success(isSuccess)
+                    .message(isSuccess ? "Withdrawal successful" : "Withdrawal request submitted")
+                    .build();
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
+                    .success(false)
+                    .message("Withdrawal error: " + e.getMessage())
+                    .build();
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/balance")
+    public ResponseEntity<ApiResponse<BigDecimal>> getBalance(Authentication authentication) {
+        BigDecimal balance = walletService.getBalance(authentication.getName());
+        ApiResponse<BigDecimal> response = ApiResponse.<BigDecimal>builder()
+                .success(true)
+                .message("Current balance fetched successfully")
+                .data(balance)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<ApiResponse<List<WalletTransaction>>> getTransactions(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        List<WalletTransaction> transactions = walletService.getTransactions(authentication.getName(), page, size);
+
+        ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
+                .success(true)
+                .message("Transaction history fetched successfully")
+                .data(transactions)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/transactions/{id}")
+    public ResponseEntity<ApiResponse<WalletTransaction>> getTransactionDetail(
+            Authentication authentication,
+            @PathVariable Long id) {
+
+        try {
+            WalletTransaction transaction = walletService.getTransactionDetail(authentication.getName(), id);
+
+            ApiResponse<WalletTransaction> response = ApiResponse.<WalletTransaction>builder()
+                    .success(true)
+                    .message("Transaction detail fetched successfully")
+                    .data(transaction)
+                    .build();
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            ApiResponse<WalletTransaction> errorResponse = ApiResponse.<WalletTransaction>builder()
+                    .success(false)
+                    .message("Error fetching transaction: " + e.getMessage())
+                    .build();
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
 }

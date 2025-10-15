@@ -5,6 +5,8 @@ import com.example.SWP.entity.notification.UserNotification;
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -55,5 +57,6 @@ public class User {
 
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     Wallet wallet;
 }
