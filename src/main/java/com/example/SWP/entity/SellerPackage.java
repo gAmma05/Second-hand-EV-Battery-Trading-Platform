@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "seller_packages")
 @Data
@@ -21,7 +23,7 @@ public class SellerPackage {
     @Enumerated(EnumType.STRING)
     SellerPackageType type;
     String description;
-    int price;
+    BigDecimal price;
     int postLimit;
     int durationDays;
 }

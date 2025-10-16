@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -25,13 +26,13 @@ public class VnPayService {
     @Value("${vnpay.payUrl}")
     String payUrl;
 
-    public String createPaymentUrl(String orderId, int amount, String description, String returnUrl) {
+    public String createPaymentUrl(String orderId, BigDecimal amount, String description, String returnUrl) {
         try {
             Map<String, String> vnp_Params = new HashMap<>();
             vnp_Params.put("vnp_Version", "2.1.0");
             vnp_Params.put("vnp_Command", "pay");
             vnp_Params.put("vnp_TmnCode", tmnCode);
-            vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));
+            vnp_Params.put("vnp_Amount", amount.multiply(BigDecimal.valueOf(100)).toBigInteger().toString());
             vnp_Params.put("vnp_CurrCode", "VND");
             vnp_Params.put("vnp_TxnRef", orderId);
             vnp_Params.put("vnp_OrderInfo", description);

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,7 +22,7 @@ public class PriorityPackagePayment {
     Long id;
 
     String orderId;
-    int amount;
+    BigDecimal amount;
     String bankCode;
     String vnpResponseCode;
 
