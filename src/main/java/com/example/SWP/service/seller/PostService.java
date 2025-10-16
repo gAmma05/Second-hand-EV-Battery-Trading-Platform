@@ -39,9 +39,7 @@ public class PostService {
     SellerPackageRepository sellerPackageRepository;
     PaymentService paymentService;
     ValidateService validateService;
-    PriorityPackageRepository priorityPackageRepository;
     WalletService walletService;
-    WalletRepository walletRepository;
 
     @NonFinal
     @Value("${post.expire.days}")

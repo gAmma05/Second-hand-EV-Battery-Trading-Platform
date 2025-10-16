@@ -113,7 +113,6 @@ public class DataInitializer implements CommandLineRunner {
                     .email("admin@gmail.com")
                     .password(passwordEncoder.encode("admin"))
                     .fullName("Admin")
-                    .enabled(true)
                     .status(true)
                     .role(Role.ADMIN)
                     .provider(AuthProvider.MANUAL)
