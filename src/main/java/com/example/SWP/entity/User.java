@@ -11,7 +11,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 
@@ -49,6 +48,7 @@ public class User {
     LocalDateTime planExpiry;
 
     boolean status;
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<UserNotification> userNotifications;

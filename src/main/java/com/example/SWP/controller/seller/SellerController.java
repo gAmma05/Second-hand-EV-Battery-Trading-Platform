@@ -36,5 +36,4 @@ public class SellerController {
         List<PaymentType> types = Arrays.asList(PaymentType.values());
         return ResponseEntity.ok(types);
     }
-
 }
