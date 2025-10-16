@@ -50,6 +50,7 @@ public class User {
 
     boolean status;
 
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<UserNotification> userNotifications;
 

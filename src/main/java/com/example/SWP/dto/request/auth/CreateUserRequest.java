@@ -27,10 +27,4 @@ public class CreateUserRequest {
 
     @NotBlank(message = "Full name must not be blank")
     String fullName;
-
-    @AssertTrue(message = "Confirm password must match password")
-    public boolean isPasswordMatching() {
-        return password.equals(confirmPassword);
-    }
-
 }

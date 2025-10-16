@@ -84,9 +84,6 @@ public class OtpService {
             redisTemplate.delete(otpKey);
             redisTemplate.delete(attemptKey);
             redisTemplate.delete(lockKey);
-            if (type == OtpType.REGISTER) {
-                redisTemplate.delete(getRegistrationKey(email));
-            }
             return;
         }
 
@@ -136,6 +133,11 @@ public class OtpService {
             throw new BusinessException("Failed to read registration data", 500);
         }
     }
+
+    public void deletePendingRegistration(String email) {
+        redisTemplate.delete(getRegistrationKey(email));
+    }
+
 
     private String getOtpKey(String email, OtpType type) {
         return "OTP:" + type.name() + ":" + email;

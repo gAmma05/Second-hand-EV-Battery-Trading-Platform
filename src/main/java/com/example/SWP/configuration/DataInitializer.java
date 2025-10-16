@@ -121,5 +121,35 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
             log.warn("Admin user created with email 'admin@gmail.com' and password 'admin'. Please change the password after first login.");
         }
+
+        //Test
+        if (!userRepository.existsByRole(Role.BUYER)) {
+            User user = User.builder()
+                    .email("buyer@gmail.com")
+                    .password(passwordEncoder.encode("buyer"))
+                    .fullName("Buyer")
+                    .status(true)
+                    .role(Role.BUYER)
+                    .provider(AuthProvider.MANUAL)
+                    .build();
+
+            userRepository.save(user);
+            log.warn("Buyer user created with email 'buyer@gmail.com' and password 'buyer'. Please change the password after first login.");
+        }
+
+        //Test
+        if (!userRepository.existsByRole(Role.SELLER)) {
+            User user = User.builder()
+                    .email("seller@gmail.com")
+                    .password(passwordEncoder.encode("seller"))
+                    .fullName("Seller")
+                    .status(true)
+                    .role(Role.SELLER)
+                    .provider(AuthProvider.MANUAL)
+                    .build();
+
+            userRepository.save(user);
+            log.warn("Seller user created with email 'seller@gmail.com' and password 'seller'. Please change the password after first login.");
+        }
     }
 }
