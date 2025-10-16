@@ -3,8 +3,11 @@ package com.example.SWP.exception.handler;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.exception.BusinessException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -18,6 +21,17 @@ public class GlobalExceptionHandler {
                         .message(ex.getMessage())
                         .data(null)
                         .build());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+        String errorMessage = Objects.requireNonNull(ex.getBindingResult().getFieldError()).getDefaultMessage();
+        return ResponseEntity.badRequest().body(
+                ApiResponse.<String>builder()
+                        .success(false)
+                        .message(errorMessage)
+                        .build()
+        );
     }
 
     @ExceptionHandler(Exception.class)
