@@ -1,11 +1,13 @@
 package com.example.SWP.service.user;
 
+import com.example.SWP.entity.PriorityPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.entity.wallet.WalletTransaction;
 import com.example.SWP.enums.PaymentStatus;
 import com.example.SWP.enums.TransactionType;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.repository.PriorityPackageRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
@@ -34,6 +36,7 @@ public class WalletService {
     WalletTransactionRepository walletTransactionRepository;
     UserRepository userRepository;
     VnPayService vnPayService;
+    PriorityPackageRepository priorityPackageRepository;
 
     @NonFinal
     @Value("${vnpay.returnUrl.walletDeposit}")
@@ -165,4 +168,21 @@ public class WalletService {
         return transaction;
     }
 
+    // Trừ tiền trong wallet khi mua goi uu tien
+    public void payPriorityPackage(User user, Long priorityPackageId) {
+        PriorityPackage priorityPackage = priorityPackageRepository.findById(priorityPackageId)
+                .orElseThrow(() -> new BusinessException("Priority package not found", 404));
+
+        Wallet wallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new BusinessException("Wallet not found", 404));
+
+        BigDecimal price = priorityPackage.getPrice();
+
+        if (wallet.getBalance().compareTo(price) < 0) {
+            throw new BusinessException("Not enough balance in wallet", 400);
+        }
+
+        wallet.setBalance(wallet.getBalance().subtract(price));
+        walletRepository.save(wallet);
+    }
 }

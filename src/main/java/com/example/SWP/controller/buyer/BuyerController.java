@@ -5,6 +5,7 @@ import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.service.seller.SellerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,10 @@ public class BuyerController {
 
     SellerService sellerService;
 
-    @PostMapping("/upgrade")
+    @PostMapping("/upgrade-to-seller")
     public ResponseEntity<ApiResponse<String>> upgradeToSeller(
             Authentication authentication,
-            @RequestBody UpgradeToSellerRequest request
+            @Valid @RequestBody UpgradeToSellerRequest request
     ) {
         sellerService.upgradeToSeller(authentication, request);
 

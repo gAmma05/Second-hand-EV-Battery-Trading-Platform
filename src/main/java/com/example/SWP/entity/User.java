@@ -1,12 +1,10 @@
 package com.example.SWP.entity;
 
-import com.example.SWP.entity.notification.Notification;
 import com.example.SWP.entity.notification.UserNotification;
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import lombok.*;
