@@ -1,5 +1,6 @@
 package com.example.SWP.dto.request.auth;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,4 +27,10 @@ public class CreateUserRequest {
 
     @NotBlank(message = "Full name must not be blank")
     String fullName;
+
+    @AssertTrue(message = "Confirm password must match password")
+    public boolean isPasswordMatching() {
+        return password.equals(confirmPassword);
+    }
+
 }

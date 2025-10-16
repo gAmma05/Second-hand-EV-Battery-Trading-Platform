@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -24,8 +25,6 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-
-    private final CreateUserRequestValidator validator;
 
     @PostMapping("/google")
     private ResponseEntity googleLogin(@RequestBody GoogleLoginRequest glr) {
@@ -119,7 +118,7 @@ public class AuthController {
     )
 
     @PostMapping("/basic-login")
-    public ResponseEntity<Map<String, Object>> basicLogin(@RequestBody BasicLoginRequest dto) {
+    public ResponseEntity<Map<String, Object>> basicLogin(@Valid @RequestBody BasicLoginRequest dto) {
         Map<String, Object> response = authService.basicLogin(dto);
         return ResponseEntity.ok(response);
     }
@@ -127,7 +126,7 @@ public class AuthController {
 
     // Gửi OTP forgot password
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         String message = authService.forgotPassword(request.getEmail());
         return ResponseEntity.ok(
                 ApiResponse.<String>builder()
@@ -139,7 +138,7 @@ public class AuthController {
 
     // Verify OTP và reset password
     @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         String message = authService.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
         return ResponseEntity.ok(
                 ApiResponse.<String>builder()
