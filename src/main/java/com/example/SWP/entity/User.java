@@ -1,11 +1,7 @@
 package com.example.SWP.entity;
 
-import com.example.SWP.entity.notification.Notification;
 import com.example.SWP.entity.notification.UserNotification;
-<<<<<<< HEAD
-=======
 import com.example.SWP.entity.wallet.Wallet;
->>>>>>> main
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
 import jakarta.persistence.*;
@@ -54,15 +50,10 @@ public class User {
 
     boolean status;
 
-<<<<<<< HEAD
-    @OneToMany(mappedBy = "user")
-    List<UserNotification> userNotifications;
-=======
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<UserNotification> userNotifications;
-
+    List<UserNotification> userNotifications;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     Wallet wallet;
->>>>>>> main
+
 }
