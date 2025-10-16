@@ -42,7 +42,6 @@ public class AdminUserService {
                 .role(request.getRole())
                 .provider(AuthProvider.MANUAL)
                 .status(true)
-                .enabled(true)
                 .build();
 
         User saved = userRepository.save(user);

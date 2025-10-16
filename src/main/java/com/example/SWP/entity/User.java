@@ -46,7 +46,6 @@ public class User {
     Role role;
     Long sellerPackageId;
     LocalDateTime planExpiry;
-    boolean enabled;
 
     boolean status;
 

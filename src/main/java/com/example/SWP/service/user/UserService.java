@@ -32,20 +32,15 @@ public class UserService {
         return userRepository.findByEmail(email).orElse(null);
     }
 
-    public void createInactiveUser(CreateUserRequest request) {
+    public void createUser(CreateUserRequest request) {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.BUYER)
                 .fullName(request.getFullName())
                 .provider(AuthProvider.MANUAL)
-                .enabled(false)
+                .status(true)
                 .build();
-        userRepository.save(user);
-    }
-
-    public void enableUser(User user) {
-        user.setEnabled(true);
         userRepository.save(user);
     }
 
@@ -93,7 +88,6 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
-
 
 
 }

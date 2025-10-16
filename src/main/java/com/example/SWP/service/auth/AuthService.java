@@ -7,6 +7,7 @@ import com.example.SWP.dto.request.auth.CreateUserRequest;
 import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.AuthProvider;
+import com.example.SWP.enums.OtpType;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.UserMapper;
@@ -49,48 +50,46 @@ public class AuthService {
     public String register(CreateUserRequest request) {
         String email = request.getEmail();
 
-        User user = userService.findByEmail(email);
-        if (user != null && user.isEnabled()) {
+        // Nếu email đã tồn tại thi chặn đăng ký
+        User existingUser = userService.findByEmail(email);
+        if (existingUser != null) {
             throw new BusinessException("Email is already in use!", 400);
         }
 
-        boolean isNewUser = (user == null);
+        // Lưu thông tin đăng ký tạm thời trong Redis
+        otpService.storePendingRegistration(email, request);
 
-        if (isNewUser) {
-            userService.createInactiveUser(request);
-        }
+        // Sinh và gửi OTP
+        String otp = otpService.generateAndStoreOtp(email, OtpType.REGISTER);
+        mailService.sendOtpEmail(email, otp, OtpType.REGISTER);
 
-        String otp = otpService.generateAndStoreOtp(email);
-
-        mailService.sendOtpEmail(email, otp);
-
-        return isNewUser
-                ? "Registration successful! Please check your email for OTP."
-                : "Account already exists but not verified. A new OTP has been sent.";
+        return "Registration initiated! Please check your email for OTP.";
     }
 
-
     public void verifyRegister(String email, String otpInput) {
-        User user = userService.findByEmail(email);
-        if (user == null) {
-            throw new BusinessException("User does not exist", 404);
-        }
-        if (user.isEnabled()) {
-            throw new BusinessException("User is already verified", 400);
+        // Kiểm tra OTP
+        otpService.verifyOtp(email, otpInput, OtpType.REGISTER);
+
+        // Lấy dữ liệu đăng ký đã lưu tạm trong Redis
+        CreateUserRequest pendingRequest = otpService.getPendingRegistration(email);
+        if (pendingRequest == null) {
+            throw new BusinessException("Registration data expired or not found", 400);
         }
 
-        otpService.verifyOtp(email, otpInput);
-        userService.enableUser(user);
-        createNotification(user, "Welcome to Second-hand EV Battery Trading Platform!", "You have successfully registered to our platform. " +
-                "Please fill in your profile information to complete your profile before purchasing. " +
-                "Thank you!");
+        // Kiểm tra lại (đề phòng race condition)
+        if (userService.findByEmail(email) != null) {
+            throw new BusinessException("User already exists", 400);
+        }
+
+        // Tạo mới user
+        userService.createUser(pendingRequest);
     }
 
 
     public Map<String, Object> basicLogin(BasicLoginRequest basicLoginRequest) {
         Optional<User> result = userRepository.findByEmail(basicLoginRequest.getEmail());
 
-        if (result.isEmpty() || !result.get().isEnabled() ||
+        if (result.isEmpty() ||
                 !passwordEncoder.matches(basicLoginRequest.getPassword(), result.get().getPassword())) {
             throw new BusinessException("Invalid email or password", 400);
         }
@@ -142,7 +141,6 @@ public class AuthService {
         newUser.setFullName(fullName);
         newUser.setProvider(AuthProvider.GOOGLE);
         newUser.setRole(Role.valueOf(Role.BUYER.name()));
-        newUser.setEnabled(true);
 
         userRepository.save(newUser);
 
@@ -166,8 +164,8 @@ public class AuthService {
             throw new BusinessException("User does not exist", 404);
         }
 
-        String otp = otpService.generateAndStoreOtp(email);
-        mailService.sendOtpEmail(email, otp);
+        String otp = otpService.generateAndStoreOtp(email, OtpType.FORGOT_PASSWORD);
+        mailService.sendOtpEmail(email, otp, OtpType.FORGOT_PASSWORD);
 
         return "OTP has been sent to your email.";
     }
@@ -178,7 +176,7 @@ public class AuthService {
             throw new BusinessException("User does not exist", 404);
         }
 
-        otpService.verifyOtp(email, otpInput);
+        otpService.verifyOtp(email, otpInput, OtpType.FORGOT_PASSWORD);
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
