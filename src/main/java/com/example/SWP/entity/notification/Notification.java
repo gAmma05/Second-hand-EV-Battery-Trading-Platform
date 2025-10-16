@@ -28,12 +28,8 @@ public class Notification {
     String content;
     LocalDateTime createdAt = LocalDateTime.now();
 
-<<<<<<< HEAD
-    @OneToMany(mappedBy = "notification")
-    List<UserNotification> userNotifications;
-=======
     @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<UserNotification> userNotifications;
->>>>>>> main
+    List<UserNotification> userNotifications;
+
 }
 

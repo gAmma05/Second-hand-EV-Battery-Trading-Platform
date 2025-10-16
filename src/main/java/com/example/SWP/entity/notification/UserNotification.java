@@ -22,10 +22,7 @@ public class UserNotification {
     @ManyToOne
     @MapsId("userId")
     @JoinColumn(name = "user_id")
-<<<<<<< HEAD
     @JsonIgnore
-=======
->>>>>>> main
     User user;
 
     @ManyToOne
