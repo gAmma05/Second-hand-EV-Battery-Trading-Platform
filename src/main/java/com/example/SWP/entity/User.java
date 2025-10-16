@@ -51,10 +51,10 @@ public class User {
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<UserNotification> userNotifications;
-
+    List<UserNotification> userNotifications;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     Wallet wallet;
+
 }

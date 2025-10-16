@@ -15,11 +15,8 @@ import java.util.Objects;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserNotificationKey implements Serializable {
 
-
-    @Column(name = "user_id")
     Long userId;
 
-    @Column(name = "notification_id")
     Long notificationId;
 
     @Override
