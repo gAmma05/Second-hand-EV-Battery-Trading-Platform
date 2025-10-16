@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -27,7 +28,12 @@ public class Notification {
     String content;
     LocalDateTime createdAt = LocalDateTime.now();
 
+<<<<<<< HEAD
+    @OneToMany(mappedBy = "notification")
+    List<UserNotification> userNotifications;
+=======
     @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<UserNotification> userNotifications;
+>>>>>>> main
 }
 

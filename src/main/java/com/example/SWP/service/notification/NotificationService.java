@@ -8,13 +8,19 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.NotificationRepository;
 import com.example.SWP.repository.UserNotificationRepository;
 import com.example.SWP.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class NotificationService {
 
     UserRepository userRepository;
@@ -23,43 +29,37 @@ public class NotificationService {
 
     UserNotificationRepository userNotificationRepository;
 
-    public NotificationService(UserRepository userRepository, NotificationRepository notificationRepository,
-                               UserNotificationRepository userNotificationRepository) {
-        this.userRepository = userRepository;
-        this.notificationRepository = notificationRepository;
-        this.userNotificationRepository = userNotificationRepository;
-    }
 
     public void sendNotificationToOneUser(String email, String title, String content) {
-        if (title == null || content == null) {
-            return;
-        }
+        if (title == null || content == null) return;
+        if (email == null) throw new BusinessException("Email is null", 400);
 
-        if(email == null){
-            throw new BusinessException("Email is null", 400);
-        }
-
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("User not found", 404));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User not found", 404));
 
         Notification notification = new Notification();
         notification.setTitle(title);
         notification.setContent(content);
         notification.setCreatedAt(LocalDateTime.now());
+        notificationRepository.save(notification);
 
-        createNotification(notification);
-
+        UserNotificationKey key = new UserNotificationKey(user.getId(), notification.getId());
         UserNotification userNotification = new UserNotification();
+        userNotification.setId(key);
         userNotification.setUser(user);
         userNotification.setNotification(notification);
+        userNotification.setRead(false);
+        userNotification.setReceivedAt(LocalDateTime.now());
 
-        createUserNotification(userNotification);
+        userNotificationRepository.save(userNotification);
     }
+
 
     private void createNotification(Notification notification) {
         notificationRepository.save(notification);
     }
 
-    private void createUserNotification(UserNotification userNotification){
+    private void createUserNotification(UserNotification userNotification) {
         userNotificationRepository.save(userNotification);
     }
 
@@ -76,7 +76,9 @@ public class NotificationService {
         createNotification(notification);
 
         for (User user : userRepository.findAll()) {
+            UserNotificationKey key = new UserNotificationKey(user.getId(), notification.getId());
             UserNotification userNotification = new UserNotification();
+            userNotification.setId(key);
             userNotification.setUser(user);
             userNotification.setNotification(notification);
 
@@ -84,7 +86,7 @@ public class NotificationService {
         }
     }
 
-    public void markAsRead(Long userId, Long notificationId){
+    public void markAsRead(Long userId, Long notificationId) {
         UserNotificationKey key = new UserNotificationKey(userId, notificationId);
         UserNotification userNotification = userNotificationRepository.findById(key)
                 .orElseThrow(() -> new BusinessException("Not found", 404));
@@ -93,12 +95,21 @@ public class NotificationService {
         userNotificationRepository.save(userNotification);
     }
 
-    public Set<UserNotification> getUnreadNotifications(Authentication authentication){
+    public Set<UserNotification> getUnreadNotifications(Authentication authentication) {
+        Set<UserNotification> unreadList = new HashSet<>();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        return userNotificationRepository.findByUserAndIsReadFalse(user);
+        List<UserNotification> notificationsList = userNotificationRepository.findAllByUser(user);
+
+        for(UserNotification notification : notificationsList) {
+            if(!notification.isRead()){
+                unreadList.add(notification);
+            }
+        }
+
+        return unreadList;
     }
 
 }
