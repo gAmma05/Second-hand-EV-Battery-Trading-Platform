@@ -1,10 +1,7 @@
 package com.example.SWP.entity;
 
 import com.example.SWP.entity.notification.UserNotification;
-<<<<<<< HEAD
-=======
 import com.example.SWP.entity.wallet.Wallet;
->>>>>>> main
 import com.example.SWP.enums.AuthProvider;
 import com.example.SWP.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,7 +11,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 
@@ -53,10 +49,7 @@ public class User {
 
     boolean status;
 
-<<<<<<< HEAD
-    @OneToMany(mappedBy = "user")
-    List<UserNotification> userNotifications;
-=======
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<UserNotification> userNotifications;
 
@@ -64,5 +57,4 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     Wallet wallet;
->>>>>>> main
 }

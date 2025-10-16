@@ -83,6 +83,7 @@ public class AuthService {
 
         // Tạo mới user
         userService.createUser(pendingRequest);
+        otpService.deletePendingRegistration(email);
     }
 
 
