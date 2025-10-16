@@ -16,6 +16,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -30,7 +31,7 @@ public class DataInitializer implements CommandLineRunner {
     final PasswordEncoder passwordEncoder;
 
     @Value("${seller-package.basic.price}")
-    int basicPrice_sellerPackage;
+    BigDecimal basicPrice_sellerPackage;
 
     @Value("${seller-package.basic.durationDays}")
     int basicDurationDays_sellerPackage;
@@ -39,7 +40,7 @@ public class DataInitializer implements CommandLineRunner {
     int basicMaxPosts_sellerPackage;
 
     @Value("${seller-package.premium.price}")
-    int premiumPrice_sellerPackage;
+    BigDecimal premiumPrice_sellerPackage;
 
     @Value("${seller-package.premium.durationDays}")
     int premiumDurationDays_sellerPackage;
@@ -48,13 +49,13 @@ public class DataInitializer implements CommandLineRunner {
     int premiumMaxPosts_sellerPackage;
 
     @Value("${priority-package.basic.price}")
-    int basicPrice_priorityPackage;
+    BigDecimal basicPrice_priorityPackage;
 
     @Value("${priority-package.basic.durationDays}")
     int basicDurationDays_priorityPackage;
 
     @Value("${priority-package.premium.price}")
-    int premiumPrice_priorityPackage;
+    BigDecimal premiumPrice_priorityPackage;
 
     @Value("${priority-package.premium.durationDays}")
     int premiumDurationDays_priorityPackage;

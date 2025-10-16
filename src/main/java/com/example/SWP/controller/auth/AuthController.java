@@ -59,13 +59,9 @@ public class AuthController {
             description = "Email is already in use or user already verified"
     )
 
-    //Dang ky tai khoan va nhan ma OTP ve m
+    //Dang ky tai khoan va nhan ma OTP ve mail
     @PostMapping("/register")
-
     public ResponseEntity<?> register(@Valid @RequestBody CreateUserRequest request) {
-
-        validator.validateEmail(request);
-        validator.validatePassword(request);
 
         String message = authService.register(request);
 

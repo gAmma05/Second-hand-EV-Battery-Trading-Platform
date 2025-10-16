@@ -71,7 +71,7 @@ public class WalletService {
 
         walletTransactionRepository.save(transaction);
 
-        return vnPayService.createPaymentUrl(orderId, amount.intValue(), description, walletReturnUrl);
+        return vnPayService.createPaymentUrl(orderId, amount, description, walletReturnUrl);
     }
 
     //Xu ly khi VNPay callback goi ve

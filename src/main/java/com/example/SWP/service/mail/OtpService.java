@@ -1,6 +1,8 @@
 package com.example.SWP.service.mail;
 
+import com.example.SWP.dto.request.auth.CreateUserRequest;
 import com.example.SWP.exception.BusinessException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +20,13 @@ import java.util.concurrent.TimeUnit;
 public class OtpService {
 
     RedisTemplate<String, String> redisTemplate;
+    ObjectMapper objectMapper;
 
     private static final int OTP_EXPIRE_MINUTES = 15;
     private static final int MAX_OTP_ATTEMPTS = 5;
     private static final int LOCK_DURATION_MINUTES = 30;
+    private static final int REGISTRATION_EXPIRE_MINUTES = 15;
+    private static final int COOLDOWN_MINUTES =  1;
 
     public String generateAndStoreOtp(String email) {
         // Kiểm tra lock
@@ -34,7 +39,7 @@ public class OtpService {
         // Kiểm tra cooldown
         String otpRequestKey = getOtpRequestKey(email);
         String lastRequestTimeStr = redisTemplate.opsForValue().get(otpRequestKey);
-        if (lastRequestTimeStr != null && LocalDateTime.parse(lastRequestTimeStr).plusMinutes(1).isAfter(LocalDateTime.now())) {
+        if (lastRequestTimeStr != null && LocalDateTime.parse(lastRequestTimeStr).plusMinutes(COOLDOWN_MINUTES).isAfter(LocalDateTime.now())) {
             throw new BusinessException("You can only request a new OTP once every minute. Please try again later.", 400);
         }
 
@@ -94,6 +99,15 @@ public class OtpService {
         throw new BusinessException("Invalid or expired OTP.", 400);
     }
 
+//    public void storePendingRegistration(String email, CreateUserRequest request) {
+//        redisTemplate.opsForValue().set(
+//                getRegistrationKey(email),
+//                request,
+//                REGISTRATION_EXPIRE_MINUTES,
+//                TimeUnit.MINUTES
+//        );
+//    }
+
 
     private String getOtpKey(String email) {
         return "OTP:" + email;
@@ -109,6 +123,10 @@ public class OtpService {
 
     private String getOtpRequestKey(String email) {
         return "OTP_REQUEST_" + email;
+    }
+
+    private String getRegistrationKey(String email) {
+        return "PENDING_REGISTRATION:" + email;
     }
 }
 
