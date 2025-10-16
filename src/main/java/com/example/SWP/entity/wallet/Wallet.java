@@ -1,9 +1,12 @@
 package com.example.SWP.entity.wallet;
 
 import com.example.SWP.entity.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -25,8 +28,10 @@ public class Wallet {
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     User user;
 
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     Set<WalletTransaction> transactions;
 }

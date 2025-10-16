@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "priority_packages")
 @Data
@@ -20,7 +22,7 @@ public class PriorityPackage {
 
     @Enumerated(EnumType.STRING)
     PriorityPackageType type;
-    int price;
+    BigDecimal price;
     int durationDays;
     String description;
 }

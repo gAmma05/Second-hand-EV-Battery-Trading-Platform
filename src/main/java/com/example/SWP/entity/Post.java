@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class Post {
     String title;
     String description;
 
-    double price;
+    BigDecimal price;
     double suggestPrice;
 
     LocalDateTime postDate;

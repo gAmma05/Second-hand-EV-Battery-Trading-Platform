@@ -2,6 +2,8 @@ package com.example.SWP.entity.wallet;
 
 import com.example.SWP.enums.PaymentStatus;
 import com.example.SWP.enums.TransactionType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -24,6 +26,7 @@ public class WalletTransaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", nullable = false)
+    @JsonIgnore
     Wallet wallet;
 
     String orderId;

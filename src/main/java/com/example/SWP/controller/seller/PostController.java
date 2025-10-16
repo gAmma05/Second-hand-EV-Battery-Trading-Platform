@@ -6,6 +6,7 @@ import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.CreatePostResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.service.seller.PostService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<ApiResponse<CreatePostResponse>> createPost(
             Authentication authentication,
-            @RequestBody CreatePostRequest request
+            @Valid @RequestBody CreatePostRequest request
     ) {
         CreatePostResponse response = postService.createPost(authentication, request);
 
