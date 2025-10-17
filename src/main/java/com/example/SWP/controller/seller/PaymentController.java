@@ -71,13 +71,11 @@ public class PaymentController {
 
             PriorityPackagePayment payment = packagePaymentService.priorityPackagePaymentReturn(orderId, responseCode);
 
-            String message = (payment.getStatus() == PaymentStatus.SUCCESS)
-                    ? "Payment successful"
-                    : "Payment failed";
+            boolean isSuccess = payment.getStatus() == PaymentStatus.SUCCESS;
 
             ApiResponse<Void> response = ApiResponse.<Void>builder()
-                    .success(true)
-                    .message(message)
+                    .success(isSuccess)
+                    .message(isSuccess ? "Payment successful" : "Payment failed")
                     .build();
 
             return ResponseEntity.ok(response);

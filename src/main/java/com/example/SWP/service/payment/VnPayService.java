@@ -25,6 +25,8 @@ public class VnPayService {
     String hashSecret;
     @Value("${vnpay.payUrl}")
     String payUrl;
+    @Value("${vnpay.expire.minutes}")
+    int expireMinutes;
 
     public String createPaymentUrl(String orderId, BigDecimal amount, String description, String returnUrl) {
         try {
@@ -43,7 +45,7 @@ public class VnPayService {
             vnp_Params.put("vnp_CreateDate", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 
             Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-            cld.add(Calendar.MINUTE, 15);
+            cld.add(Calendar.MINUTE, expireMinutes);
             vnp_Params.put("vnp_ExpireDate", new SimpleDateFormat("yyyyMMddHHmmss").format(cld.getTime()));
 
             List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
