@@ -2,6 +2,7 @@ package com.example.SWP.dto.request.seller;
 
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
+import com.example.SWP.enums.ProductType;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,9 +17,8 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreatePostRequest {
 
-    @NotBlank(message = "Product type is required")
-    @Size(max = 100, message = "Product type must not exceed 100 characters")
-    String productType;
+    @NotNull(message = "Product type is required")
+    ProductType productType;
 
     @NotBlank(message = "Title is required")
     @Size(max = 200, message = "Title must not exceed 200 characters")
@@ -42,4 +42,15 @@ public class CreatePostRequest {
 
     @NotEmpty(message = "At least one payment type is required")
     Set<PaymentType> paymentTypes;
+
+    String vehicleBrand;
+    String model;
+    Integer yearOfManufacture;
+    String color;
+    Integer mileage;
+
+    String batteryType;
+    Integer capacity;
+    String voltage;
+    String batteryBrand;
 }

@@ -4,6 +4,7 @@ import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import com.example.SWP.enums.PostStatus;
+import com.example.SWP.enums.ProductType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -19,7 +20,7 @@ import java.util.Set;
 public class PostResponse {
     Long id;
 
-    String productType;
+    ProductType productType;
     String title;
     String description;
 
@@ -45,4 +46,15 @@ public class PostResponse {
     PostStatus status;
 
     UserResponse user;
+
+    String vehicleBrand;
+    String model;
+    Integer yearOfManufacture;
+    String color;
+    Integer mileage;
+
+    String batteryType;
+    Integer capacity;
+    String voltage;
+    String batteryBrand;
 }
