@@ -8,7 +8,9 @@ import com.example.SWP.service.auth.AuthService;
 import com.example.SWP.validator.auth.CreateUserRequestValidator;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,10 +23,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 
 public class AuthController {
 
-    private final AuthService authService;
+    AuthService authService;
 
     @PostMapping("/google")
     private ResponseEntity googleLogin(@RequestBody GoogleLoginRequest glr) {

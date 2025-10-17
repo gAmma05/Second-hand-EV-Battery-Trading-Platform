@@ -35,7 +35,6 @@ public class CreatePostRequest {
     @Size(max = 500, message = "Address must not exceed 500 characters")
     String address;
 
-    @NotNull(message = "Priority package ID is required")
     Long priorityPackageId;
 
     @NotEmpty(message = "At least one delivery method is required")

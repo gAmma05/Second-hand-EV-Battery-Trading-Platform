@@ -6,5 +6,4 @@ public enum PostStatus {
     REJECTED,
     DELETED,
     POSTED,
-
 }
