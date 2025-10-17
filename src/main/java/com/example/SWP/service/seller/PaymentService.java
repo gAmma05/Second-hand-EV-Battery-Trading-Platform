@@ -32,6 +32,8 @@ public class PaymentService {
     SellerPackageRepository packageRepository;
     WalletRepository walletRepository;
     WalletTransactionRepository walletTransactionRepository;
+    PriorityPackageRepository priorityPackageRepository;
+    PriorityPackagePaymentRepository priorityPackagePaymentRepository;
 
     @Transactional
     public void sellerPackagePayment(String email, Long packageId) {
@@ -96,5 +98,56 @@ public class PaymentService {
                 .updatedAt(now)
                 .build();
         walletTransactionRepository.save(transaction);
+    }
+
+    @Transactional
+    public PriorityPackagePayment priorityPackagePayment(User user, Long priorityPackageId) {
+        // Lấy gói ưu tiên
+        PriorityPackage priorityPackage = priorityPackageRepository.findById(priorityPackageId)
+                .orElseThrow(() -> new BusinessException("Priority package not found", 404));
+
+        // Lấy ví của user
+        Wallet wallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new BusinessException("Wallet not found", 404));
+
+        BigDecimal price = priorityPackage.getPrice();
+
+        // Kiểm tra số dư
+        if (wallet.getBalance().compareTo(price) < 0) {
+            throw new BusinessException("Not enough balance in wallet", 400);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        BigDecimal balanceBefore = wallet.getBalance();
+        BigDecimal balanceAfter = balanceBefore.subtract(price);
+
+        // Trừ tiền
+        wallet.setBalance(balanceAfter);
+        walletRepository.save(wallet);
+
+        // Tạo WalletTransaction
+        WalletTransaction transaction = WalletTransaction.builder()
+                .wallet(wallet)
+                .orderId("PP-" + System.currentTimeMillis())
+                .amount(price.negate())
+                .description("Purchase priority package: " + priorityPackage.getType())
+                .type(TransactionType.PURCHASE_PACKAGE)
+                .status(PaymentStatus.SUCCESS)
+                .balanceBefore(balanceBefore)
+                .balanceAfter(balanceAfter)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        walletTransactionRepository.save(transaction);
+
+        // Tạo PriorityPackagePayment, post = null tạm thời
+        PriorityPackagePayment payment = PriorityPackagePayment.builder()
+                .priorityPackage(priorityPackage)
+                .orderId(transaction.getOrderId())
+                .build();
+        priorityPackagePaymentRepository.save(payment);
+
+        return payment;
     }
 }

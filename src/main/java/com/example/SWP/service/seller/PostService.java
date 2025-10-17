@@ -3,12 +3,14 @@ package com.example.SWP.service.seller;
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.entity.Post;
+import com.example.SWP.entity.PriorityPackagePayment;
 import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.PostRepository;
+import com.example.SWP.repository.PriorityPackagePaymentRepository;
 import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.user.WalletService;
@@ -31,9 +33,9 @@ public class PostService {
     PostRepository postRepository;
     UserRepository userRepository;
     SellerPackageRepository sellerPackageRepository;
-    PaymentService paymentService;
     ValidateService validateService;
-    WalletService walletService;
+    PaymentService paymentService;
+    PriorityPackagePaymentRepository priorityPackagePaymentRepository;
 
     @NonFinal
     @Value("${post.expire.days}")
@@ -58,7 +60,6 @@ public class PostService {
             sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
         }
 
-        // Khởi tạo bài đăng
         Post post = Post.builder()
                 .user(user)
                 .productType(request.getProductType())
@@ -82,10 +83,17 @@ public class PostService {
         }
 
         if (request.getPriorityPackageId() != null) {
-            walletService.payPriorityPackage(user, request.getPriorityPackageId());
+            PriorityPackagePayment payment = paymentService.priorityPackagePayment(user, request.getPriorityPackageId());
+
             post.setPriorityPackageId(request.getPriorityPackageId());
             post.setTrusted(true);
+            post = postRepository.save(post); // save post trước khi gán
+
+            payment.setPost(post);
+            priorityPackagePaymentRepository.save(payment);
         }
+
+
 
         post = postRepository.save(post);
 
