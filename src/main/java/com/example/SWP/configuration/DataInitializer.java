@@ -144,6 +144,7 @@ public class DataInitializer implements CommandLineRunner {
                     .password(passwordEncoder.encode("seller"))
                     .fullName("Seller")
                     .status(true)
+                    .remainingPosts(1000)
                     .role(Role.SELLER)
                     .provider(AuthProvider.MANUAL)
                     .build();

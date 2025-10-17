@@ -24,69 +24,19 @@ public class PaymentController {
     PaymentService packagePaymentService;
 
     @GetMapping("/seller-package")
-    public ResponseEntity<?> sellerPackagePayment(
+    public ResponseEntity<ApiResponse<String>> sellerPackagePayment(
             @RequestParam Long packageId,
             Authentication authentication) {
 
-        String paymentUrl = packagePaymentService.sellerPackagePayment(authentication.getName(), packageId);
+        // Thực hiện thanh toán từ ví
+        packagePaymentService.sellerPackagePayment(authentication.getName(), packageId);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("paymentUrl", paymentUrl);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .message("Payment successful via wallet")
+                .data(null)
+                .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/seller-package/return")
-    public ResponseEntity<ApiResponse<Void>> sellerPackageReturn(@RequestParam Map<String, String> params) {
-        try {
-            String orderId = params.get("vnp_TxnRef");
-            String responseCode = params.get("vnp_ResponseCode");
-
-            SellerPackagePayment payment = packagePaymentService.sellerPackagePaymentReturn(orderId, responseCode);
-
-            boolean isSuccess = payment.getStatus() == PaymentStatus.SUCCESS;
-
-            ApiResponse<Void> response = ApiResponse.<Void>builder()
-                    .success(isSuccess)
-                    .message(isSuccess ? "Payment successful" : "Payment failed")
-                    .build();
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
-                    .success(false)
-                    .message("Payment error: " + e.getMessage())
-                    .build();
-
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-    }
-
-    @GetMapping("/priority-package/return")
-    public ResponseEntity<ApiResponse<Void>> priorityPackageReturn(@RequestParam Map<String, String> params) {
-        try {
-            String orderId = params.get("vnp_TxnRef");
-            String responseCode = params.get("vnp_ResponseCode");
-
-            PriorityPackagePayment payment = packagePaymentService.priorityPackagePaymentReturn(orderId, responseCode);
-
-            boolean isSuccess = payment.getStatus() == PaymentStatus.SUCCESS;
-
-            ApiResponse<Void> response = ApiResponse.<Void>builder()
-                    .success(isSuccess)
-                    .message(isSuccess ? "Payment successful" : "Payment failed")
-                    .build();
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
-                    .success(false)
-                    .message("Payment error: " + e.getMessage())
-                    .build();
-
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PriorityPackageService {
 
-    final PriorityPackageRepository priorityPackageRepository;
+    PriorityPackageRepository priorityPackageRepository;
 
     public List<PriorityPackage> getAllPriorityPackages() {
         return priorityPackageRepository.findAll();
