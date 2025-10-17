@@ -50,7 +50,6 @@ public class PostService {
     int limitDays;
 
     public CreatePostResponse createPost(Authentication authentication, CreatePostRequest request) {
-
         User user = validateService.validateCurrentUser(authentication);
 
         if (user.getRemainingPosts() <= 0) {
@@ -65,6 +64,7 @@ public class PostService {
             sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
         }
 
+        // Khởi tạo bài đăng
         Post post = Post.builder()
                 .user(user)
                 .productType(request.getProductType())
@@ -72,7 +72,6 @@ public class PostService {
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .address(request.getAddress())
-                .priorityPackageId(request.getPriorityPackageId())
                 .deliveryMethods(request.getDeliveryMethods())
                 .paymentTypes(request.getPaymentTypes())
                 .postDate(LocalDateTime.now())
@@ -81,38 +80,46 @@ public class PostService {
                 .likeCount(0)
                 .build();
 
-        if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
+        if (request.getPriorityPackageId() != null) {
+            // Nếu có mua gói ưu tiên → chờ thanh toán
+            post.setPriorityPackageId(request.getPriorityPackageId());
+            post.setStatus(PostStatus.PENDING_PAYMENT);
+            post.setTrusted(false);
+        } else if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
         } else if (sellerPackage.getType() == SellerPackageType.PREMIUM) {
             post.setStatus(PostStatus.PENDING);
+            post.setTrusted(true);
         }
 
+        // Lưu trước để có ID dùng cho VNPay
+        post = postRepository.save(post);
+
+        // Giảm số lượng bài đăng còn lại
         user.setRemainingPosts(user.getRemainingPosts() - 1);
         userRepository.save(user);
 
         String paymentUrl = null;
+
+        // Xử lý thanh toán gói ưu tiên (nếu có)
         if (request.getPriorityPackageId() != null) {
-
-            // Thanh toán bằng Wallet
             if (request.getIsUseWallet()) {
+                // Thanh toán bằng ví -> trừ tiền ngay và đăng bài
                 walletService.payPriorityPackage(user, request.getPriorityPackageId());
-                post.setPriorityPackageId(request.getPriorityPackageId());
-                post.setStatus(PostStatus.PENDING);
-
-            }
-
-            // Thanh toán VNPay
-            else {
-                paymentUrl = paymentService.priorityPackagePayment(post.getId(), request.getPriorityPackageId());
+                post.setStatus(PostStatus.POSTED);
+                postRepository.save(post);
+            } else {
+                // Thanh toán bằng VNPay -> tạo URL thanh toán
+                paymentUrl = paymentService.priorityPackagePayment(
+                        post.getId(), request.getPriorityPackageId()
+                );
             }
         }
 
-        post = postRepository.save(post);
-
         return CreatePostResponse.builder()
                 .post(post)
-                .paymentUrl(paymentUrl) // sẽ null nếu dùng wallet
+                .paymentUrl(paymentUrl)
                 .build();
     }
 
