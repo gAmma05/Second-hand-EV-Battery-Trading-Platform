@@ -1,9 +1,6 @@
 package com.example.SWP.entity;
 
-import com.example.SWP.enums.DeliveryMethod;
-import com.example.SWP.enums.PaymentType;
-import com.example.SWP.enums.PostStatus;
-import com.example.SWP.enums.PriorityPackageType;
+import com.example.SWP.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -30,7 +27,7 @@ public class Post {
     @JoinColumn(name = "seller_id", nullable = false)
     User user;
 
-    String productType;
+    ProductType productType;
     String title;
     String description;
 
@@ -64,4 +61,17 @@ public class Post {
 
     @Enumerated(EnumType.STRING)
     PostStatus status;
+
+    // Thông số kỹ thuật Xe
+    String vehicleBrand;
+    String model;
+    Integer yearOfManufacture;
+    String color;
+    Integer mileage;
+
+    // Thông số kỹ thuật Pin
+    String batteryType;
+    Integer capacity; // mAh
+    String voltage;
+    String batteryBrand;
 }

@@ -167,22 +167,4 @@ public class WalletService {
 
         return transaction;
     }
-
-    // Trừ tiền trong wallet khi mua goi uu tien
-    public void payPriorityPackage(User user, Long priorityPackageId) {
-        PriorityPackage priorityPackage = priorityPackageRepository.findById(priorityPackageId)
-                .orElseThrow(() -> new BusinessException("Priority package not found", 404));
-
-        Wallet wallet = walletRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException("Wallet not found", 404));
-
-        BigDecimal price = priorityPackage.getPrice();
-
-        if (wallet.getBalance().compareTo(price) < 0) {
-            throw new BusinessException("Not enough balance in wallet", 400);
-        }
-
-        wallet.setBalance(wallet.getBalance().subtract(price));
-        walletRepository.save(wallet);
-    }
 }

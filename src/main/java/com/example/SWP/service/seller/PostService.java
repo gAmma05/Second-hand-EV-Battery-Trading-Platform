@@ -3,12 +3,15 @@ package com.example.SWP.service.seller;
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.entity.Post;
+import com.example.SWP.entity.PriorityPackagePayment;
 import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.PostStatus;
+import com.example.SWP.enums.ProductType;
 import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.PostRepository;
+import com.example.SWP.repository.PriorityPackagePaymentRepository;
 import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.user.WalletService;
@@ -31,9 +34,9 @@ public class PostService {
     PostRepository postRepository;
     UserRepository userRepository;
     SellerPackageRepository sellerPackageRepository;
-    PaymentService paymentService;
     ValidateService validateService;
-    WalletService walletService;
+    PaymentService paymentService;
+    PriorityPackagePaymentRepository priorityPackagePaymentRepository;
 
     @NonFinal
     @Value("${post.expire.days}")
@@ -53,13 +56,23 @@ public class PostService {
             );
         }
 
+        // Validate theo productType
+        if (request.getProductType() == ProductType.VEHICLE) {
+            if (request.getVehicleBrand() == null || request.getModel() == null || request.getYearOfManufacture() == null) {
+                throw new BusinessException("Brand, model, and yearOfManufacture are required for VEHICLE", 400);
+            }
+        } else if (request.getProductType() == ProductType.BATTERY) {
+            if (request.getBatteryType() == null || request.getCapacity() == null || request.getVoltage() == null) {
+                throw new BusinessException("BatteryType, capacity, and voltage are required for BATTERY", 400);
+            }
+        }
+
         SellerPackage sellerPackage = null;
         if (user.getSellerPackageId() != null) {
             sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
         }
 
-        // Khởi tạo bài đăng
-        Post post = Post.builder()
+        Post.PostBuilder postBuilder = Post.builder()
                 .user(user)
                 .productType(request.getProductType())
                 .title(request.getTitle())
@@ -71,9 +84,27 @@ public class PostService {
                 .postDate(LocalDateTime.now())
                 .expiryDate(LocalDateTime.now().plusDays(expireDays))
                 .viewCount(0)
-                .likeCount(0)
-                .build();
+                .likeCount(0);
 
+        // Gán thông số kỹ thuật theo type
+        if (request.getProductType() == ProductType.VEHICLE) {
+            postBuilder
+                    .vehicleBrand(request.getVehicleBrand())
+                    .model(request.getModel())
+                    .yearOfManufacture(request.getYearOfManufacture())
+                    .color(request.getColor())
+                    .mileage(request.getMileage());
+        } else if (request.getProductType() == ProductType.BATTERY) {
+            postBuilder
+                    .batteryType(request.getBatteryType())
+                    .capacity(request.getCapacity())
+                    .voltage(request.getVoltage())
+                    .batteryBrand(request.getBatteryBrand());
+        }
+
+        Post post = postBuilder.build();
+
+        // Set status và trusted theo gói
         if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
@@ -81,10 +112,14 @@ public class PostService {
             post.setStatus(PostStatus.PENDING);
         }
 
+        // Xử lý priority package
         if (request.getPriorityPackageId() != null) {
-            walletService.payPriorityPackage(user, request.getPriorityPackageId());
+            PriorityPackagePayment payment = paymentService.priorityPackagePayment(user, request.getPriorityPackageId());
             post.setPriorityPackageId(request.getPriorityPackageId());
             post.setTrusted(true);
+            post = postRepository.save(post); // save trước khi gán
+            payment.setPost(post);
+            priorityPackagePaymentRepository.save(payment);
         }
 
         post = postRepository.save(post);
@@ -95,12 +130,13 @@ public class PostService {
         return post;
     }
 
-
     public Post updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
+        // Lấy user hiện tại
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
+        // Lấy post cần update
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Post not found", 404));
 
@@ -112,6 +148,16 @@ public class PostService {
             throw new BusinessException("You cannot update this post after " + limitDays + " days from posting", 400);
         }
 
+        if (request.getProductType() == ProductType.VEHICLE) {
+            if (request.getVehicleBrand() == null || request.getModel() == null || request.getYearOfManufacture() == null) {
+                throw new BusinessException("Brand, model, and yearOfManufacture are required for CAR", 400);
+            }
+        } else if (request.getProductType() == ProductType.BATTERY) {
+            if (request.getBatteryType() == null || request.getCapacity() == null || request.getVoltage() == null) {
+                throw new BusinessException("BatteryType, capacity, and voltage are required for BATTERY", 400);
+            }
+        }
+
         post.setProductType(request.getProductType());
         post.setTitle(request.getTitle());
         post.setDescription(request.getDescription());
@@ -121,28 +167,33 @@ public class PostService {
         post.setPaymentTypes(request.getPaymentTypes());
         post.setUpdateDate(LocalDateTime.now());
 
+        post.setVehicleBrand(request.getVehicleBrand());
+        post.setModel(request.getModel());
+        post.setYearOfManufacture(request.getYearOfManufacture());
+        post.setColor(request.getColor());
+        post.setMileage(request.getMileage());
+
+        post.setBatteryType(request.getBatteryType());
+        post.setCapacity(request.getCapacity());
+        post.setVoltage(request.getVoltage());
+        post.setBatteryBrand(request.getBatteryBrand());
+
+        // Set status và trusted theo gói
         SellerPackage sellerPackage = null;
         if (user.getSellerPackageId() != null) {
             sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
         }
 
-        if (sellerPackage == null) {
+        if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
-        } else {
-            switch (sellerPackage.getType()) {
-                case BASIC -> {
-                    post.setStatus(PostStatus.POSTED);
-                    post.setTrusted(false);
-                }
-                case PREMIUM -> {
-                    post.setStatus(PostStatus.PENDING);
-                }
-            }
+        } else if (sellerPackage.getType() == SellerPackageType.PREMIUM) {
+            post.setStatus(PostStatus.PENDING);
         }
 
         return postRepository.save(post);
     }
+
 
 
     public void deletePost(Authentication authentication, Long postId) {
