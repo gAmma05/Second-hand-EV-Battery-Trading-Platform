@@ -101,9 +101,10 @@ public class PostService {
                 post.setStatus(PostStatus.PENDING);
 
             }
+
             // Thanh toán VNPay
             else {
-                paymentUrl = paymentService.priorityPackagePayment(user.getEmail(), post.getId(), request.getPriorityPackageId());
+                paymentUrl = paymentService.priorityPackagePayment(post.getId(), request.getPriorityPackageId());
             }
         }
 
