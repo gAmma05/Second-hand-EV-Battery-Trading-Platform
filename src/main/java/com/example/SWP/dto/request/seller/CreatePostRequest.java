@@ -42,7 +42,4 @@ public class CreatePostRequest {
 
     @NotEmpty(message = "At least one payment type is required")
     Set<PaymentType> paymentTypes;
-
-    @NotNull(message = "Use wallet flag is required")
-    Boolean isUseWallet;
 }

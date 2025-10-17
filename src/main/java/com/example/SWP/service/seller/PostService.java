@@ -2,20 +2,15 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
-import com.example.SWP.dto.response.CreatePostResponse;
 import com.example.SWP.entity.Post;
-import com.example.SWP.entity.PriorityPackage;
 import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
-import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.PostRepository;
-import com.example.SWP.repository.PriorityPackageRepository;
 import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
-import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -49,7 +43,7 @@ public class PostService {
     @Value("${post.update.limitDays}")
     int limitDays;
 
-    public CreatePostResponse createPost(Authentication authentication, CreatePostRequest request) {
+    public Post createPost(Authentication authentication, CreatePostRequest request) {
         User user = validateService.validateCurrentUser(authentication);
 
         if (user.getRemainingPosts() <= 0) {
@@ -80,47 +74,25 @@ public class PostService {
                 .likeCount(0)
                 .build();
 
-        if (request.getPriorityPackageId() != null) {
-            // Nếu có mua gói ưu tiên → chờ thanh toán
-            post.setPriorityPackageId(request.getPriorityPackageId());
-            post.setStatus(PostStatus.PENDING_PAYMENT);
-            post.setTrusted(false);
-        } else if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
+        if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
         } else if (sellerPackage.getType() == SellerPackageType.PREMIUM) {
             post.setStatus(PostStatus.PENDING);
+        }
+
+        if (request.getPriorityPackageId() != null) {
+            walletService.payPriorityPackage(user, request.getPriorityPackageId());
+            post.setPriorityPackageId(request.getPriorityPackageId());
             post.setTrusted(true);
         }
 
-        // Lưu trước để có ID dùng cho VNPay
         post = postRepository.save(post);
 
-        // Giảm số lượng bài đăng còn lại
         user.setRemainingPosts(user.getRemainingPosts() - 1);
         userRepository.save(user);
 
-        String paymentUrl = null;
-
-        // Xử lý thanh toán gói ưu tiên (nếu có)
-        if (request.getPriorityPackageId() != null) {
-            if (request.getIsUseWallet()) {
-                // Thanh toán bằng ví -> trừ tiền ngay và đăng bài
-                walletService.payPriorityPackage(user, request.getPriorityPackageId());
-                post.setStatus(PostStatus.POSTED);
-                postRepository.save(post);
-            } else {
-                // Thanh toán bằng VNPay -> tạo URL thanh toán
-                paymentUrl = paymentService.priorityPackagePayment(
-                        post.getId(), request.getPriorityPackageId()
-                );
-            }
-        }
-
-        return CreatePostResponse.builder()
-                .post(post)
-                .paymentUrl(paymentUrl)
-                .build();
+        return post;
     }
 
 

@@ -1,12 +1,8 @@
 package com.example.SWP.entity;
 
-import com.example.SWP.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "seller_package_payments")
@@ -16,25 +12,18 @@ import java.time.LocalDateTime;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SellerPackagePayment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     String orderId;
-    BigDecimal amount;
-    String bankCode;
-    String vnpResponseCode;
-
-    @Enumerated(EnumType.STRING)
-    PaymentStatus status;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     User user;
 
     @ManyToOne
-    @JoinColumn(name = "package_id")
+    @JoinColumn(name = "package_id", nullable = false)
     SellerPackage sellerPackage;
 }
