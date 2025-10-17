@@ -103,10 +103,7 @@ public class PaymentService {
         return packagePaymentRepository.save(payment);
     }
 
-    public String priorityPackagePayment(String email, Long postId, Long priorityPackageId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
-
+    public String priorityPackagePayment(Long postId, Long priorityPackageId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Post not found", 404));
 
