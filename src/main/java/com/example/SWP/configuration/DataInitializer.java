@@ -140,9 +140,9 @@ public class DataInitializer implements CommandLineRunner {
         //Test
         if (!userRepository.existsByRole(Role.SELLER)) {
             User user = User.builder()
-                    .email("loccol9696@gmail.com")
-                    .password(passwordEncoder.encode("loccol9696"))
-                    .fullName("Nguyen Huu Loc")
+                    .email("seller@gmail.com")
+                    .password(passwordEncoder.encode("seller"))
+                    .fullName("Seller")
                     .status(true)
                     .remainingPosts(1000)
                     .role(Role.SELLER)
