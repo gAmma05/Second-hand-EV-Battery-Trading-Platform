@@ -41,6 +41,7 @@ public class User {
     int remainingPosts;
 
     LocalDateTime createdAt;
+    LocalDateTime updatedAt;
     @Enumerated(EnumType.STRING)
     AuthProvider provider;
     @Enumerated(EnumType.STRING)
@@ -57,5 +58,8 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     Wallet wallet;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    List<Order> orders;
 
 }

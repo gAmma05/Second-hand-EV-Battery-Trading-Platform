@@ -11,6 +11,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "orders")
 @Data
@@ -46,4 +48,7 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     OrderStatus status;
+
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }
