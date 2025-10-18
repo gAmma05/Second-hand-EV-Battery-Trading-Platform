@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -48,6 +49,7 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     OrderStatus status;
+
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
