@@ -3,7 +3,7 @@ package com.example.SWP.controller.seller;
 import com.example.SWP.entity.PriorityPackage;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
-import com.example.SWP.service.seller.PriorityPackageService;
+import com.example.SWP.service.seller.SellerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,11 +20,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SellerController {
-    PriorityPackageService priorityPackageService;
+    SellerService sellerService;
 
     @GetMapping("/priority-packages")
     public ResponseEntity<List<PriorityPackage>> getAllPriorityPackages() {
-        List<PriorityPackage> packages = priorityPackageService.getAllPriorityPackages();
+        List<PriorityPackage> packages = sellerService.getAllPriorityPackages();
+        return ResponseEntity.ok(packages);
+    }
+
+    @GetMapping("/seller-packages")
+    public ResponseEntity<List<PriorityPackage>> getAllSellerPackages() {
+        List<PriorityPackage> packages = sellerService.getAllPriorityPackages();
         return ResponseEntity.ok(packages);
     }
 
