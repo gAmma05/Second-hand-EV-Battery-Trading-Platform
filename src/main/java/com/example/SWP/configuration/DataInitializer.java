@@ -111,7 +111,7 @@ public class DataInitializer implements CommandLineRunner {
         if (!userRepository.existsByRole(Role.ADMIN)) {
             User admin = User.builder()
                     .email("admin@gmail.com")
-                    .password(passwordEncoder.encode("admin"))
+                    .password(passwordEncoder.encode("admin@"))
                     .fullName("Admin")
                     .status(true)
                     .role(Role.ADMIN)
