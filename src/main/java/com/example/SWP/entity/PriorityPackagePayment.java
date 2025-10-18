@@ -20,7 +20,7 @@ public class PriorityPackagePayment {
     String orderId;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id")
     Post post;
 
     @ManyToOne
