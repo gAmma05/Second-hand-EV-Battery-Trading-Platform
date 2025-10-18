@@ -2,15 +2,21 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 
+import com.example.SWP.entity.PriorityPackage;
+import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.Role;
 import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.repository.PriorityPackageRepository;
+import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +24,8 @@ import org.springframework.stereotype.Service;
 public class SellerService {
 
     UserRepository userRepository;
+    PriorityPackageRepository priorityPackageRepository;
+    SellerPackageRepository  sellerPackageRepository;
 
     public void upgradeToSeller(Authentication authentication, UpgradeToSellerRequest request) {
         String email = authentication.getName();
@@ -46,4 +54,12 @@ public class SellerService {
         userRepository.save(user);
     }
 
+
+    public List<PriorityPackage> getAllPriorityPackages() {
+        return priorityPackageRepository.findAll();
+    }
+
+    public List<SellerPackage> getAllSellerPackages() {
+        return sellerPackageRepository.findAll();
+    }
 }
