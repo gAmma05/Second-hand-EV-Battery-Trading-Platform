@@ -1,6 +1,7 @@
 package com.example.SWP.controller.seller;
 
 import com.example.SWP.entity.PriorityPackage;
+import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import com.example.SWP.service.seller.SellerService;
@@ -29,8 +30,8 @@ public class SellerController {
     }
 
     @GetMapping("/seller-packages")
-    public ResponseEntity<List<PriorityPackage>> getAllSellerPackages() {
-        List<PriorityPackage> packages = sellerService.getAllPriorityPackages();
+    public ResponseEntity<List<SellerPackage>> getAllSellerPackages() {
+        List<SellerPackage> packages = sellerService.getAllSellerPackages();
         return ResponseEntity.ok(packages);
     }
 
