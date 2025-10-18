@@ -58,8 +58,4 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     Wallet wallet;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    List<Order> orders;
-
 }

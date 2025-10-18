@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class PostController {
+
     PostService postService;
 
     @PostMapping
@@ -38,7 +38,6 @@ public class PostController {
                         .build()
         );
     }
-
 
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse<Post>> updatePost(
