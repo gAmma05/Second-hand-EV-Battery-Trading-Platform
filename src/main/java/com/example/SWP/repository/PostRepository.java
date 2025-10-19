@@ -13,11 +13,15 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByUserAndStatus(User user, PostStatus postStatus);
 
-    List<Post> findByUser(User user);
-
     List<Post> findByStatus(PostStatus postStatus);
 
     List<Post> findByStatusAndExpiryDateAfterOrderByPostDateDesc(PostStatus postStatus, LocalDateTime now);
 
     List<Post> findByUserAndStatusNot(User user, PostStatus postStatus);
+
+    List<Post> findByProductTypeAndStatusAndExpiryDateAfterOrderByPostDateDesc(ProductType productType, PostStatus postStatus, LocalDateTime now);
+
+    List<Post> findByPriorityPackageIdNotNullAndStatusAndExpiryDateAfterOrderByPostDateDesc(PostStatus postStatus, LocalDateTime now);
+
+    List<Post> findByIsTrustedTrueAndStatusAndExpiryDateAfterOrderByPostDateDesc(PostStatus postStatus, LocalDateTime now);
 }

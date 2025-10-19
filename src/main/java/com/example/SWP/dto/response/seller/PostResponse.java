@@ -5,11 +5,13 @@ import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -46,6 +48,9 @@ public class PostResponse {
     PostStatus status;
 
     UserResponse user;
+
+    List<String> images;
+
 
     String vehicleBrand;
     String model;
