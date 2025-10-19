@@ -1,9 +1,12 @@
 package com.example.SWP.controller.buyer;
 
 
+import com.example.SWP.dto.request.buyer.CancelOrderRequest;
+import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 
 import com.example.SWP.dto.response.ApiResponse;
+import com.example.SWP.service.buyer.BuyerService;
 import com.example.SWP.service.seller.SellerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,30 @@ import org.springframework.web.bind.annotation.*;
 public class BuyerController {
 
     SellerService sellerService;
+
+    BuyerService buyerService;
+
+    @PostMapping("/order/create-order")
+    public ResponseEntity<ApiResponse<Void>> createOrder(Authentication authentication, CreateOrderRequest request) {
+        buyerService.createOrder(authentication, request);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Order created successfully")
+                        .build()
+        );
+    }
+
+    @PostMapping("/order/cancel-order")
+    public ResponseEntity<ApiResponse<Void>> cancelOrder(Authentication authentication, CancelOrderRequest request){
+        buyerService.cancelOrder(authentication, request);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Order cancelled successfully")
+                        .build()
+        );
+    }
 
     @PostMapping("/upgrade-to-seller")
     public ResponseEntity<ApiResponse<String>> upgradeToSeller(
