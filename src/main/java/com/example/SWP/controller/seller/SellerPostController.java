@@ -5,7 +5,7 @@ import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.enums.PostStatus;
-import com.example.SWP.service.seller.PostService;
+import com.example.SWP.service.seller.SellerPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,9 +19,9 @@ import java.util.List;
 @RequestMapping("/seller/posts")
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
-public class PostController {
+public class SellerPostController {
 
-    PostService postService;
+    SellerPostService postService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Post>> createPost(
@@ -66,6 +66,22 @@ public class PostController {
                         .build()
         );
     }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<ApiResponse<Post>> getPostById(
+            Authentication authentication,
+            @PathVariable Long postId
+    ) {
+        Post post = postService.getPostById(authentication, postId);
+        return ResponseEntity.ok(
+                ApiResponse.<Post>builder()
+                        .success(true)
+                        .message("Post retrieved successfully")
+                        .data(post)
+                        .build()
+        );
+    }
+
 
     @GetMapping("/posts/status/{status}")
     public ResponseEntity<ApiResponse<List<Post>>> getPostsByStatus(

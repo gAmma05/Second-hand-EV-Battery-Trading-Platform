@@ -11,7 +11,6 @@ import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.PriorityPackagePaymentRepository;
 import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
-import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,7 +26,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
-public class PostService {
+public class SellerPostService {
 
     PostRepository postRepository;
     UserRepository userRepository;
@@ -243,8 +242,24 @@ public class PostService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        return postRepository.findByUser(user);
+        return postRepository.findByUserAndStatusNot(user, PostStatus.DELETED);
     }
+
+    public Post getPostById(Authentication authentication, Long postId) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("Post not found", 404));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new BusinessException("You do not have permission to access this post", 403);
+        }
+
+        return post;
+    }
+
 
     public List<Post> getMyPostsByStatus(Authentication authentication, PostStatus status) {
         String email = authentication.getName();
