@@ -2,10 +2,7 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
-import com.example.SWP.entity.Post;
-import com.example.SWP.entity.PriorityPackagePayment;
-import com.example.SWP.entity.SellerPackage;
-import com.example.SWP.entity.User;
+import com.example.SWP.entity.*;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
 import com.example.SWP.enums.SellerPackageType;
@@ -24,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -72,6 +70,7 @@ public class PostService {
             sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
         }
 
+        // Build post
         Post.PostBuilder postBuilder = Post.builder()
                 .user(user)
                 .productType(request.getProductType())
@@ -112,23 +111,35 @@ public class PostService {
             post.setStatus(PostStatus.PENDING);
         }
 
-        // Xử lý priority package
+        List<PostImage> postImages = new ArrayList<>();
+        for (String url : request.getImages()) {
+            PostImage image = PostImage.builder()
+                    .post(post)
+                    .imageUrl(url)
+                    .build();
+            postImages.add(image);
+        }
+        post.setImages(postImages);
+
+        // Xử lý priority package nếu có
         if (request.getPriorityPackageId() != null) {
             PriorityPackagePayment payment = paymentService.priorityPackagePayment(user, request.getPriorityPackageId());
             post.setPriorityPackageId(request.getPriorityPackageId());
-            post.setTrusted(true);
-            post = postRepository.save(post); // save trước khi gán
+            post = postRepository.save(post); // save trước khi gán payment
             payment.setPost(post);
             priorityPackagePaymentRepository.save(payment);
         }
 
+        // Lưu post (cùng lúc lưu ảnh nhờ cascade)
         post = postRepository.save(post);
 
+        // Cập nhật số lượng post còn lại của user
         user.setRemainingPosts(user.getRemainingPosts() - 1);
         userRepository.save(user);
 
         return post;
     }
+
 
     public Post updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
         // Lấy user hiện tại
@@ -167,16 +178,19 @@ public class PostService {
         post.setPaymentTypes(request.getPaymentTypes());
         post.setUpdateDate(LocalDateTime.now());
 
-        post.setVehicleBrand(request.getVehicleBrand());
-        post.setModel(request.getModel());
-        post.setYearOfManufacture(request.getYearOfManufacture());
-        post.setColor(request.getColor());
-        post.setMileage(request.getMileage());
 
-        post.setBatteryType(request.getBatteryType());
-        post.setCapacity(request.getCapacity());
-        post.setVoltage(request.getVoltage());
-        post.setBatteryBrand(request.getBatteryBrand());
+        if (request.getProductType() == ProductType.VEHICLE) {
+            post.setVehicleBrand(request.getVehicleBrand());
+            post.setModel(request.getModel());
+            post.setYearOfManufacture(request.getYearOfManufacture());
+            post.setColor(request.getColor());
+            post.setMileage(request.getMileage());
+        } else if (request.getProductType() == ProductType.BATTERY) {
+            post.setBatteryType(request.getBatteryType());
+            post.setCapacity(request.getCapacity());
+            post.setVoltage(request.getVoltage());
+            post.setBatteryBrand(request.getBatteryBrand());
+        }
 
         // Set status và trusted theo gói
         SellerPackage sellerPackage = null;
@@ -191,9 +205,21 @@ public class PostService {
             post.setStatus(PostStatus.PENDING);
         }
 
+        // Xóa ảnh cũ
+        post.getImages().clear();
+
+        // Thêm ảnh mới
+        for (String url : request.getImages()) {
+            PostImage image = PostImage.builder()
+                    .post(post)
+                    .imageUrl(url)
+                    .build();
+            post.getImages().add(image);
+        }
+
+
         return postRepository.save(post);
     }
-
 
 
     public void deletePost(Authentication authentication, Long postId) {
@@ -217,6 +243,15 @@ public class PostService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        return postRepository.findByUserAndStatusNot(user, PostStatus.DELETED);
+        return postRepository.findByUser(user);
     }
+
+    public List<Post> getMyPostsByStatus(Authentication authentication, PostStatus status) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+
+        return postRepository.findByUserAndStatus(user, status);
+    }
+
 }

@@ -7,7 +7,9 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -62,16 +64,18 @@ public class Post {
     @Enumerated(EnumType.STRING)
     PostStatus status;
 
-    // Thông số kỹ thuật Xe
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "image_order")
+    List<PostImage> images = new ArrayList<>();
+
     String vehicleBrand;
     String model;
     Integer yearOfManufacture;
     String color;
     Integer mileage;
 
-    // Thông số kỹ thuật Pin
     String batteryType;
-    Integer capacity; // mAh
+    Integer capacity;
     String voltage;
     String batteryBrand;
 }
