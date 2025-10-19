@@ -8,6 +8,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -42,6 +43,10 @@ public class CreatePostRequest {
 
     @NotEmpty(message = "At least one payment type is required")
     Set<PaymentType> paymentTypes;
+
+    @NotEmpty(message = "At least one image is required")
+    List<@NotBlank(message = "Image URL cannot be blank") String> images;
+
 
     String vehicleBrand;
     String model;

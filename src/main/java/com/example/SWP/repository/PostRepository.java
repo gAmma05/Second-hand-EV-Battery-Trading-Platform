@@ -9,10 +9,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findByUserAndStatusNot(User user, PostStatus postStatus);
+    List<Post> findByUserAndStatus(User user, PostStatus postStatus);
+
+    List<Post> findByUser(User user);
 
     List<Post> findByStatus(PostStatus postStatus);
-
-    List<Post> findByStatusAndPostDateBefore(PostStatus status, LocalDateTime dateTime);
-
 }

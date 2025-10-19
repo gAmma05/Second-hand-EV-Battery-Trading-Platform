@@ -4,6 +4,7 @@ import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.Post;
+import com.example.SWP.enums.PostStatus;
 import com.example.SWP.service.seller.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +62,20 @@ public class PostController {
                 ApiResponse.<List<Post>>builder()
                         .success(true)
                         .message("List of your posts retrieved successfully")
+                        .data(posts)
+                        .build()
+        );
+    }
+
+    @GetMapping("/posts/status/{status}")
+    public ResponseEntity<ApiResponse<List<Post>>> getPostsByStatus(
+            Authentication authentication,
+            @PathVariable PostStatus status) {
+        List<Post> posts = postService.getMyPostsByStatus(authentication, status);
+        return ResponseEntity.ok(
+                ApiResponse.<List<Post>>builder()
+                        .success(true)
+                        .message("Posts retrieved successfully")
                         .data(posts)
                         .build()
         );
