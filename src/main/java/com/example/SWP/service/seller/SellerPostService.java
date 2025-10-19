@@ -124,6 +124,8 @@ public class SellerPostService {
         if (request.getPriorityPackageId() != null) {
             PriorityPackagePayment payment = paymentService.priorityPackagePayment(user, request.getPriorityPackageId());
             post.setPriorityPackageId(request.getPriorityPackageId());
+            LocalDateTime expireDate = LocalDateTime.now().plusDays(payment.getPriorityPackage().getDurationDays());
+            post.setPriorityExpire(expireDate);
             post = postRepository.save(post); // save trước khi gán payment
             payment.setPost(post);
             priorityPackagePaymentRepository.save(payment);
