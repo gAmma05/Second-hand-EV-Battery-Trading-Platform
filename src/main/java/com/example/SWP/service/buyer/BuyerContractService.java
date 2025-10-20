@@ -2,11 +2,14 @@ package com.example.SWP.service.buyer;
 
 import com.example.SWP.dto.response.buyer.ContractResponse;
 import com.example.SWP.entity.Contract;
+import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
+import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.ContractRepository;
+import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
 import lombok.AccessLevel;
@@ -29,6 +32,7 @@ public class BuyerContractService {
     ContractRepository contractRepository;
 
     NotificationService notificationService;
+    private final OrderRepository orderRepository;
 
     public void signContract(Authentication authentication, Long contractId) {
         String email = authentication.getName();
@@ -88,7 +92,14 @@ public class BuyerContractService {
         }
 
         contract.setStatus(ContractStatus.CANCELLED);
+
         contractRepository.save(contract);
+
+        Order order = contract.getOrder();
+
+        order.setStatus(OrderStatus.REJECTED);
+
+        orderRepository.save(order);
 
         notificationService.sendNotificationToOneUser(contract.getOrder().getSeller().getEmail(), "About your contract", "Look like your contract has been cancelled by buyer, you should check it out.");
     }
