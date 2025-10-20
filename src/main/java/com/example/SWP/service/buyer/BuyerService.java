@@ -19,6 +19,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -56,6 +57,7 @@ public class BuyerService {
         order.setDeliveryMethod(request.getDeliveryMethod());
         order.setPaymentMethod(request.getPaymentMethod());
         order.setPaymentType(request.getPaymentType());
+        order.setCreatedAt(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
 
         orderRepository.save(order);
@@ -85,10 +87,10 @@ public class BuyerService {
         List<Order> orderList = orderRepository.findOrderByPost_Id(postId);
         for (Order order : orderList) {
             if (order.getStatus() == OrderStatus.PENDING) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public List<Order> getAllOrders(Authentication authentication) {

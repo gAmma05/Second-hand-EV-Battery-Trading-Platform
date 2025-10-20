@@ -6,11 +6,8 @@ import com.example.SWP.entity.PriorityPackage;
 import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.Role;
-import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.PriorityPackageRepository;
-import com.example.SWP.repository.SellerPackageRepository;
-import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -25,7 +22,8 @@ public class SellerService {
 
     UserRepository userRepository;
     PriorityPackageRepository priorityPackageRepository;
-    SellerPackageRepository  sellerPackageRepository;
+    SellerPackageRepository sellerPackageRepository;
+
 
     public void upgradeToSeller(Authentication authentication, UpgradeToSellerRequest request) {
         String email = authentication.getName();
@@ -53,6 +51,8 @@ public class SellerService {
         user.setRemainingPosts(3);
         userRepository.save(user);
     }
+
+
 
 
     public List<PriorityPackage> getAllPriorityPackages() {
