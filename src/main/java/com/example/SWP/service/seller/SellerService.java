@@ -28,7 +28,7 @@ public class SellerService {
     public void upgradeToSeller(Authentication authentication, UpgradeToSellerRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User does not exist"));
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
         if (user.getRole() == Role.SELLER) {
             throw new BusinessException("User is already a seller", 400);
