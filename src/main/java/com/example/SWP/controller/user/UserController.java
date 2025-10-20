@@ -1,6 +1,7 @@
 package com.example.SWP.controller.user;
 
 import com.example.SWP.dto.request.user.ChangePasswordRequest;
+import com.example.SWP.dto.request.user.UpdateAvatarRequest;
 import com.example.SWP.dto.request.user.UpdateUserRequest;
 
 
@@ -52,15 +53,16 @@ public class UserController {
     @PatchMapping("/avatar")
     public ResponseEntity<ApiResponse<UserResponse>> updateAvatar(
             Authentication authentication,
-            @RequestBody String avatarUrl
+            @RequestBody UpdateAvatarRequest request
     ) {
-        UserResponse updated = userService.updateAvatar(authentication, avatarUrl);
+        UserResponse updated = userService.updateAvatar(authentication, request.getAvatar());
         return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
                 .success(true)
                 .message("Avatar updated successfully")
                 .data(updated)
                 .build());
     }
+
 
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
