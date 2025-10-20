@@ -7,7 +7,9 @@ import com.example.SWP.dto.request.user.UpdateUserRequest;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.UserResponse;
+import com.example.SWP.exception.BusinessException;
 import com.example.SWP.service.user.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -67,8 +69,12 @@ public class UserController {
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             Authentication authentication,
-            @RequestBody ChangePasswordRequest request
+            @Valid @RequestBody ChangePasswordRequest request
     ) {
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BusinessException("New password and confirm password do not match", 400);
+        }
+
         userService.changePassword(authentication, request);
 
         return ResponseEntity.ok(

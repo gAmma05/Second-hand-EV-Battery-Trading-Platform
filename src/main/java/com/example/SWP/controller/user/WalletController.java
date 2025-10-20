@@ -13,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -47,30 +48,30 @@ public class WalletController {
 
     //Xử lý VNPay return
     @GetMapping("/vnpay-return/deposit")
-    public ResponseEntity<?> handleDepositVNPayReturn(
+    public RedirectView handleDepositVNPayReturn(
             @RequestParam String vnp_TxnRef,
             @RequestParam String vnp_ResponseCode,
-            @RequestParam(required = false) String vnp_BankCode) {
+            @RequestParam(required = false) String vnp_BankCode
+    ) {
         try {
             WalletTransaction transaction = walletService.handleDepositVNPayReturn(vnp_TxnRef, vnp_ResponseCode, vnp_BankCode);
 
             boolean isSuccess = transaction.getStatus() == PaymentStatus.SUCCESS;
 
-            ApiResponse<Void> response = ApiResponse.<Void>builder()
-                    .success(isSuccess)
-                    .message(isSuccess ? "Payment successful" : "Payment failed")
-                    .build();
+            String redirectUrl = "http://localhost:5173/user/wallet";
+            if (isSuccess) {
+                redirectUrl += "?paymentStatus=success";
+            } else {
+                redirectUrl += "?paymentStatus=failed";
+            }
 
-            return ResponseEntity.ok(response);
+            return new RedirectView(redirectUrl);
         } catch (Exception e) {
-            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
-                    .success(false)
-                    .message("Payment error: " + e.getMessage())
-                    .build();
-
-            return ResponseEntity.badRequest().body(errorResponse);
+            String redirectUrl = "http://localhost:5173/user/wallet?paymentStatus=error";
+            return new RedirectView(redirectUrl);
         }
     }
+
 
     //Xu li rut tien
     @PostMapping("/withdraw")
