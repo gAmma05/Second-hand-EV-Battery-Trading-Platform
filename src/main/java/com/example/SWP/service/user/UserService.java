@@ -101,6 +101,10 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User not found", 404));
 
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BusinessException("New password and confirm password do not match", 400);
+        }
+
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BusinessException("Current password is incorrect", 400);
         }
