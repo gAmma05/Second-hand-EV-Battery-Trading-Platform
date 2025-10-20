@@ -49,6 +49,19 @@ public class UserController {
                 .build());
     }
 
+    @PatchMapping("/avatar")
+    public ResponseEntity<ApiResponse<UserResponse>> updateAvatar(
+            Authentication authentication,
+            @RequestBody String avatarUrl
+    ) {
+        UserResponse updated = userService.updateAvatar(authentication, avatarUrl);
+        return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
+                .success(true)
+                .message("Avatar updated successfully")
+                .data(updated)
+                .build());
+    }
+
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             Authentication authentication,

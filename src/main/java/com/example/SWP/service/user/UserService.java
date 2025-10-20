@@ -65,16 +65,36 @@ public class UserService {
             throw new RuntimeException("User not found");
         }
 
-        user.setFullName(request.getFullName());
-        user.setAddress(request.getAddress());
-        user.setPhone(request.getPhone());
-        user.setAvatar(request.getAvatar());
-        user.setStatus(true);
+        if (request.getFullName() != null) {
+            user.setFullName(request.getFullName());
+        }
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
 
         userRepository.save(user);
 
         return userMapper.toUserResponse(user);
     }
+
+    public UserResponse updateAvatar(Authentication authentication, String avatarUrl) {
+        String email = authentication.getName();
+        User user = findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            user.setAvatar(avatarUrl);
+            userRepository.save(user);
+        }
+
+        return userMapper.toUserResponse(user);
+    }
+
 
     public void changePassword(Authentication authentication, ChangePasswordRequest request) {
         String email = authentication.getName();

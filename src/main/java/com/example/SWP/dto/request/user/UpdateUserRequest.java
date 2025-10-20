@@ -12,5 +12,4 @@ public class UpdateUserRequest {
     String fullName;
     String phone;
     String address;
-    String avatar;
 }
