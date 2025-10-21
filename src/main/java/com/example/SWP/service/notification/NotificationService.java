@@ -103,7 +103,6 @@ public class NotificationService {
     }
 
     public List<NotificationResponse> getUnreadNotifications(Authentication authentication) {
-        Set<UserNotification> unreadList = new HashSet<>();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
