@@ -86,8 +86,13 @@ public class NotificationService {
         }
     }
 
-    public void markAsRead(Long userId, Long notificationId) {
-        UserNotificationKey key = new UserNotificationKey(userId, notificationId);
+    public void markAsRead(Authentication authentication, Long notificationId) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new BusinessException("No user found", 404)
+        );
+
+        UserNotificationKey key = new UserNotificationKey(user.getId(), notificationId);
         UserNotification userNotification = userNotificationRepository.findById(key)
                 .orElseThrow(() -> new BusinessException("Not found", 404));
 

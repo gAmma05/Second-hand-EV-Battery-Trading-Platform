@@ -1,22 +1,15 @@
 package com.example.SWP.controller.seller;
 
-import com.example.SWP.dto.request.seller.CreateContractRequest;
 import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.dto.response.PreContractResponse;
-import com.example.SWP.dto.response.seller.OrderResponse;
+import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.response.seller.RejectOrderResponse;
 import com.example.SWP.service.seller.OrderService;
-import com.example.SWP.service.seller.SellerContractService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +22,8 @@ public class OrderController {
 
     OrderService orderService;
 
-    @PostMapping("/approve")
-    public ResponseEntity<ApiResponse<Void>> approveOrder(Authentication authentication, Long orderId) {
+    @GetMapping("/approve/{orderId}")
+    public ResponseEntity<ApiResponse<Void>> approveOrder(Authentication authentication, @PathVariable Long orderId) {
         orderService.approveOrder(authentication, orderId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
@@ -51,19 +44,19 @@ public class OrderController {
         );
     }
 
-    @PostMapping("/order-detail")
-    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetail(Authentication authentication, Long orderId) {
-        OrderResponse response = orderService.getOrderDetail(authentication, orderId);
+    @PostMapping("/order-detail/{orderId}")
+    public ResponseEntity<ApiResponse<SellerOrderResponse>> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
+        SellerOrderResponse response = orderService.getOrderDetail(authentication, orderId);
         if(response == null){
             return ResponseEntity.ok(
-                    ApiResponse.<OrderResponse>builder()
+                    ApiResponse.<SellerOrderResponse>builder()
                             .success(false)
                             .message("Order detail not found")
                             .build()
             );
         }
         return ResponseEntity.ok(
-                ApiResponse.<OrderResponse>builder()
+                ApiResponse.<SellerOrderResponse>builder()
                         .success(true)
                         .message("Order detail fetched successfully")
                         .data(response)
@@ -72,11 +65,11 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(Authentication authentication) {
-        List<OrderResponse> orderList = orderService.getAllOrders(authentication);
+    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getMyOrders(Authentication authentication) {
+        List<SellerOrderResponse> orderList = orderService.getAllOrders(authentication);
         if(orderList == null || orderList.isEmpty()){
             return ResponseEntity.ok(
-                    ApiResponse.<List<OrderResponse>>builder()
+                    ApiResponse.<List<SellerOrderResponse>>builder()
                             .success(true)
                             .message("No orders")
                             .data(new ArrayList<>())
@@ -84,7 +77,7 @@ public class OrderController {
             );
         }
         return ResponseEntity.ok(
-                ApiResponse.<List<OrderResponse>>builder()
+                ApiResponse.<List<SellerOrderResponse>>builder()
                         .success(true)
                         .message("All orders fetched successfully")
                         .data(orderList)
@@ -93,11 +86,11 @@ public class OrderController {
     }
 
     @GetMapping("/pending-list")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getPendingOrders(Authentication authentication) {
-        List<OrderResponse> pendingList = orderService.getPendingOrder(authentication);
+    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getPendingOrders(Authentication authentication) {
+        List<SellerOrderResponse> pendingList = orderService.getPendingOrder(authentication);
         if(pendingList == null || pendingList.isEmpty()){
             return ResponseEntity.ok(
-                    ApiResponse.<List<OrderResponse>>builder()
+                    ApiResponse.<List<SellerOrderResponse>>builder()
                             .success(true)
                             .message("No pending orders")
                             .data(new ArrayList<>())
@@ -105,7 +98,7 @@ public class OrderController {
             );
         }
         return ResponseEntity.ok(
-                ApiResponse.<List<OrderResponse>>builder()
+                ApiResponse.<List<SellerOrderResponse>>builder()
                         .success(true)
                         .message("Pending orders fetched successfully")
                         .data(pendingList)
@@ -114,11 +107,11 @@ public class OrderController {
     }
 
     @GetMapping("/approved-list")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getApprovedOrders(Authentication authentication) {
-        List<OrderResponse> approvedList = orderService.getApprovedOrder(authentication);
+    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getApprovedOrders(Authentication authentication) {
+        List<SellerOrderResponse> approvedList = orderService.getApprovedOrder(authentication);
         if(approvedList == null || approvedList.isEmpty()){
             return ResponseEntity.ok(
-                    ApiResponse.<List<OrderResponse>>builder()
+                    ApiResponse.<List<SellerOrderResponse>>builder()
                             .success(true)
                             .message("No approved orders")
                             .data(new ArrayList<>())
@@ -126,7 +119,7 @@ public class OrderController {
             );
         }
         return ResponseEntity.ok(
-                ApiResponse.<List<OrderResponse>>builder()
+                ApiResponse.<List<SellerOrderResponse>>builder()
                         .success(true)
                         .message("Approved orders fetched successfully")
                         .data(approvedList)
@@ -135,11 +128,11 @@ public class OrderController {
     }
 
     @GetMapping("/rejected-list")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getRejectedOrders(Authentication authentication){
-        List<OrderResponse> rejectedList = orderService.getRejectedOrder(authentication);
+    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getRejectedOrders(Authentication authentication){
+        List<SellerOrderResponse> rejectedList = orderService.getRejectedOrder(authentication);
         if(rejectedList == null || rejectedList.isEmpty()){
             return ResponseEntity.ok(
-                    ApiResponse.<List<OrderResponse>>builder()
+                    ApiResponse.<List<SellerOrderResponse>>builder()
                             .success(true)
                             .message("No rejected orders")
                             .data(new ArrayList<>())
@@ -147,7 +140,7 @@ public class OrderController {
             );
         }
         return ResponseEntity.ok(
-                ApiResponse.<List<OrderResponse>>builder()
+                ApiResponse.<List<SellerOrderResponse>>builder()
                         .success(true)
                         .message("Rejected orders fetched successfully")
                         .data(rejectedList)

@@ -1,6 +1,6 @@
 package com.example.SWP.service.seller;
 
-import com.example.SWP.dto.response.seller.OrderResponse;
+import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.response.seller.RejectOrderResponse;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
@@ -28,7 +28,7 @@ public class OrderService {
     NotificationService notificationService;
     UserRepository userRepository;
 
-    public OrderResponse getOrderDetail(Authentication authentication, Long orderId) {
+    public SellerOrderResponse getOrderDetail(Authentication authentication, Long orderId) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
@@ -40,7 +40,7 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
 
-        OrderResponse response = new OrderResponse();
+        SellerOrderResponse response = new SellerOrderResponse();
         response.setOrderId(orderId);
         response.setPostId(order.getPost().getId());
         response.setBuyerName(order.getBuyer().getFullName());
@@ -67,7 +67,6 @@ public class OrderService {
             throw new BusinessException("You can't approve this order because it's already rejected", 400);
         } else if (order.getStatus().equals(OrderStatus.PENDING)) {
             order.setStatus(OrderStatus.APPROVED);
-
         }
 
         String buyerEmail = order.getBuyer().getEmail();
@@ -108,7 +107,7 @@ public class OrderService {
         notificationService.sendNotificationToOneUser(email, title, content);
     }
 
-    public List<OrderResponse> getAllOrders(Authentication authentication) {
+    public List<SellerOrderResponse> getAllOrders(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User does not exist"));
@@ -119,7 +118,7 @@ public class OrderService {
         return createList(orderList);
     }
 
-    public List<OrderResponse> getPendingOrder(Authentication authentication) {
+    public List<SellerOrderResponse> getPendingOrder(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User does not exist"));
@@ -131,7 +130,7 @@ public class OrderService {
         return createList(orderList);
     }
 
-    public List<OrderResponse> getRejectedOrder(Authentication authentication) {
+    public List<SellerOrderResponse> getRejectedOrder(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User does not exist"));
@@ -142,7 +141,7 @@ public class OrderService {
         return createList(orderList);
     }
 
-    public List<OrderResponse> getApprovedOrder(Authentication authentication) {
+    public List<SellerOrderResponse> getApprovedOrder(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User does not exist"));
@@ -153,11 +152,11 @@ public class OrderService {
         return createList(orderList);
     }
 
-    private List<OrderResponse> createList(List<Order> orderList) {
+    private List<SellerOrderResponse> createList(List<Order> orderList) {
 
-        List<OrderResponse> responseList = new ArrayList<>();
+        List<SellerOrderResponse> responseList = new ArrayList<>();
         for (Order order : orderList) {
-            OrderResponse response = new OrderResponse();
+            SellerOrderResponse response = new SellerOrderResponse();
             response.setOrderId(order.getId());
             response.setPostId(order.getPost().getId());
             response.setBuyerName(order.getBuyer().getFullName());
@@ -168,5 +167,12 @@ public class OrderService {
             responseList.add(response);
         }
         return responseList;
+    }
+
+    public void updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order does not exist"));
+        order.setStatus(status);
+        orderRepository.save(order);
     }
 }

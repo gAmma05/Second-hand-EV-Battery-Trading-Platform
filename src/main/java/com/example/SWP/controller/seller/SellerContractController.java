@@ -10,10 +10,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,8 +22,8 @@ public class SellerContractController {
 
     SellerContractService sellerContractService;
 
-    @GetMapping("/pre-contract-implementation")
-    public ResponseEntity<?> preContractReview(Authentication authentication, Long orderId) {
+    @GetMapping("/pre-contract-implementation/{orderId}")
+    public ResponseEntity<?> preContractReview(Authentication authentication, @PathVariable Long orderId) {
         PreContractResponse response = sellerContractService.getPreContractByOrderId(authentication, orderId);
         if (response == null) {
             return new ResponseEntity<>("Failed to fetch pre-contract", HttpStatus.BAD_REQUEST);
@@ -52,8 +49,8 @@ public class SellerContractController {
         );
     }
 
-    @GetMapping("/contract-detail")
-    public ResponseEntity<?> getContractDetail(Authentication authentication, Long contractId){
+    @GetMapping("/contract-detail/{contractId}")
+    public ResponseEntity<?> getContractDetail(Authentication authentication, @PathVariable Long contractId){
         ContractResponse response = sellerContractService.getContractDetail(authentication, contractId);
         if(response == null){
             return ResponseEntity.badRequest().body("Failed to fetch contract detail");

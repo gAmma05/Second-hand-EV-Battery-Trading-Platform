@@ -4,6 +4,8 @@ import com.example.SWP.dto.request.buyer.CancelOrderRequest;
 import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 
+import com.example.SWP.dto.response.buyer.BuyerOrderResponse;
+import com.example.SWP.dto.response.buyer.DeliveryAddressResponse;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
@@ -14,12 +16,14 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,11 +31,28 @@ import java.util.List;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerService {
 
-    private final UserRepository userRepository;
+    UserRepository userRepository;
 
-    private final OrderRepository orderRepository;
+    OrderRepository orderRepository;
 
-    private final PostRepository postRepository;
+    PostRepository postRepository;
+
+    NotificationService notificationService;
+
+//    public DeliveryAddressResponse getDeliveryAddress(Authentication authentication, Long postId) {
+//        String email = authentication.getName();
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("User does not exist"));
+//
+//        Post post = postRepository.findById(postId).orElseThrow(
+//                () -> new BusinessException("Post does not exist", 404));
+//
+//        if (user.getRole() != Role.BUYER) {
+//            throw new BusinessException("You don't have permission to access this post", 403);
+//        }
+//
+//
+//    }
 
     public void createOrder(Authentication authentication, CreateOrderRequest request) {
         String email = authentication.getName();
@@ -46,7 +67,7 @@ public class BuyerService {
             throw new BusinessException("Post does not exist. You cannot create order on this post", 404);
         }
 
-        if (isOrderInPending(request.getPostId())) {
+        if (isOrderAvailable(request.getPostId(), OrderStatus.PENDING) || isOrderAvailable(request.getPostId(), OrderStatus.APPROVED)) {
             throw new BusinessException("You or someone have already created an order for this post", 400);
         }
 
@@ -61,8 +82,14 @@ public class BuyerService {
         order.setStatus(OrderStatus.PENDING);
 
         orderRepository.save(order);
+
+        notificationService.sendNotificationToOneUser(order.getSeller().getEmail(), "About your post", "Look like someone has created an order for your post, you should check it out.");
     }
 
+    private boolean isOrderAvailable(Long postId, OrderStatus status){
+        List<Order> orderList = orderRepository.findOrderByPost_IdAndStatus(postId, status);
+        return orderList != null && !orderList.isEmpty();
+    }
 
     public void cancelOrder(Authentication authentication, CancelOrderRequest request) {
         String email = authentication.getName();
@@ -76,28 +103,44 @@ public class BuyerService {
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new BusinessException("Order is not pending", 400);
+            throw new BusinessException("You cannot cancel this order since the seller has approved it, you can cancel it through contract implementation", 400);
+        }
+
+        if(!order.getBuyer().equals(user)){
+            throw new BusinessException("This order is not your, you cannot cancel it", 400);
         }
 
         order.setStatus(OrderStatus.REJECTED);
         orderRepository.save(order);
+
+        notificationService.sendNotificationToOneUser(order.getSeller().getEmail(), "About your order", "Look like someone has cancelled your order, reason: " + request.getReason() + ". You should check it out.");
     }
 
-    private boolean isOrderInPending(Long postId) {
-        List<Order> orderList = orderRepository.findOrderByPost_Id(postId);
-        for (Order order : orderList) {
-            if (order.getStatus() == OrderStatus.PENDING) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public List<Order> getAllOrders(Authentication authentication) {
+    public List<BuyerOrderResponse> getAllOrders(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User does not exist"));
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        return orderRepository.findOrderByBuyer_Id(user.getId());
+        if (user.getRole() != Role.BUYER) {
+            throw new BusinessException("User is not a buyer", 400);
+        }
+
+        return createList(orderRepository.findOrderByBuyer_Id(user.getId()));
+    }
+
+    private List<BuyerOrderResponse> createList(List<Order> orderList) {
+        List<BuyerOrderResponse> list = new ArrayList<>();
+        for(Order order : orderList){
+            BuyerOrderResponse response = new BuyerOrderResponse();
+            response.setOrderId(order.getId());
+            response.setPostId(order.getPost().getId());
+            response.setSellerName(order.getSeller().getFullName());
+            response.setPaymentType(order.getPaymentType());
+            response.setPaymentMethod(order.getPaymentMethod());
+            response.setStatus(order.getStatus());
+            response.setCreatedAt(order.getCreatedAt());
+            list.add(response);
+        }
+        return list;
     }
 }

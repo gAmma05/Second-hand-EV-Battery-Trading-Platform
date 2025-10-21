@@ -1,4 +1,4 @@
-package com.example.SWP.dto.response.seller;
+package com.example.SWP.dto.response.buyer;
 
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.PaymentMethod;
@@ -15,10 +15,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrderResponse {
+public class BuyerOrderResponse {
     Long orderId;
     Long postId;
-    String buyerName;
+    String sellerName;
     PaymentMethod paymentMethod;
     PaymentType paymentType;
     OrderStatus status;
