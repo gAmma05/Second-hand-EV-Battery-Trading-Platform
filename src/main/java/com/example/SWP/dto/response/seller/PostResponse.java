@@ -40,7 +40,7 @@ public class PostResponse {
     Set<PaymentType> paymentTypes;
 
     String address;
-    boolean isTrusted;
+    boolean trusted;
 
     Long priorityPackageId;
     LocalDateTime priorityExpire;
@@ -50,7 +50,6 @@ public class PostResponse {
     UserResponse user;
 
     List<String> images;
-
 
     String vehicleBrand;
     String model;

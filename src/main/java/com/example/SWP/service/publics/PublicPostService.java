@@ -56,6 +56,7 @@ public class PublicPostService {
         sortedPosts.addAll(trustedPosts);
         sortedPosts.addAll(normalPosts);
 
+
         return postMapper.toPostResponseList(sortedPosts);
     }
 
