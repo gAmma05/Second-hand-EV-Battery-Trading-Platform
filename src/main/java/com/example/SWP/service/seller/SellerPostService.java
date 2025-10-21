@@ -32,7 +32,7 @@ public class SellerPostService {
     UserRepository userRepository;
     SellerPackageRepository sellerPackageRepository;
     ValidateService validateService;
-    PaymentService paymentService;
+    SellerPaymentService sellerPaymentService;
     PriorityPackagePaymentRepository priorityPackagePaymentRepository;
 
     @NonFinal
@@ -122,7 +122,7 @@ public class SellerPostService {
 
         // Xử lý priority package nếu có
         if (request.getPriorityPackageId() != null) {
-            PriorityPackagePayment payment = paymentService.priorityPackagePayment(user, request.getPriorityPackageId());
+            PriorityPackagePayment payment = sellerPaymentService.priorityPackagePayment(user, request.getPriorityPackageId());
             post.setPriorityPackageId(request.getPriorityPackageId());
             LocalDateTime expireDate = LocalDateTime.now().plusDays(payment.getPriorityPackage().getDurationDays());
             post.setPriorityExpire(expireDate);

@@ -10,12 +10,9 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.*;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
-import com.example.SWP.service.payment.VnPayService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +22,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class PaymentService {
+public class SellerPaymentService {
 
     SellerPackagePaymentRepository packagePaymentRepository;
     UserRepository userRepository;
