@@ -1,5 +1,6 @@
 package com.example.SWP.service.notification;
 
+import com.example.SWP.dto.response.NotificationResponse;
 import com.example.SWP.entity.notification.Notification;
 import com.example.SWP.entity.User;
 import com.example.SWP.entity.notification.UserNotification;
@@ -14,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -100,21 +102,28 @@ public class NotificationService {
         userNotificationRepository.save(userNotification);
     }
 
-    public Set<UserNotification> getUnreadNotifications(Authentication authentication) {
+    public List<NotificationResponse> getUnreadNotifications(Authentication authentication) {
         Set<UserNotification> unreadList = new HashSet<>();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        List<UserNotification> notificationsList = userNotificationRepository.findAllByUser(user);
+        return getNotificationResponseList(userNotificationRepository.findAllByUser(user));
 
-        for(UserNotification notification : notificationsList) {
-            if(!notification.isRead()){
-                unreadList.add(notification);
-            }
+    }
+
+    private List<NotificationResponse> getNotificationResponseList(List<UserNotification> notificationsList) {
+        List<NotificationResponse> notificationResponseList = new ArrayList<>();
+        for(UserNotification one : notificationsList) {
+            NotificationResponse response = new NotificationResponse();
+            response.setId(one.getNotification().getId());
+            response.setTitle(one.getNotification().getTitle());
+            response.setContent(one.getNotification().getContent());
+            response.setCreatedAt(one.getNotification().getCreatedAt());
+            notificationResponseList.add(response);
         }
 
-        return unreadList;
+        return notificationResponseList;
     }
 
 }

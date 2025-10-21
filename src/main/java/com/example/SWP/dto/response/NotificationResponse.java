@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationResponse {
+    private Long id;
     private String title;
     private String content;
     private LocalDateTime createdAt;

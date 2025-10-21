@@ -23,17 +23,22 @@ public class NotificationController {
 
     @GetMapping("/unread-list")
     public ResponseEntity<?> getUnreadNotification(Authentication authentication) {
-        Set<UserNotification> notificationList = notificationService.getUnreadNotifications(authentication);
-        List<NotificationResponse> response = notificationList.stream()
-                .map(un -> new NotificationResponse(
-                        un.getNotification().getTitle(),
-                        un.getNotification().getContent(),
-                        un.getNotification().getCreatedAt()
-                ))
-                .toList();
-        return ResponseEntity
-                .status(200)
-                .body(response);
+        List<NotificationResponse> responses = notificationService.getUnreadNotifications(authentication);
+        if (responses == null || responses.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.<List<NotificationResponse>>builder()
+                            .success(false)
+                            .message("No unread notifications")
+                            .build());
+        }
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<NotificationResponse>>builder()
+                        .success(true)
+                        .message("List of unread notifications retrieved successfully")
+                        .data(responses)
+                        .build()
+        );
     }
 
     @GetMapping("/mark-as-read/{notificationId}")
