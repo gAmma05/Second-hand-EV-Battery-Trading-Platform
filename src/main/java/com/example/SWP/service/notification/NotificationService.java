@@ -107,7 +107,7 @@ public class NotificationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        return getNotificationResponseList(userNotificationRepository.findAllByUser(user));
+        return getNotificationResponseList(userNotificationRepository.findAllByUserAndIsRead(user, false));
 
     }
 

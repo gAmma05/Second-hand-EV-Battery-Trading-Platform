@@ -11,4 +11,5 @@ import java.util.Set;
 public interface UserNotificationRepository extends JpaRepository<UserNotification, UserNotificationKey> {
     List<UserNotification> findByUserId(Long userId);
     List<UserNotification> findAllByUser(User user);
+    List<UserNotification> findAllByUserAndIsRead(User user, boolean isRead);
 }
