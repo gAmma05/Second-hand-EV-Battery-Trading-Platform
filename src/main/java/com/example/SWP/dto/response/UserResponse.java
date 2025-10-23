@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 public class UserResponse {
     private String email;
     private String fullName;
-    private String address;
+    private Integer provinceId;
+    private Integer districtId;
+    private Integer wardId;
     private String phone;
     private String avatar;
     private String storeName;
@@ -22,5 +24,6 @@ public class UserResponse {
     private boolean status;
     private Long sellerPackageId;
     private LocalDateTime planExpiry;
+
 }
 

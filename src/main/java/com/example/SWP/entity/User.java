@@ -33,8 +33,11 @@ public class User {
     String googleId;
     String password;
     String fullName;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Address> addresses;
+
+    Integer provinceId;
+    Integer districtId;
+    Integer wardId;
+
     String phone;
     String avatar;
     String storeName;

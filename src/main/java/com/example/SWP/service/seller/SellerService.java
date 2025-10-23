@@ -40,7 +40,10 @@ public class SellerService {
         if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
             throw new BusinessException("Please update your phone number before upgrading to seller", 400);
         }
-        if (user.getAddress() == null || user.getAddress().trim().isEmpty()) {
+        if (user.getProvinceId() == null ||
+                user.getDistrictId() == null ||
+                user.getWardId() == null) {
+
             throw new BusinessException("Please update your address before upgrading to seller", 400);
         }
 
@@ -51,9 +54,6 @@ public class SellerService {
         user.setRemainingPosts(3);
         userRepository.save(user);
     }
-
-
-
 
     public List<PriorityPackage> getAllPriorityPackages() {
         return priorityPackageRepository.findAll();
