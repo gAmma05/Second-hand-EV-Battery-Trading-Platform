@@ -22,8 +22,8 @@ public class SellerOrderController {
 
     SellerOrderService sellerOrderService;
 
-    @GetMapping("/approve/{orderId}")
-    public ResponseEntity<ApiResponse<Void>> approveOrder(Authentication authentication, @PathVariable Long orderId) {
+    @GetMapping("/approve")
+    public ResponseEntity<ApiResponse<Void>> approveOrder(Authentication authentication, @RequestParam Long orderId) {
         sellerOrderService.approveOrder(authentication, orderId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
@@ -44,8 +44,8 @@ public class SellerOrderController {
         );
     }
 
-    @PostMapping("/order-detail/{orderId}")
-    public ResponseEntity<ApiResponse<SellerOrderResponse>> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
+    @PostMapping("/detail")
+    public ResponseEntity<ApiResponse<SellerOrderResponse>> getOrderDetail(Authentication authentication, @RequestParam Long orderId) {
         SellerOrderResponse response = sellerOrderService.getOrderDetail(authentication, orderId);
         if(response == null){
             return ResponseEntity.ok(

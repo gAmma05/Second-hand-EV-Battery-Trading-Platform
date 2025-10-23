@@ -24,7 +24,7 @@ public class BuyerOrderController {
 
     BuyerService buyerService;
 
-    @PostMapping("/create-order")
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse<Void>> createOrder(Authentication authentication, CreateOrderRequest request) {
         buyerService.createOrder(authentication, request);
         return ResponseEntity.ok(
@@ -35,7 +35,7 @@ public class BuyerOrderController {
         );
     }
 
-    @PostMapping("/cancel-order")
+    @PostMapping("/cancel")
     public ResponseEntity<ApiResponse<Void>> cancelOrder(Authentication authentication, CancelOrderRequest request) {
         buyerService.cancelOrder(authentication, request);
         return ResponseEntity.ok(

@@ -41,8 +41,8 @@ public class NotificationController {
         );
     }
 
-    @GetMapping("/mark-as-read/{notificationId}")
-    public ResponseEntity<?> markAsRead(Authentication authentication, @PathVariable Long notificationId) {
+    @GetMapping("/mark-as-read")
+    public ResponseEntity<?> markAsRead(Authentication authentication, @RequestParam Long notificationId) {
         notificationService.markAsRead(authentication, notificationId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
