@@ -17,6 +17,8 @@ import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.validate.ValidateService;
+import com.example.SWP.validator.seller.CreateOrderRequestValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -39,20 +41,10 @@ public class BuyerService {
 
     NotificationService notificationService;
 
-//    public DeliveryAddressResponse getDeliveryAddress(Authentication authentication, Long postId) {
-//        String email = authentication.getName();
-//        User user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new RuntimeException("User does not exist"));
-//
-//        Post post = postRepository.findById(postId).orElseThrow(
-//                () -> new BusinessException("Post does not exist", 404));
-//
-//        if (user.getRole() != Role.BUYER) {
-//            throw new BusinessException("You don't have permission to access this post", 403);
-//        }
-//
-//
-//    }
+    CreateOrderRequestValidator createOrderRequestValidator;
+
+
+    private final ValidateService validateService;
 
     public void createOrder(Authentication authentication, CreateOrderRequest request) {
         String email = authentication.getName();
@@ -70,6 +62,8 @@ public class BuyerService {
         if (isOrderAvailable(request.getPostId(), OrderStatus.PENDING) || isOrderAvailable(request.getPostId(), OrderStatus.APPROVED)) {
             throw new BusinessException("You or someone have already created an order for this post", 400);
         }
+
+        createOrderRequestValidator.validateInvalid(request);
 
         Order order = new Order();
         order.setBuyer(user);

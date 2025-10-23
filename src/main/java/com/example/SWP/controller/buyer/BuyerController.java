@@ -23,32 +23,6 @@ public class BuyerController {
 
     SellerService sellerService;
 
-    BuyerService buyerService;
-
-
-
-    @PostMapping("/order/create-order")
-    public ResponseEntity<ApiResponse<Void>> createOrder(Authentication authentication, CreateOrderRequest request) {
-        buyerService.createOrder(authentication, request);
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Order created successfully")
-                        .build()
-        );
-    }
-
-    @PostMapping("/order/cancel-order")
-    public ResponseEntity<ApiResponse<Void>> cancelOrder(Authentication authentication, CancelOrderRequest request){
-        buyerService.cancelOrder(authentication, request);
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Order cancelled successfully")
-                        .build()
-        );
-    }
-
     @PostMapping("/upgrade-to-seller")
     public ResponseEntity<ApiResponse<String>> upgradeToSeller(
             Authentication authentication,

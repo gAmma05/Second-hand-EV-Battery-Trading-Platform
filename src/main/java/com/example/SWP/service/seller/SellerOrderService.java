@@ -22,7 +22,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class OrderService {
+public class SellerOrderService {
 
     OrderRepository orderRepository;
     NotificationService notificationService;
