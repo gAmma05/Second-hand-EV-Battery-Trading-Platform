@@ -2,15 +2,13 @@ package com.example.SWP.service.ghn;
 
 import com.example.SWP.dto.response.ghn.DistrictResponse;
 import com.example.SWP.dto.response.ghn.ProvinceResponse;
+import com.example.SWP.dto.response.ghn.ServiceResponse;
 import com.example.SWP.dto.response.ghn.WardResponse;
 import com.example.SWP.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,7 +17,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class GhnAddressService {
+public class GhnService {
 
     final RestTemplate restTemplate;
     @Value("${ghn.token}")
@@ -91,22 +89,25 @@ public class GhnAddressService {
                 Map.class
         );
 
-        List<Map<String,Object>> data = (List<Map<String,Object>>) response.getBody().get("data");
+        List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
         List<WardResponse> wards = new ArrayList<>();
+
         if (data != null) {
-            for (Map<String,Object> item : data) {
+            for (Map<String, Object> item : data) {
                 WardResponse w = new WardResponse();
-                Object idObj = item.get("WardCode");
-                if (idObj != null) w.setWardId(Integer.parseInt(idObj.toString()));
+                Object codeObj = item.get("WardCode");
+                if (codeObj != null) w.setWardCode(codeObj.toString());
                 w.setWardName((String) item.get("WardName"));
                 wards.add(w);
             }
         }
+
         return wards;
     }
 
-    public void validateAddressIds(Integer provinceId, Integer districtId, Integer wardId) {
-        if (provinceId == null || districtId == null || wardId == null) {
+
+    public void validateAddressIds(Integer provinceId, Integer districtId, String wardCode) {
+        if (provinceId == null || districtId == null || wardCode == null || wardCode.isEmpty()) {
             throw new BusinessException("Province, district hoặc ward không được để trống", 400);
         }
 
@@ -131,11 +132,77 @@ public class GhnAddressService {
         }
 
         boolean wardBelongs = wards.stream()
-                .anyMatch(w -> Objects.equals(w.getWardId(), wardId));
+                .anyMatch(w -> wardCode.equals(w.getWardCode()));
         if (!wardBelongs) {
-            throw new BusinessException("WardID không thuộc DistrictID", 400);
+            throw new BusinessException("WardCode không thuộc DistrictID", 400);
+        }
+    }
+
+    public List<ServiceResponse> getAvailableServices(int fromDistrictId, int toDistrictId) {
+        String url = GHN_URL + "/v2/shipping-order/available-services";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Token", GHN_TOKEN);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("shop_id", 197714);
+        body.put("from_district", fromDistrictId);
+        body.put("to_district", toDistrictId);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url, HttpMethod.POST, request, Map.class
+            );
+
+            List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
+
+            List<ServiceResponse> services = new ArrayList<>();
+            for (Map<String, Object> item : data) {
+                ServiceResponse service = ServiceResponse.builder()
+                        .service_id((Integer) item.get("service_id"))
+                        .service_type_id((Integer) item.get("service_type_id"))
+                        .short_name((String) item.get("short_name"))
+                        .build();
+                services.add(service);
+            }
+
+            return services;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể lấy danh sách dịch vụ từ GHN: " + e.getMessage());
         }
     }
 
 
+    public Object calculateShippingFee(
+            int fromDistrictId,
+            int toDistrictId,
+            String toWardCode,
+            int serviceId,
+            int weight
+    ) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Token", GHN_TOKEN);
+        headers.set("ShopId", "197714");  // Bắt buộc trong header
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("from_district_id", fromDistrictId);
+        body.put("to_district_id", toDistrictId);
+        body.put("to_ward_code", toWardCode);
+        body.put("service_id", serviceId);
+        body.put("weight", weight);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+        String url = "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee";
+
+        ResponseEntity<Object> response = restTemplate.exchange(
+                url, HttpMethod.POST, entity, Object.class
+        );
+
+        return response.getBody();
+    }
 }

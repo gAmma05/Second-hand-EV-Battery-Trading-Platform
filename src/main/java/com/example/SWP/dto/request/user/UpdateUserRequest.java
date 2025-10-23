@@ -17,5 +17,5 @@ public class UpdateUserRequest {
 
     Integer provinceId;
     Integer districtId;
-    Integer wardId;
+    String wardCode;
 }

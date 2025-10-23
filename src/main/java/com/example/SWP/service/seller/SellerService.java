@@ -42,7 +42,7 @@ public class SellerService {
         }
         if (user.getProvinceId() == null ||
                 user.getDistrictId() == null ||
-                user.getWardId() == null) {
+                user.getWardCode() == null) {
 
             throw new BusinessException("Please update your address before upgrading to seller", 400);
         }

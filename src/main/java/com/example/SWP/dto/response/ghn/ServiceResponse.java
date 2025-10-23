@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WardResponse {
-    private String wardCode;
-    private String wardName;
+public class ServiceResponse {
+    private int service_id;
+    private int service_type_id;
+    private String short_name;
 }

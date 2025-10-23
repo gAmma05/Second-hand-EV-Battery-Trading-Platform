@@ -11,7 +11,7 @@ import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.UserMapper;
 import com.example.SWP.repository.UserRepository;
-import com.example.SWP.service.ghn.GhnAddressService;
+import com.example.SWP.service.ghn.GhnService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ public class UserService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
-    GhnAddressService ghnAddressService;
+    GhnService ghnService;
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
@@ -76,18 +76,18 @@ public class UserService {
 
         if (request.getProvinceId() != null &&
                 request.getDistrictId() != null &&
-                request.getWardId() != null
+                request.getWardCode() != null
         ) {
 
-            ghnAddressService.validateAddressIds(
+            ghnService.validateAddressIds(
                     request.getProvinceId(),
                     request.getDistrictId(),
-                    request.getWardId()
+                    request.getWardCode()
             );
 
             user.setProvinceId(request.getProvinceId());
             user.setDistrictId(request.getDistrictId());
-            user.setWardId(request.getWardId());
+            user.setWardCode(request.getWardCode());
         }
 
         if(user.getRole().equals(Role.SELLER)) {

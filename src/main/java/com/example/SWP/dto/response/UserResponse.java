@@ -13,7 +13,7 @@ public class UserResponse {
     private String fullName;
     private Integer provinceId;
     private Integer districtId;
-    private Integer wardId;
+    private String wardCode;
     private String phone;
     private String avatar;
     private String storeName;
@@ -24,6 +24,5 @@ public class UserResponse {
     private boolean status;
     private Long sellerPackageId;
     private LocalDateTime planExpiry;
-
 }
 

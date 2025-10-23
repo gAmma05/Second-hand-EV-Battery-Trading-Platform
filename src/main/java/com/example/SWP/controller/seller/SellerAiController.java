@@ -1,4 +1,4 @@
-package com.example.SWP.controller.user;
+package com.example.SWP.controller.seller;
 
 import com.example.SWP.dto.request.user.ai.AiProductRequest;
 import com.example.SWP.service.ai.AiService;
@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user/ai")
+@RequestMapping("/seller/ai")
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 
-public class UserAiController {
+public class SellerAiController {
 
     AiService aiService;
 

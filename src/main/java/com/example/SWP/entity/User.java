@@ -36,7 +36,7 @@ public class User {
 
     Integer provinceId;
     Integer districtId;
-    Integer wardId;
+    String wardCode;
 
     String phone;
     String avatar;
