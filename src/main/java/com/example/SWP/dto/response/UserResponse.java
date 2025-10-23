@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 public class UserResponse {
     private String email;
     private String fullName;
-    private String address;
+    private Integer provinceId;
+    private Integer districtId;
+    private String wardCode;
     private String phone;
     private String avatar;
     private String storeName;

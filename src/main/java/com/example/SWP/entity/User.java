@@ -33,7 +33,11 @@ public class User {
     String googleId;
     String password;
     String fullName;
-    String address;
+
+    Integer provinceId;
+    Integer districtId;
+    String wardCode;
+
     String phone;
     String avatar;
     String storeName;
