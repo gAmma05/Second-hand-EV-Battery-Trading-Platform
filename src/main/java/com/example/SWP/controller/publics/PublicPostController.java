@@ -73,4 +73,16 @@ public class PublicPostController {
         );
     }
 
+    @GetMapping("/post-detail")
+    public ResponseEntity<ApiResponse<PostResponse>> getPostDetail(@RequestParam Long postId){
+        PostResponse response = publicPostService.getPostById(postId);
+        return ResponseEntity.ok(
+                ApiResponse.<PostResponse>builder()
+                        .success(true)
+                        .message("Post detail retrieved successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
 }

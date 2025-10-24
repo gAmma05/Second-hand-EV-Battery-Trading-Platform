@@ -4,6 +4,7 @@ import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
+import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.PostMapper;
 import com.example.SWP.repository.PostRepository;
 import lombok.AccessLevel;
@@ -23,6 +24,13 @@ public class PublicPostService {
 
     PostRepository postRepository;
     PostMapper postMapper;
+
+    public PostResponse getPostById(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("Post not found", 404));
+
+        return postMapper.toPostResponse(post);
+    }
 
     private List<PostResponse> sortPostsByPriorityTrustedNormal(List<Post> posts) {
         LocalDateTime now = LocalDateTime.now();

@@ -3,7 +3,7 @@ package com.example.SWP.controller.seller;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.response.seller.RejectOrderResponse;
-import com.example.SWP.service.seller.OrderService;
+import com.example.SWP.service.seller.SellerOrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -18,13 +18,13 @@ import java.util.List;
 @RequestMapping("/seller/orders")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class OrderController {
+public class SellerOrderController {
 
-    OrderService orderService;
+    SellerOrderService sellerOrderService;
 
     @GetMapping("/approve/{orderId}")
     public ResponseEntity<ApiResponse<Void>> approveOrder(Authentication authentication, @PathVariable Long orderId) {
-        orderService.approveOrder(authentication, orderId);
+        sellerOrderService.approveOrder(authentication, orderId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
@@ -35,7 +35,7 @@ public class OrderController {
 
     @PostMapping("/reject")
     public ResponseEntity<ApiResponse<Void>> rejectOrder(Authentication authentication, RejectOrderResponse rejectOrderResponse) {
-        orderService.rejectOrder(authentication, rejectOrderResponse);
+        sellerOrderService.rejectOrder(authentication, rejectOrderResponse);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
@@ -46,7 +46,7 @@ public class OrderController {
 
     @PostMapping("/order-detail/{orderId}")
     public ResponseEntity<ApiResponse<SellerOrderResponse>> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
-        SellerOrderResponse response = orderService.getOrderDetail(authentication, orderId);
+        SellerOrderResponse response = sellerOrderService.getOrderDetail(authentication, orderId);
         if(response == null){
             return ResponseEntity.ok(
                     ApiResponse.<SellerOrderResponse>builder()
@@ -66,7 +66,7 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getMyOrders(Authentication authentication) {
-        List<SellerOrderResponse> orderList = orderService.getAllOrders(authentication);
+        List<SellerOrderResponse> orderList = sellerOrderService.getAllOrders(authentication);
         if(orderList == null || orderList.isEmpty()){
             return ResponseEntity.ok(
                     ApiResponse.<List<SellerOrderResponse>>builder()
@@ -87,7 +87,7 @@ public class OrderController {
 
     @GetMapping("/pending-list")
     public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getPendingOrders(Authentication authentication) {
-        List<SellerOrderResponse> pendingList = orderService.getPendingOrder(authentication);
+        List<SellerOrderResponse> pendingList = sellerOrderService.getPendingOrder(authentication);
         if(pendingList == null || pendingList.isEmpty()){
             return ResponseEntity.ok(
                     ApiResponse.<List<SellerOrderResponse>>builder()
@@ -108,7 +108,7 @@ public class OrderController {
 
     @GetMapping("/approved-list")
     public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getApprovedOrders(Authentication authentication) {
-        List<SellerOrderResponse> approvedList = orderService.getApprovedOrder(authentication);
+        List<SellerOrderResponse> approvedList = sellerOrderService.getApprovedOrder(authentication);
         if(approvedList == null || approvedList.isEmpty()){
             return ResponseEntity.ok(
                     ApiResponse.<List<SellerOrderResponse>>builder()
@@ -129,7 +129,7 @@ public class OrderController {
 
     @GetMapping("/rejected-list")
     public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getRejectedOrders(Authentication authentication){
-        List<SellerOrderResponse> rejectedList = orderService.getRejectedOrder(authentication);
+        List<SellerOrderResponse> rejectedList = sellerOrderService.getRejectedOrder(authentication);
         if(rejectedList == null || rejectedList.isEmpty()){
             return ResponseEntity.ok(
                     ApiResponse.<List<SellerOrderResponse>>builder()
