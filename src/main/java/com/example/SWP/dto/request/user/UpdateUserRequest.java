@@ -15,6 +15,7 @@ public class UpdateUserRequest {
     String storeDescription;
     String socialMedia;
 
+    String streetAddress;
     Integer provinceId;
     Integer districtId;
     String wardCode;

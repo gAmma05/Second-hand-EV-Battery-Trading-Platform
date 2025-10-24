@@ -138,6 +138,34 @@ public class GhnService {
         }
     }
 
+    public String getFullAddress(String streetAddress, Integer provinceId, Integer districtId, String wardCode) {
+        if (provinceId == null || districtId == null || wardCode == null) return "";
+
+        List<ProvinceResponse> provinces = getProvinces();
+        String provinceName = provinces.stream()
+                .filter(p -> p.getProvinceId() == provinceId)
+                .map(ProvinceResponse::getProvinceName)
+                .findFirst()
+                .orElse("");
+
+        List<DistrictResponse> districts = getDistricts(provinceId);
+        String districtName = districts.stream()
+                .filter(d -> d.getDistrictId() == districtId)
+                .map(DistrictResponse::getDistrictName)
+                .findFirst()
+                .orElse("");
+
+        List<WardResponse> wards = getWards(districtId);
+        String wardName = wards.stream()
+                .filter(w -> w.getWardCode().equals(wardCode))
+                .map(WardResponse::getWardName)
+                .findFirst()
+                .orElse("");
+
+        return String.join(", ", streetAddress, wardName, districtName, provinceName);
+    }
+
+
     public List<ServiceResponse> getAvailableServices(int fromDistrictId, int toDistrictId) {
         String url = GHN_URL + "/v2/shipping-order/available-services";
 
