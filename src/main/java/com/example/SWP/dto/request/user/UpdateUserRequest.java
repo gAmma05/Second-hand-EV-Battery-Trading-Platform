@@ -19,4 +19,7 @@ public class UpdateUserRequest {
     Integer provinceId;
     Integer districtId;
     String wardCode;
+
+    String ghnToken;
+    String ghnShopId;
 }
