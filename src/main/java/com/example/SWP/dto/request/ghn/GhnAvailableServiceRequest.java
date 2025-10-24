@@ -11,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GhnAvailableServiceRequest {
+    String ghnToken;
+    Integer ghnShopId;
     Integer fromDistrictId;
     Integer toDistrictId;
 }

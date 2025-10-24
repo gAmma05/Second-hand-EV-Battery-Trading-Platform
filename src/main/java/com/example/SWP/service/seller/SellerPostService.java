@@ -82,7 +82,8 @@ public class SellerPostService {
                 .postDate(LocalDateTime.now())
                 .expiryDate(LocalDateTime.now().plusDays(expireDays))
                 .viewCount(0)
-                .likeCount(0);
+                .likeCount(0)
+                .weight(request.getWeight());
 
         // Gán thông số kỹ thuật theo type
         if (request.getProductType() == ProductType.VEHICLE) {
@@ -178,6 +179,7 @@ public class SellerPostService {
         post.setDeliveryMethods(request.getDeliveryMethods());
         post.setPaymentTypes(request.getPaymentTypes());
         post.setUpdateDate(LocalDateTime.now());
+        post.setWeight(request.getWeight());
 
 
         if (request.getProductType() == ProductType.VEHICLE) {

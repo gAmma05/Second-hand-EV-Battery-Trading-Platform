@@ -36,22 +36,12 @@ public class GhnController {
 
     @PostMapping("/available-services")
     public Object getAvailableServices(@RequestBody GhnAvailableServiceRequest request) {
-        return ghnService.getAvailableServices(
-                request.getFromDistrictId(),
-                request.getToDistrictId()
-        );
+        return ghnService.getAvailableServices(request);
     }
 
     @PostMapping("/shipping-fee")
     public Object calculateShippingFee(@RequestBody GhnShippingFeeRequest request) {
-        return ghnService.calculateShippingFee(
-                request.getFromDistrictId(),
-                request.getToDistrictId(),
-                request.getToWardCode(),
-                request.getServiceId(),
-                request.getWeight()
-
-        );
+        return ghnService.calculateShippingFee(request);
     }
 
 }

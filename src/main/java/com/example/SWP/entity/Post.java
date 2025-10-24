@@ -78,4 +78,6 @@ public class Post {
     Integer capacity;
     String voltage;
     String batteryBrand;
+
+    Integer weight;
 }

@@ -47,6 +47,10 @@ public class CreatePostRequest {
     @NotEmpty(message = "At least one image is required")
     List<@NotBlank(message = "Image URL cannot be blank") String> images;
 
+    @NotNull(message = "Weight is required")
+    @Positive(message = "Weight must be greater than 0")
+    Integer weight;
+
 
     String vehicleBrand;
     String model;
