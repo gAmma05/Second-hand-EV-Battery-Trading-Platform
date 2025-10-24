@@ -1,5 +1,6 @@
 package com.example.SWP.service.ghn;
 
+import com.example.SWP.dto.request.ghn.GhnAvailableServiceRequest;
 import com.example.SWP.dto.request.ghn.GhnShippingFeeRequest;
 import com.example.SWP.dto.response.ghn.DistrictResponse;
 import com.example.SWP.dto.response.ghn.ProvinceResponse;
@@ -168,15 +169,15 @@ public class GhnService {
 
     public Object calculateShippingFee(GhnShippingFeeRequest request) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Token", GHN_TOKEN);
-        headers.set("ShopId", "197714");
+        headers.set("Token", request.getGhnToken());
+        headers.set("ShopId", request.getGhnShopId());
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
         body.put("from_district_id", request.getFromDistrictId());
         body.put("to_district_id", request.getToDistrictId());
         body.put("to_ward_code", request.getToWardCode());
-        body.put("service_id", 100039);
+        body.put("service_type_id", 5);
         body.put("weight", request.getWeight());
 
         List<Map<String, Object>> itemsList = new ArrayList<>();
@@ -192,7 +193,7 @@ public class GhnService {
         body.put("items", itemsList);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-        String url = "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee";
+        String url = GHN_URL + "/v2/shipping-order/fee";
 
         ResponseEntity<Object> response = restTemplate.exchange(
                 url, HttpMethod.POST, entity, Object.class
@@ -201,41 +202,41 @@ public class GhnService {
         return response.getBody();
     }
 
-//    public List<ServiceResponse> getAvailableServices(int fromDistrictId, int toDistrictId) {
-//        String url = GHN_URL + "/v2/shipping-order/available-services";
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.set("Token", GHN_TOKEN);
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        Map<String, Object> body = new HashMap<>();
-//        body.put("shop_id", 197714);
-//        body.put("from_district", fromDistrictId);
-//        body.put("to_district", toDistrictId);
-//
-//        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-//
-//        try {
-//            ResponseEntity<Map> response = restTemplate.exchange(
-//                    url, HttpMethod.POST, request, Map.class
-//            );
-//
-//            List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
-//
-//            List<ServiceResponse> services = new ArrayList<>();
-//            for (Map<String, Object> item : data) {
-//                ServiceResponse service = ServiceResponse.builder()
-//                        .service_id((Integer) item.get("service_id"))
-//                        .service_type_id((Integer) item.get("service_type_id"))
-//                        .short_name((String) item.get("short_name"))
-//                        .build();
-//                services.add(service);
-//            }
-//
-//            return services;
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException("Không thể lấy danh sách dịch vụ từ GHN: " + e.getMessage());
-//        }
-//    }
+    public List<ServiceResponse> getAvailableServices(GhnAvailableServiceRequest ghnAvailableServiceRequest) {
+        String url = GHN_URL + "/v2/shipping-order/available-services";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Token", ghnAvailableServiceRequest.getGhnToken());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("shop_id", ghnAvailableServiceRequest.getGhnShopId());
+        body.put("from_district", ghnAvailableServiceRequest.getFromDistrictId());
+        body.put("to_district", ghnAvailableServiceRequest.getToDistrictId());
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url, HttpMethod.POST, request, Map.class
+            );
+
+            List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
+
+            List<ServiceResponse> services = new ArrayList<>();
+            for (Map<String, Object> item : data) {
+                ServiceResponse service = ServiceResponse.builder()
+                        .service_id((Integer) item.get("service_id"))
+                        .service_type_id((Integer) item.get("service_type_id"))
+                        .short_name((String) item.get("short_name"))
+                        .build();
+                services.add(service);
+            }
+
+            return services;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể lấy danh sách dịch vụ từ GHN: " + e.getMessage());
+        }
+    }
 }

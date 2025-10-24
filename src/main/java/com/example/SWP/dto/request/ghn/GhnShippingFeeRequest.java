@@ -15,10 +15,15 @@ public class GhnShippingFeeRequest {
     Integer fromDistrictId;
     Integer toDistrictId;
     String toWardCode;
+    String serviceTypeId;
+
     Integer weight;
 
     String itemName;
     Integer height;
     Integer width;
     Integer length;
+
+    String ghnToken;
+    String ghnShopId;
 }

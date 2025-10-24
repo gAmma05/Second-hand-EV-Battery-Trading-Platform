@@ -34,13 +34,10 @@ public class GhnController {
         return ghnService.getWards(districtId);
     }
 
-//    @PostMapping("/available-services")
-//    public Object getAvailableServices(@RequestBody GhnAvailableServiceRequest request) {
-//        return ghnService.getAvailableServices(
-//                request.getFromDistrictId(),
-//                request.getToDistrictId()
-//        );
-//    }
+    @PostMapping("/available-services")
+    public Object getAvailableServices(@RequestBody GhnAvailableServiceRequest request) {
+        return ghnService.getAvailableServices(request);
+    }
 
     @PostMapping("/shipping-fee")
     public Object calculateShippingFee(@RequestBody GhnShippingFeeRequest request) {
