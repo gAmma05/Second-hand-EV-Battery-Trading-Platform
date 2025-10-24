@@ -34,9 +34,11 @@ public class User {
     String password;
     String fullName;
 
+    String streetAddress;
     Integer provinceId;
     Integer districtId;
     String wardCode;
+    String address;
 
     String phone;
     String avatar;

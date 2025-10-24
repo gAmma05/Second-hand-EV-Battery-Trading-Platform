@@ -74,7 +74,8 @@ public class UserService {
             user.setPhone(request.getPhone());
         }
 
-        if (request.getProvinceId() != null &&
+        if (request.getStreetAddress() != null &&
+                request.getProvinceId() != null &&
                 request.getDistrictId() != null &&
                 request.getWardCode() != null
         ) {
@@ -88,9 +89,11 @@ public class UserService {
             user.setProvinceId(request.getProvinceId());
             user.setDistrictId(request.getDistrictId());
             user.setWardCode(request.getWardCode());
+            user.setStreetAddress(request.getStreetAddress());
+            user.setAddress(ghnService.getFullAddress(request.getStreetAddress(), request.getProvinceId(), request.getDistrictId(), request.getWardCode()));
         }
 
-        if(user.getRole().equals(Role.SELLER)) {
+        if (user.getRole().equals(Role.SELLER)) {
             if (request.getStoreName() != null) {
                 user.setStoreName(request.getStoreName());
             }
