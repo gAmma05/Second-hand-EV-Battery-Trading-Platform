@@ -34,24 +34,17 @@ public class GhnController {
         return ghnService.getWards(districtId);
     }
 
-    @PostMapping("/available-services")
-    public Object getAvailableServices(@RequestBody GhnAvailableServiceRequest request) {
-        return ghnService.getAvailableServices(
-                request.getFromDistrictId(),
-                request.getToDistrictId()
-        );
-    }
+//    @PostMapping("/available-services")
+//    public Object getAvailableServices(@RequestBody GhnAvailableServiceRequest request) {
+//        return ghnService.getAvailableServices(
+//                request.getFromDistrictId(),
+//                request.getToDistrictId()
+//        );
+//    }
 
     @PostMapping("/shipping-fee")
     public Object calculateShippingFee(@RequestBody GhnShippingFeeRequest request) {
-        return ghnService.calculateShippingFee(
-                request.getFromDistrictId(),
-                request.getToDistrictId(),
-                request.getToWardCode(),
-                request.getServiceId(),
-                request.getWeight()
-
-        );
+        return ghnService.calculateShippingFee(request);
     }
 
 }
