@@ -22,6 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
     private final AuthenticationFilter authenticationFilter;
 
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
@@ -59,6 +61,9 @@ public class SecurityConfig {
                         .requestMatchers("/seller/**").hasAnyRole("SELLER", "ADMIN")
                         .requestMatchers("/buyer/**").hasAnyRole("BUYER", "ADMIN")
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

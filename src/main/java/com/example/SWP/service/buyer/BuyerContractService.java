@@ -3,12 +3,12 @@ package com.example.SWP.service.buyer;
 import com.example.SWP.dto.response.buyer.ContractResponse;
 import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
+import com.example.SWP.entity.OrderDeliveryStatus;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.ContractStatus;
-import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.Role;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.ContractRepository;
+import com.example.SWP.repository.OrderDeliveryStatusRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
@@ -32,7 +32,10 @@ public class BuyerContractService {
     ContractRepository contractRepository;
 
     NotificationService notificationService;
-    private final OrderRepository orderRepository;
+
+    OrderRepository orderRepository;
+
+    OrderDeliveryStatusRepository orderDeliveryStatusRepository;
 
     public void signContract(Authentication authentication, Long contractId) {
         String email = authentication.getName();
@@ -57,17 +60,44 @@ public class BuyerContractService {
             throw new BusinessException("This contract is not signed by seller yet", 400);
         }
 
-        if(contract.isBuyerSigned()){
-            throw new BusinessException("This contract is already signed by buyer", 400);
-        }
-
         contract.setBuyerSigned(true);
         contract.setStatus(ContractStatus.SIGNED);
         contract.setBuyerSignedAt(LocalDateTime.now());
 
+        OrderDeliveryStatus orderDeliveryStatus = new OrderDeliveryStatus();
+        orderDeliveryStatus.setOrder(contract.getOrder());
+
+
+        if(contract.getOrder().getDeliveryMethod().equals(DeliveryMethod.STANDARD) || contract.getOrder().getDeliveryMethod().equals(DeliveryMethod.EXPRESS)){
+            orderDeliveryStatus.setDeliveryProvider(DeliveryProvider.GHN);
+        }else{
+            orderDeliveryStatus.setDeliveryProvider(DeliveryProvider.NONE);
+        }
+
+        orderDeliveryStatus.setDeliveryTrackingNumber(generateDeliveryTrackingCode(contract.getOrder().getDeliveryMethod()));
+        orderDeliveryStatus.setStatus(DeliveryStatus.PREPARING);
+        orderDeliveryStatus.setCreatedAt(LocalDateTime.now());
+
+        orderDeliveryStatusRepository.save(orderDeliveryStatus);
+
         notificationService.sendNotificationToOneUser(contract.getOrder().getSeller().getEmail(), "About your contract", "Look like your contract has been signed by buyer, you should check it out.");
 
         contractRepository.save(contract);
+    }
+
+    private String generateDeliveryTrackingCode(DeliveryMethod deliveryMethod){
+        String prefix = "DT";
+        String timestamp = LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String method = null;
+        if(deliveryMethod.equals(DeliveryMethod.STANDARD)){
+            method = "ST";
+        }else if(deliveryMethod.equals(DeliveryMethod.EXPRESS)){
+            method = "EX";
+        }else if(deliveryMethod.equals(DeliveryMethod.PICKUP)){
+            method = "PI";
+        }
+        return prefix + "-" + method + "-" + timestamp;
     }
 
     public void cancelContract(Authentication authentication, Long contractId) {

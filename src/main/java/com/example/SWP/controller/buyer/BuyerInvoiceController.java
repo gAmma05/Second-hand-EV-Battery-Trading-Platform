@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class BuyerInvoiceController {
     BuyerPaymentService buyerPaymentService;
 
     @GetMapping("/create")
-    public ResponseEntity<?> createInvoice(Authentication authentication, Long contractId) {
+    public ResponseEntity<?> createInvoice(Authentication authentication, @RequestParam Long contractId) {
         InvoiceResponse response = buyerPaymentService.createInvoice(authentication, contractId);
         if (response == null) {
             return ResponseEntity.badRequest().body("Failed to create invoice");
@@ -37,7 +38,7 @@ public class BuyerInvoiceController {
     }
 
     @GetMapping("/detail")
-    public ResponseEntity<?> getInvoiceDetail(Authentication authentication, Long invoiceId) {
+    public ResponseEntity<?> getInvoiceDetail(Authentication authentication, @RequestParam Long invoiceId) {
         InvoiceResponse response = buyerPaymentService.getInvoiceDetail(authentication, invoiceId);
         if (response == null) {
             return ResponseEntity.badRequest().body("Failed to fetch this invoice detail");

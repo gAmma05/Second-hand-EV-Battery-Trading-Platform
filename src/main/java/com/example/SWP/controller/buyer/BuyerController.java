@@ -1,12 +1,9 @@
 package com.example.SWP.controller.buyer;
 
 
-import com.example.SWP.dto.request.buyer.CancelOrderRequest;
-import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 import com.example.SWP.dto.request.buyer.UpgradeToSellerRequest;
 
 import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.service.buyer.BuyerService;
 import com.example.SWP.service.seller.SellerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
