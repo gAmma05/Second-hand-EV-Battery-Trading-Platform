@@ -1,6 +1,7 @@
 package com.example.SWP.dto.request.buyer;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -27,6 +28,6 @@ public class UpgradeToSellerRequest {
     @NotBlank(message = "GHN Token is required")
     String ghnToken;
 
-    @NotBlank(message = "GHN Shop ID is required")
+    @NotNull(message = "GHN Shop ID is required")
     Integer ghnShopId;
 }
