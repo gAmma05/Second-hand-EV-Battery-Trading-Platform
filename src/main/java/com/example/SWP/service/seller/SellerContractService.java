@@ -60,6 +60,7 @@ public class SellerContractService {
         response.setTitle(">" + order.getPost().getTitle() + "<");
         response.setPrice(order.getPost().getPrice());
         response.setCurrency("VND");
+        response.setPaymentType(order.getPaymentType());
 
         return response;
 
@@ -100,6 +101,7 @@ public class SellerContractService {
         contract.setSellerSigned(true);
         contract.setSellerSignedAt(LocalDateTime.now());
         contract.setStatus(ContractStatus.PENDING);
+        contract.setPaymentType(request.getPaymentType());
 
         contractRepository.save(contract);
         notificationService.sendNotificationToOneUser(order.getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
@@ -128,6 +130,7 @@ public class SellerContractService {
         response.setBuyerSigned(contract.isBuyerSigned());
         response.setBuyerSignedAt(contract.getBuyerSignedAt());
         response.setStatus(contract.getStatus());
+        response.setPaymentType(contract.getPaymentType());
 
         return response;
     }
@@ -157,6 +160,7 @@ public class SellerContractService {
             response.setBuyerSigned(contract.isBuyerSigned());
             response.setBuyerSignedAt(contract.getBuyerSignedAt());
             response.setStatus(contract.getStatus());
+            response.setPaymentType(contract.getPaymentType());
             responseList.add(response);
         }
         return responseList;

@@ -1,7 +1,7 @@
 package com.example.SWP.enums;
 
 public enum DeliveryMethod {
-    STANDARD,
-    EXPRESS,
-    PICKUP
+    SELLER_DELIVERY,
+    BUYER_PICKUP,
+    GHN
 }

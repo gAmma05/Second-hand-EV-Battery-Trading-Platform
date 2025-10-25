@@ -1,6 +1,7 @@
 package com.example.SWP.entity;
 
 import com.example.SWP.enums.ContractStatus;
+import com.example.SWP.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -49,4 +50,7 @@ public class Contract {
 
     @Enumerated(EnumType.STRING)
     ContractStatus status;
+
+    @Enumerated(EnumType.STRING)
+    PaymentType paymentType;
 }

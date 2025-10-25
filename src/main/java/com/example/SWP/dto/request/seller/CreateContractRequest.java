@@ -1,5 +1,7 @@
 package com.example.SWP.dto.request.seller;
 
+import com.example.SWP.enums.PaymentMethod;
+import com.example.SWP.enums.PaymentType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -31,4 +33,7 @@ public class CreateContractRequest {
 
     @NotNull(message = "SellerSigned is required")
     boolean sellerSigned;
+
+    @NotNull(message = "PaymentType is required")
+    PaymentType paymentType;
 }

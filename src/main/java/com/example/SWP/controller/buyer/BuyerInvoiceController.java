@@ -2,14 +2,12 @@ package com.example.SWP.controller.buyer;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.InvoiceResponse;
-import com.example.SWP.service.buyer.BuyerPaymentService;
+import com.example.SWP.service.buyer.BuyerInvoiceService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,7 +17,7 @@ import java.util.List;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerInvoiceController {
 
-    BuyerPaymentService buyerPaymentService;
+    BuyerInvoiceService buyerPaymentService;
 
     @GetMapping("/create")
     public ResponseEntity<?> createInvoice(Authentication authentication, Long contractId) {
@@ -95,5 +93,19 @@ public class BuyerInvoiceController {
                         .build()
         );
     }
+
+    @PostMapping("/pay")
+    public ResponseEntity<?> payInvoice(Authentication authentication, @RequestParam Long invoiceId) {
+        buyerPaymentService.payInvoice(authentication, invoiceId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message("Invoice paid successfully")
+                        .data("Payment completed for invoice ID: " + invoiceId)
+                        .build()
+        );
+    }
+
 
 }

@@ -1,6 +1,7 @@
 package com.example.SWP.dto.response.buyer;
 
 import com.example.SWP.enums.ContractStatus;
+import com.example.SWP.enums.PaymentType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,4 +27,5 @@ public class ContractResponse {
     boolean buyerSigned;
     LocalDateTime buyerSignedAt;
     ContractStatus status;
+    PaymentType paymentType;
 }

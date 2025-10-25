@@ -50,7 +50,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     OrderStatus status;
 
-
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

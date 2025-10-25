@@ -1,6 +1,7 @@
 package com.example.SWP.entity;
 
 import com.example.SWP.enums.InvoiceStatus;
+import com.example.SWP.enums.PaymentMethod;
 import com.example.SWP.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -31,7 +32,7 @@ public class Invoice {
     String invoiceNumber;
 
     @Enumerated(EnumType.STRING)
-    PaymentType paymentType;
+    PaymentMethod paymentMethod;
 
     BigDecimal totalPrice;
 

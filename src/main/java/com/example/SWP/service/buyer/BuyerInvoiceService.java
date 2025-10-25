@@ -4,17 +4,23 @@ import com.example.SWP.dto.response.buyer.InvoiceResponse;
 import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Invoice;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.InvoiceStatus;
-import com.example.SWP.enums.Role;
+import com.example.SWP.entity.wallet.Wallet;
+import com.example.SWP.entity.wallet.WalletTransaction;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.InvoiceRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.wallet.WalletRepository;
+import com.example.SWP.repository.wallet.WalletTransactionRepository;
+import com.example.SWP.service.user.WalletService;
+import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -23,13 +29,17 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
-public class BuyerPaymentService {
+public class BuyerInvoiceService {
 
     UserRepository userRepository;
 
     ContractRepository contractRepository;
 
     InvoiceRepository invoiceRepository;
+
+    WalletService walletService;
+
+    private final WalletTransactionRepository walletTransactionRepository;
 
     public InvoiceResponse createInvoice(Authentication authentication, Long contractId) {
         String email = authentication.getName();
@@ -55,8 +65,8 @@ public class BuyerPaymentService {
 
         Invoice invoice = new Invoice();
         invoice.setContract(contract);
-        invoice.setInvoiceNumber(generateInvoiceNumber());
-        invoice.setPaymentType(contract.getOrder().getPaymentType());
+        invoice.setInvoiceNumber(Utils.generateCode("IN"));
+        invoice.setPaymentMethod(contract.getOrder().getPaymentMethod());
         invoice.setTotalPrice(contract.getOrder().getPost().getPrice());
         invoice.setCurrency("VND");
         invoice.setCreatedAt(LocalDateTime.now());
@@ -69,7 +79,8 @@ public class BuyerPaymentService {
                 invoice.getInvoiceNumber(), invoice.getTotalPrice(),
                 invoice.getCurrency(), invoice.getCreatedAt(),
                 invoice.getDueDate(), invoice.getPaidAt(),
-                invoice.getStatus(), message
+                invoice.getStatus(), invoice.getPaymentMethod(),
+                message
         );
     }
 
@@ -112,7 +123,8 @@ public class BuyerPaymentService {
                 invoice.getInvoiceNumber(), invoice.getTotalPrice(),
                 invoice.getCurrency(), invoice.getCreatedAt(),
                 invoice.getDueDate(), invoice.getPaidAt(),
-                invoice.getStatus(), message
+                invoice.getStatus(), invoice.getPaymentMethod(),
+                message
         );
     }
 
@@ -183,9 +195,35 @@ public class BuyerPaymentService {
         return response;
     }
 
-    private String generateInvoiceNumber() {
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        return "IN-" + now.format(formatter);
+    public void payInvoice(Authentication authentication, Long invoiceId) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+
+        Invoice invoice = invoiceRepository.getInvoiceByIdAndContract_Order_Buyer_Id(invoiceId, user.getId());
+
+        if (invoice == null) {
+            throw new BusinessException("Invoice not found or not belong to you", 404);
+        }
+
+        if (invoice.getStatus() == InvoiceStatus.EXPIRED) {
+            throw new BusinessException("Invoice has expired, please create a new one", 400);
+        }
+
+        if (invoice.getStatus() == InvoiceStatus.PAID) {
+            throw new BusinessException("This invoice is already paid", 400);
+        }
+
+        if(invoice.getPaymentMethod() == PaymentMethod.WALLET) {
+            walletService.payWithWallet(user, invoice.getTotalPrice(),
+                    invoice.getInvoiceNumber(),
+                    Utils.generatePaymentDescription(TransactionType.INVOICE, invoice.getInvoiceNumber()),
+                    TransactionType.INVOICE);
+            invoice.setPaidAt(LocalDateTime.now());
+            invoice.setStatus(InvoiceStatus.PAID);
+            invoiceRepository.save(invoice);
+        } else {
+            throw new BusinessException("Unsupported payment method", 400);
+        }
     }
 }
