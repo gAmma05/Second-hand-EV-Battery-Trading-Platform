@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +62,10 @@ public class SellerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
+        if(!Objects.equals(order.getSeller().getId(), user.getId())){
+            throw new BusinessException("You are not the seller of this order", 400);
+        }
+
         if (order.getStatus().equals(OrderStatus.APPROVED)) {
             throw new BusinessException("Order is already approved", 400);
         } else if (order.getStatus().equals(OrderStatus.REJECTED)) {
@@ -74,7 +79,7 @@ public class SellerOrderService {
             throw new BusinessException("Buyer email is not found", 404);
         }
 
-        sendNotification(buyerEmail, "Order Approved", "Your order has been approved by the admin");
+        sendNotification(buyerEmail, "Order Approved", "Your order has been approved");
         orderRepository.save(order);
     }
 
@@ -85,6 +90,10 @@ public class SellerOrderService {
 
         Order order = orderRepository.findById(response.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
+
+        if(!Objects.equals(order.getSeller().getId(), user.getId())){
+            throw new BusinessException("You are not the seller of this order", 400);
+        }
 
         if (order.getStatus().equals(OrderStatus.REJECTED)) {
             throw new BusinessException("Order is already rejected", 400);
@@ -172,7 +181,6 @@ public class SellerOrderService {
     public void updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order does not exist"));
-        order.setStatus(status);
-        orderRepository.save(order);
+
     }
 }

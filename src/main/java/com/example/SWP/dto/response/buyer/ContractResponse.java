@@ -1,6 +1,8 @@
 package com.example.SWP.dto.response.buyer;
 
 import com.example.SWP.enums.ContractStatus;
+import com.example.SWP.enums.DeliveryMethod;
+import com.example.SWP.enums.PaymentType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +21,8 @@ public class ContractResponse {
     String contractCode;
     String title;
     String content;
+    PaymentType paymentType;
+    DeliveryMethod deliveryMethod;
     double price;
     String currency;
     boolean sellerSigned;

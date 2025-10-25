@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -45,7 +46,6 @@ public class SellerContractService {
             throw new BusinessException("User is not a seller", 400);
         }
 
-
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
@@ -57,8 +57,10 @@ public class SellerContractService {
 
         PreContractResponse response = new PreContractResponse();
         response.setOrderId(orderId);
-        response.setTitle(">" + order.getPost().getTitle() + "<");
+        response.setTitle(order.getPost().getTitle());
         response.setPrice(order.getPost().getPrice());
+        response.setPaymentType(order.getPaymentType());
+        response.setDeliveryMethod(order.getDeliveryMethod());
         response.setCurrency("VND");
 
         return response;
@@ -115,6 +117,10 @@ public class SellerContractService {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
 
+        if(!Objects.equals(contract.getOrder().getBuyer().getId(), user.getId())){
+            throw new BusinessException("This contract is not belong to you", 400);
+        }
+
         ContractResponse response = new ContractResponse();
         response.setContractId(contract.getId());
         response.setOrderId(contract.getOrder().getId());
@@ -123,6 +129,8 @@ public class SellerContractService {
         response.setContent(contract.getContent());
         response.setPrice(contract.getPrice());
         response.setCurrency(contract.getCurrency());
+        response.setPaymentType(contract.getOrder().getPaymentType());
+        response.setDeliveryMethod(contract.getOrder().getDeliveryMethod());
         response.setSellerSigned(contract.isSellerSigned());
         response.setSellerSignedAt(contract.getSellerSignedAt());
         response.setBuyerSigned(contract.isBuyerSigned());
@@ -152,6 +160,8 @@ public class SellerContractService {
             response.setContent(contract.getContent());
             response.setPrice(contract.getPrice());
             response.setCurrency(contract.getCurrency());
+            response.setPaymentType(contract.getOrder().getPaymentType());
+            response.setDeliveryMethod(contract.getOrder().getDeliveryMethod());
             response.setSellerSigned(contract.isSellerSigned());
             response.setSellerSignedAt(contract.getSellerSignedAt());
             response.setBuyerSigned(contract.isBuyerSigned());
