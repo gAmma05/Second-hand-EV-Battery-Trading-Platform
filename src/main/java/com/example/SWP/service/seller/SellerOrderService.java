@@ -1,12 +1,16 @@
 package com.example.SWP.service.seller;
 
+import com.example.SWP.dto.request.seller.OrderDeliveryStatusRequest;
 import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.response.seller.RejectOrderResponse;
 import com.example.SWP.entity.Order;
+import com.example.SWP.entity.OrderDeliveryStatus;
 import com.example.SWP.entity.User;
+import com.example.SWP.enums.DeliveryStatus;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.repository.OrderDeliveryStatusRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
@@ -28,6 +32,7 @@ public class SellerOrderService {
     OrderRepository orderRepository;
     NotificationService notificationService;
     UserRepository userRepository;
+    OrderDeliveryStatusRepository orderDeliveryStatusRepository;
 
     public SellerOrderResponse getOrderDetail(Authentication authentication, Long orderId) {
         String email = authentication.getName();
@@ -178,9 +183,13 @@ public class SellerOrderService {
         return responseList;
     }
 
-    public void updateOrderStatus(Long orderId, OrderStatus status) {
-        Order order = orderRepository.findById(orderId)
+    public void updateOrderStatus(OrderDeliveryStatusRequest request) {
+        Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order does not exist"));
 
+        OrderDeliveryStatus ods = orderDeliveryStatusRepository.findByOrder_Id(order.getId());
+        if(ods == null){
+            throw new BusinessException("Order delivery status does not exist, please try again", 404);
+        }
     }
 }

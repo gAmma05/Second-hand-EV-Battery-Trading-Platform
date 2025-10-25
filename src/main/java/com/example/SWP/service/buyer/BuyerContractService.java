@@ -8,6 +8,7 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.ContractRepository;
+import com.example.SWP.repository.OrderDeliveryStatusRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
@@ -33,6 +34,8 @@ public class BuyerContractService {
     NotificationService notificationService;
 
     OrderRepository orderRepository;
+
+    OrderDeliveryStatusRepository orderDeliveryStatusRepository;
 
     public void signContract(Authentication authentication, Long contractId) {
         String email = authentication.getName();
@@ -72,6 +75,9 @@ public class BuyerContractService {
         }
 
         orderDeliveryStatus.setDeliveryTrackingNumber(generateDeliveryTrackingCode(contract.getOrder().getDeliveryMethod()));
+        orderDeliveryStatus.setCreatedAt(LocalDateTime.now());
+
+        orderDeliveryStatusRepository.save(orderDeliveryStatus);
 
         notificationService.sendNotificationToOneUser(contract.getOrder().getSeller().getEmail(), "About your contract", "Look like your contract has been signed by buyer, you should check it out.");
 
