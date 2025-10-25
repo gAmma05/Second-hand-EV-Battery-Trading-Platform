@@ -5,7 +5,6 @@ import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 
 import com.example.SWP.dto.response.OrderDeliveryStatusResponse;
 import com.example.SWP.dto.response.buyer.BuyerOrderResponse;
-import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.OrderDeliveryStatus;
 import com.example.SWP.entity.User;
@@ -17,7 +16,6 @@ import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
-import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.validator.seller.CreateOrderRequestValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -45,8 +43,6 @@ public class BuyerOrderService {
 
     OrderDeliveryStatusRepository orderDeliveryStatusRepository;
 
-
-    private final ValidateService validateService;
 
     public BuyerOrderResponse getOrderDetail(Long orderId) {
         Order order = orderRepository.findById(orderId)
