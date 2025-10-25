@@ -177,20 +177,17 @@ public class GhnService {
         body.put("from_district_id", request.getFromDistrictId());
         body.put("to_district_id", request.getToDistrictId());
         body.put("to_ward_code", request.getToWardCode());
-        body.put("service_type_id", 5);
+        body.put("service_type_id", request.getServiceTypeId());
         body.put("weight", request.getWeight());
 
-        List<Map<String, Object>> itemsList = new ArrayList<>();
-        Map<String, Object> item = new HashMap<>();
-        item.put("name", request.getItemName());
-        item.put("quantity", 1);
-        item.put("length", request.getLength());
-        item.put("width", request.getWidth());
-        item.put("height", request.getHeight());
-        item.put("weight", request.getWeight());
-        itemsList.add(item);
+        if(request.getServiceTypeId() == 5) {
+            List<Map<String, Object>> itemsList = new ArrayList<>();
+            Map<String, Object> item = new HashMap<>();
+            item.put("weight", request.getWeight());
+            itemsList.add(item);
 
-        body.put("items", itemsList);
+            body.put("items", itemsList);
+        }
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         String url = GHN_URL + "/v2/shipping-order/fee";
