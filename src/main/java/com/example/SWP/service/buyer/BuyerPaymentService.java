@@ -31,17 +31,8 @@ public class BuyerPaymentService {
 
     InvoiceRepository invoiceRepository;
 
-    public InvoiceResponse createInvoice(Authentication authentication, Long contractId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("User does not exist", 404)
-        );
+    public InvoiceResponse createInvoice(Long contractId) {
 
-        String message = "Your invoice has been created, please check the information before paying";
-
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You are not a buyer, you can't use this feature", 400);
-        }
 
         if (contractRepository.findById(contractId).isEmpty()) {
             throw new BusinessException("Contract does not exist, it could be system issue. Try again", 404);
@@ -63,6 +54,8 @@ public class BuyerPaymentService {
         invoice.setDueDate(LocalDateTime.now().plusDays(7));
         invoice.setPaidAt(null);
         invoice.setStatus(InvoiceStatus.VALID);
+
+        String message = "Your invoice has been created, please check the information before paying";
 
         return new InvoiceResponse(
                 invoice.getId(), invoice.getContract().getId(),
@@ -126,7 +119,7 @@ public class BuyerPaymentService {
             throw new BusinessException("You are not a buyer, you can't use this feature", 400);
         }
 
-        List<Invoice> list = invoiceRepository.findAll();
+        List<Invoice> list = invoiceRepository.getInvoiceByContract_Order_Buyer_Id(user.getId());
 
         return getInvoicesList(list);
     }

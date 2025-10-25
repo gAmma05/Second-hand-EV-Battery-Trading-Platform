@@ -124,10 +124,6 @@ public class BuyerOrderService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User does not exist"));
 
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("User is not a buyer", 400);
-        }
-
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
         if (order.getStatus() != OrderStatus.PENDING) {
@@ -148,10 +144,6 @@ public class BuyerOrderService {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
-
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("User is not a buyer", 400);
-        }
 
         return createList(orderRepository.findOrderByBuyer_Id(user.getId()));
     }
