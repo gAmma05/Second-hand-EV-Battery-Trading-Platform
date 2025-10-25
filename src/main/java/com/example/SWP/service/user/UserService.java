@@ -11,6 +11,7 @@ import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.UserMapper;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.ghn.GhnService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class UserService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
+    GhnService ghnService;
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
@@ -68,17 +70,52 @@ public class UserService {
         if (request.getFullName() != null) {
             user.setFullName(request.getFullName());
         }
-        if (request.getAddress() != null) {
-            user.setAddress(request.getAddress());
-        }
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
+        }
+        if (request.getGhnToken() != null) {
+            user.setGhnToken(request.getGhnToken());
+        }
+        if (request.getGhnShopId() != null) {
+            user.setGhnShopId(request.getGhnShopId());
+        }
+
+        if (request.getStreetAddress() != null &&
+                request.getProvinceId() != null &&
+                request.getDistrictId() != null &&
+                request.getWardCode() != null
+        ) {
+
+            ghnService.validateAddressIds(
+                    request.getProvinceId(),
+                    request.getDistrictId(),
+                    request.getWardCode()
+            );
+
+            user.setProvinceId(request.getProvinceId());
+            user.setDistrictId(request.getDistrictId());
+            user.setWardCode(request.getWardCode());
+            user.setStreetAddress(request.getStreetAddress());
+            user.setAddress(ghnService.getFullAddress(request.getStreetAddress(), request.getProvinceId(), request.getDistrictId(), request.getWardCode()));
+        }
+
+        if (user.getRole().equals(Role.SELLER)) {
+            if (request.getStoreName() != null) {
+                user.setStoreName(request.getStoreName());
+            }
+            if (request.getStoreDescription() != null) {
+                user.setStoreDescription(request.getStoreDescription());
+            }
+            if (request.getSocialMedia() != null) {
+                user.setSocialMedia(request.getSocialMedia());
+            }
         }
 
         userRepository.save(user);
 
         return userMapper.toUserResponse(user);
     }
+
 
     public UserResponse updateAvatar(Authentication authentication, String avatarUrl) {
         String email = authentication.getName();
@@ -112,7 +149,5 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
-
-
 }
 

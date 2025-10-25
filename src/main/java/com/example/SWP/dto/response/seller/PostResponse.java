@@ -39,7 +39,6 @@ public class PostResponse {
     Set<DeliveryMethod> deliveryMethods;
     Set<PaymentType> paymentTypes;
 
-    String address;
     boolean trusted;
 
     Long priorityPackageId;
@@ -50,6 +49,8 @@ public class PostResponse {
     UserResponse user;
 
     List<String> images;
+
+    Integer weight;
 
     String vehicleBrand;
     String model;

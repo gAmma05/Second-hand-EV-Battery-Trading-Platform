@@ -11,5 +11,15 @@ import lombok.experimental.FieldDefaults;
 public class UpdateUserRequest {
     String fullName;
     String phone;
-    String address;
+    String storeName;
+    String storeDescription;
+    String socialMedia;
+
+    String streetAddress;
+    Integer provinceId;
+    Integer districtId;
+    String wardCode;
+
+    String ghnToken;
+    String ghnShopId;
 }

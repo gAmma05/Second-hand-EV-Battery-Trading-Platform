@@ -13,7 +13,6 @@ public class AdminUpdateUserRequest {
     String email;
     String fullName;
     String phone;
-    String address;
     String avatar;
     Role role;
     Boolean status;
