@@ -8,6 +8,7 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.*;
+import com.example.SWP.service.ghn.GhnService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,7 @@ public class SellerService {
     UserRepository userRepository;
     PriorityPackageRepository priorityPackageRepository;
     SellerPackageRepository sellerPackageRepository;
+    GhnService ghnService;
 
 
     public void upgradeToSeller(Authentication authentication, UpgradeToSellerRequest request) {
@@ -44,14 +46,16 @@ public class SellerService {
             throw new BusinessException("Please update your address before upgrading to seller", 400);
         }
 
-        user.setRole(Role.SELLER);
-        user.setStoreName(request.getShopName());
-        user.setStoreDescription(request.getShopDescription());
-        user.setSocialMedia(request.getSocialMedia());
-        user.setGhnToken(request.getGhnToken());
-        user.setGhnShopId(request.getGhnShopId());
-        user.setRemainingPosts(3);
-        userRepository.save(user);
+        if(ghnService.validateGhnTokenAndShop(request.getGhnToken(), request.getGhnShopId())) {
+            user.setRole(Role.SELLER);
+            user.setStoreName(request.getShopName());
+            user.setStoreDescription(request.getShopDescription());
+            user.setSocialMedia(request.getSocialMedia());
+            user.setGhnToken(request.getGhnToken());
+            user.setGhnShopId(request.getGhnShopId());
+            user.setRemainingPosts(3);
+            userRepository.save(user);
+        }
     }
 
     public List<PriorityPackage> getAllPriorityPackages() {

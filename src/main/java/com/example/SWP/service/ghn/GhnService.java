@@ -1,10 +1,9 @@
 package com.example.SWP.service.ghn;
 
-import com.example.SWP.dto.request.ghn.GhnAvailableServiceRequest;
-import com.example.SWP.dto.request.ghn.GhnShippingFeeRequest;
+import com.example.SWP.dto.request.ghn.ServiceRequest;
+import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.response.ghn.DistrictResponse;
 import com.example.SWP.dto.response.ghn.ProvinceResponse;
-import com.example.SWP.dto.response.ghn.ServiceResponse;
 import com.example.SWP.dto.response.ghn.WardResponse;
 import com.example.SWP.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -167,30 +167,26 @@ public class GhnService {
         return String.join(", ", streetAddress, wardName, districtName, provinceName);
     }
 
-    public Object calculateShippingFee(GhnShippingFeeRequest request) {
+    public Object calculateShippingFee(FeeRequest request) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Token", request.getGhnToken());
-        headers.set("ShopId", request.getGhnShopId());
+        headers.set("ShopId", String.valueOf(request.getGhnShopId()));
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
         body.put("from_district_id", request.getFromDistrictId());
         body.put("to_district_id", request.getToDistrictId());
         body.put("to_ward_code", request.getToWardCode());
-        body.put("service_type_id", 5);
+        body.put("service_type_id", request.getServiceTypeId());
         body.put("weight", request.getWeight());
 
-        List<Map<String, Object>> itemsList = new ArrayList<>();
-        Map<String, Object> item = new HashMap<>();
-        item.put("name", request.getItemName());
-        item.put("quantity", 1);
-        item.put("length", request.getLength());
-        item.put("width", request.getWidth());
-        item.put("height", request.getHeight());
-        item.put("weight", request.getWeight());
-        itemsList.add(item);
-
-        body.put("items", itemsList);
+        if(request.getServiceTypeId() == 5) {
+            List<Map<String, Object>> itemsList = new ArrayList<>();
+            Map<String, Object> item = new HashMap<>();
+            item.put("weight", request.getWeight());
+            itemsList.add(item);
+            body.put("items", itemsList);
+        }
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         String url = GHN_URL + "/v2/shipping-order/fee";
@@ -202,41 +198,63 @@ public class GhnService {
         return response.getBody();
     }
 
-    public List<ServiceResponse> getAvailableServices(GhnAvailableServiceRequest ghnAvailableServiceRequest) {
+    public Object getAvailableServices(ServiceRequest serviceRequest) {
         String url = GHN_URL + "/v2/shipping-order/available-services";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Token", ghnAvailableServiceRequest.getGhnToken());
+        headers.set("Token", serviceRequest.getGhnToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("shop_id", ghnAvailableServiceRequest.getGhnShopId());
-        body.put("from_district", ghnAvailableServiceRequest.getFromDistrictId());
-        body.put("to_district", ghnAvailableServiceRequest.getToDistrictId());
+        body.put("shop_id", serviceRequest.getGhnShopId());
+        body.put("from_district", serviceRequest.getFromDistrictId());
+        body.put("to_district", serviceRequest.getToDistrictId());
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    url, HttpMethod.POST, request, Map.class
+            ResponseEntity<Object> response = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, Object.class
             );
 
-            List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
-
-            List<ServiceResponse> services = new ArrayList<>();
-            for (Map<String, Object> item : data) {
-                ServiceResponse service = ServiceResponse.builder()
-                        .service_id((Integer) item.get("service_id"))
-                        .service_type_id((Integer) item.get("service_type_id"))
-                        .short_name((String) item.get("short_name"))
-                        .build();
-                services.add(service);
-            }
-
-            return services;
+            return response.getBody();
 
         } catch (Exception e) {
-            throw new RuntimeException("Không thể lấy danh sách dịch vụ từ GHN: " + e.getMessage());
+            throw new BusinessException(
+                    "Không thể lấy danh sách dịch vụ từ GHN: " + e.getMessage(),
+                    500
+            );
+
         }
     }
+
+    public boolean validateGhnTokenAndShop(String token, Integer shopId) {
+        String url = GHN_URL + "/v2/shop/info";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Token", token);
+        headers.set("ShopId", String.valueOf(shopId));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Object> response = restTemplate.exchange(
+                    url, HttpMethod.GET, request, Object.class
+            );
+            return response.getStatusCode().is2xxSuccessful();
+
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new BusinessException(
+                    "Token hoặc ShopId GHN không hợp lệ",
+                    401
+            );
+        } catch (Exception e) {
+            throw new BusinessException(
+                    "Lỗi khi validate token/shopId GHN: " + e.getMessage(),
+                    500
+            );
+        }
+    }
+
 }

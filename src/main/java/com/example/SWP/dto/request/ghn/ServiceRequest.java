@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GhnAvailableServiceRequest {
+public class ServiceRequest {
     String ghnToken;
     Integer ghnShopId;
     Integer fromDistrictId;

@@ -73,11 +73,19 @@ public class UserService {
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
         }
-        if (request.getGhnToken() != null) {
-            user.setGhnToken(request.getGhnToken());
-        }
-        if (request.getGhnShopId() != null) {
-            user.setGhnShopId(request.getGhnShopId());
+
+        if(request.getGhnToken() != null || request.getGhnShopId() != null) {
+            if(ghnService.validateGhnTokenAndShop(
+                    request.getGhnToken() != null ? request.getGhnToken() : user.getGhnToken(),
+                    request.getGhnShopId() != null ? request.getGhnShopId() : user.getGhnShopId()
+            )) {
+                if(request.getGhnToken() != null) {
+                    user.setGhnToken(request.getGhnToken());
+                }
+                if(request.getGhnShopId() != null) {
+                    user.setGhnShopId(request.getGhnShopId());
+                }
+            }
         }
 
         if (request.getStreetAddress() != null &&
