@@ -37,15 +37,7 @@ public class BuyerContractService {
 
     OrderDeliveryStatusRepository orderDeliveryStatusRepository;
 
-    public void signContract(Authentication authentication, Long contractId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("User does not exist", 404)
-        );
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You can't use this feature", 400);
-        }
-
+    public void signContract(Long contractId) {
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
         );
@@ -101,13 +93,11 @@ public class BuyerContractService {
     }
 
     public void cancelContract(Authentication authentication, Long contractId) {
+
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new BusinessException("User does not exist", 404)
         );
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You can't use this feature", 400);
-        }
 
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
@@ -119,6 +109,10 @@ public class BuyerContractService {
 
         if(contract.getStatus().equals(ContractStatus.CANCELLED)){
             throw new BusinessException("This contract is already cancelled, you can't cancel it.", 400);
+        }
+
+        if(!contract.getOrder().getBuyer().getId().equals(user.getId())){
+            throw new BusinessException("This contract is not belong to you, you can't cancel it.", 400);
         }
 
         contract.setStatus(ContractStatus.CANCELLED);
@@ -160,15 +154,11 @@ public class BuyerContractService {
         return response;
     }
 
-    public List<ContractResponse> getAllContractsSignedBySeller(Authentication authentication) {
+    public List<ContractResponse> getAllContract(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new BusinessException("User does not exist", 404)
         );
-
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You can't use this feature", 400);
-        }
 
         List<Contract> contractList = contractRepository.findByOrder_Buyer_Id(user.getId());
         return getContractList(contractList);

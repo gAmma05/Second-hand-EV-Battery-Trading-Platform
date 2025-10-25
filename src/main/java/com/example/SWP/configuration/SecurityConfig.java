@@ -64,6 +64,19 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler((req, resp, accessDeniedException) -> {
+                                    resp.setStatus(403);
+                                    resp.setContentType("application/json;charset=UTF-8");
+                                    resp.getWriter().write("""
+                                                {
+                                                  "status": 403,
+                                                  "error": "Forbidden",
+                                                  "message": "You don't have permission to access this resource"
+                                                }
+                                            """);
+                                    resp.getWriter().flush();
+                                }
+                        )
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

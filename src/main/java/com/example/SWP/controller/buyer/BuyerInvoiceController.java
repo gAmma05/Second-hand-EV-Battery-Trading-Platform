@@ -23,8 +23,8 @@ public class BuyerInvoiceController {
     BuyerPaymentService buyerPaymentService;
 
     @GetMapping("/create")
-    public ResponseEntity<?> createInvoice(Authentication authentication, @RequestParam Long contractId) {
-        InvoiceResponse response = buyerPaymentService.createInvoice(authentication, contractId);
+    public ResponseEntity<?> createInvoice(@RequestParam Long contractId) {
+        InvoiceResponse response = buyerPaymentService.createInvoice(contractId);
         if (response == null) {
             return ResponseEntity.badRequest().body("Failed to create invoice");
         }

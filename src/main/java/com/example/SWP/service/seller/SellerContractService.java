@@ -48,6 +48,10 @@ public class SellerContractService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
+        if(!Objects.equals(order.getSeller().getId(), user.getId())){
+            throw new BusinessException("This order is not belong to you", 400);
+        }
+
         if (order.getStatus().equals(OrderStatus.PENDING)) {
             throw new BusinessException("You can't create contract until the order is approved", 400);
         } else if (order.getStatus().equals(OrderStatus.REJECTED)) {
@@ -73,15 +77,7 @@ public class SellerContractService {
         return prefix + timestamp;
     }
 
-    public void createContract(Authentication authentication, CreateContractRequest request) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
-
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
-
+    public void createContract(CreateContractRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 

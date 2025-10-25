@@ -23,8 +23,8 @@ public class BuyerContractController {
     BuyerContractService buyerContractService;
 
     @GetMapping("/approve")
-    public ResponseEntity<?> approveContract(Authentication authentication, @RequestParam Long contractId) {
-        buyerContractService.signContract(authentication, contractId);
+    public ResponseEntity<?> approveContract(@RequestParam Long contractId) {
+        buyerContractService.signContract(contractId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
@@ -62,7 +62,7 @@ public class BuyerContractController {
 
     @GetMapping("/list")
     public ResponseEntity<?> getContractList(Authentication authentication){
-        List<ContractResponse> contractList = buyerContractService.getAllContractsSignedBySeller(authentication);
+        List<ContractResponse> contractList = buyerContractService.getAllContract(authentication);
         if(contractList == null || contractList.isEmpty()){
             return ResponseEntity.badRequest().body("Failed to fetch contract list");
         }
