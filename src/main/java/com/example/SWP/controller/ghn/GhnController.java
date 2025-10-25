@@ -1,7 +1,7 @@
 package com.example.SWP.controller.ghn;
 
-import com.example.SWP.dto.request.ghn.GhnAvailableServiceRequest;
-import com.example.SWP.dto.request.ghn.GhnShippingFeeRequest;
+import com.example.SWP.dto.request.ghn.ServiceRequest;
+import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.response.ghn.DistrictResponse;
 import com.example.SWP.dto.response.ghn.ProvinceResponse;
 import com.example.SWP.dto.response.ghn.WardResponse;
@@ -35,12 +35,12 @@ public class GhnController {
     }
 
     @PostMapping("/available-services")
-    public Object getAvailableServices(@RequestBody GhnAvailableServiceRequest request) {
+    public Object getAvailableServices(@RequestBody ServiceRequest request) {
         return ghnService.getAvailableServices(request);
     }
 
     @PostMapping("/shipping-fee")
-    public Object calculateShippingFee(@RequestBody GhnShippingFeeRequest request) {
+    public Object calculateShippingFee(@RequestBody FeeRequest request) {
         return ghnService.calculateShippingFee(request);
     }
 

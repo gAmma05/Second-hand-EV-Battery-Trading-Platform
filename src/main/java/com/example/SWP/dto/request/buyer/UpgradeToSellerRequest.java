@@ -28,5 +28,5 @@ public class UpgradeToSellerRequest {
     String ghnToken;
 
     @NotBlank(message = "GHN Shop ID is required")
-    String ghnShopId;
+    Integer ghnShopId;
 }
