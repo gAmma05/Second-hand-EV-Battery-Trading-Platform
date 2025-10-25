@@ -1,5 +1,6 @@
 package com.example.SWP.dto.response.buyer;
 
+import com.example.SWP.dto.response.OrderDeliveryStatusResponse;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.PaymentMethod;
 import com.example.SWP.enums.PaymentType;
@@ -24,4 +25,6 @@ public class BuyerOrderResponse {
     OrderStatus status;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+
+    OrderDeliveryStatusResponse deliveryStatus;
 }

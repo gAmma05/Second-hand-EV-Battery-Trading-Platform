@@ -1,6 +1,7 @@
 package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.seller.OrderDeliveryStatusRequest;
+import com.example.SWP.dto.response.OrderDeliveryStatusResponse;
 import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.response.seller.RejectOrderResponse;
 import com.example.SWP.entity.Order;
@@ -45,6 +46,7 @@ public class SellerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
+        OrderDeliveryStatus ods = orderDeliveryStatusRepository.findByOrder_Id(orderId);
 
         SellerOrderResponse response = new SellerOrderResponse();
         response.setOrderId(orderId);
@@ -56,7 +58,23 @@ public class SellerOrderService {
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
 
+        if(ods != null){
+            response.setDeliveryStatus(getOrderDeliveryStatusResponse(ods));
+        }else{
+            response.setDeliveryStatus(null);
+        }
         return response;
+    }
+
+    private OrderDeliveryStatusResponse getOrderDeliveryStatusResponse(OrderDeliveryStatus order){
+        OrderDeliveryStatusResponse ods = new OrderDeliveryStatusResponse();
+        ods.setOdsId(order.getId());
+        ods.setProvider(order.getDeliveryProvider());
+        ods.setTrackingNumber(order.getDeliveryTrackingNumber());
+        ods.setStatus(order.getStatus());
+        ods.setCreatedAt(order.getCreatedAt());
+        ods.setUpdatedAt(order.getUpdatedAt());
+        return ods;
     }
 
     public void approveOrder(Authentication authentication, Long orderId) {
