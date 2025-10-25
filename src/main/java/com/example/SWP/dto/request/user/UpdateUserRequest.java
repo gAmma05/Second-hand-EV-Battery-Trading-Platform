@@ -21,5 +21,5 @@ public class UpdateUserRequest {
     String wardCode;
 
     String ghnToken;
-    String ghnShopId;
+    Integer ghnShopId;
 }

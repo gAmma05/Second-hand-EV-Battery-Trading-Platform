@@ -6,19 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GhnShippingFeeRequest {
+public class ServiceRequest {
+    String ghnToken;
+    Integer ghnShopId;
     Integer fromDistrictId;
     Integer toDistrictId;
-    String toWardCode;
-    Integer serviceTypeId;
-
-    Integer weight;
-
-    String ghnToken;
-    String ghnShopId;
 }

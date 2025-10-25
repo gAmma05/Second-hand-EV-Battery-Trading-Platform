@@ -44,8 +44,6 @@ public class BuyerService {
     CreateOrderRequestValidator createOrderRequestValidator;
 
 
-    private final ValidateService validateService;
-
     public void createOrder(Authentication authentication, CreateOrderRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)

@@ -48,7 +48,7 @@ public class User {
     int remainingPosts;
 
     String ghnToken;
-    String ghnShopId;
+    Integer ghnShopId;
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;

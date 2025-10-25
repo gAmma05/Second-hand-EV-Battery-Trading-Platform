@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/seller/ai")
@@ -19,7 +22,13 @@ public class SellerAiController {
     AiService aiService;
 
     @PostMapping("/suggest-price")
-    public double suggestPrice(@RequestBody AiProductRequest request) {
-        return aiService.suggestPrice(request);
+    public Map<String, Object> suggestPrice(@RequestBody AiProductRequest request) {
+        double suggestedPrice = aiService.suggestPrice(request);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("suggestedPrice", suggestedPrice);
+
+        return response;
     }
+
 }

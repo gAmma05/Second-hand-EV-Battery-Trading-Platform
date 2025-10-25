@@ -6,13 +6,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GhnAvailableServiceRequest {
-    String ghnToken;
-    Integer ghnShopId;
+public class FeeRequest {
     Integer fromDistrictId;
     Integer toDistrictId;
+    String toWardCode;
+    Integer serviceTypeId;
+
+    Integer weight;
+
+    String ghnToken;
+    Integer ghnShopId;
 }
