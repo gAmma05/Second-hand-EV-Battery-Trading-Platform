@@ -75,6 +75,7 @@ public class BuyerContractService {
         }
 
         orderDeliveryStatus.setDeliveryTrackingNumber(generateDeliveryTrackingCode(contract.getOrder().getDeliveryMethod()));
+        orderDeliveryStatus.setStatus(DeliveryStatus.PREPARING);
         orderDeliveryStatus.setCreatedAt(LocalDateTime.now());
 
         orderDeliveryStatusRepository.save(orderDeliveryStatus);

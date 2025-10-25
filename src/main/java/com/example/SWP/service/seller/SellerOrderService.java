@@ -191,5 +191,15 @@ public class SellerOrderService {
         if(ods == null){
             throw new BusinessException("Order delivery status does not exist, please try again", 404);
         }
+
+        if(ods.getStatus().equals(DeliveryStatus.PREPARING)){
+            ods.setStatus(DeliveryStatus.READY);
+        }else if(ods.getStatus().equals(DeliveryStatus.READY)){
+            ods.setStatus(DeliveryStatus.PENDING);
+        }else if(ods.getStatus().equals(DeliveryStatus.PENDING)){
+            ods.setStatus(DeliveryStatus.DELIVERED);
+        }
+
+        orderDeliveryStatusRepository.save(ods);
     }
 }

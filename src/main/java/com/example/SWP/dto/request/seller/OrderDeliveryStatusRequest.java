@@ -13,5 +13,4 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 public class OrderDeliveryStatusRequest {
     Long orderId;
-    DeliveryStatus status;
 }
