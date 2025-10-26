@@ -22,8 +22,8 @@ public class SellerContractController {
 
     SellerContractService sellerContractService;
 
-    @GetMapping("/pre-contract-implementation/{orderId}")
-    public ResponseEntity<?> preContractReview(Authentication authentication, @PathVariable Long orderId) {
+    @GetMapping("/contract-preview")
+    public ResponseEntity<?> preContractReview(Authentication authentication, @RequestParam Long orderId) {
         PreContractResponse response = sellerContractService.getPreContractByOrderId(authentication, orderId);
         if (response == null) {
             return new ResponseEntity<>("Failed to fetch pre-contract", HttpStatus.BAD_REQUEST);
@@ -38,7 +38,7 @@ public class SellerContractController {
         );
     }
 
-    @PostMapping("/create-contract")
+    @PostMapping("/create")
     public ResponseEntity<?> createContract(Authentication authentication, CreateContractRequest request) {
         sellerContractService.createContract(authentication, request);
         return ResponseEntity.ok(
@@ -49,8 +49,8 @@ public class SellerContractController {
         );
     }
 
-    @GetMapping("/contract-detail/{contractId}")
-    public ResponseEntity<?> getContractDetail(Authentication authentication, @PathVariable Long contractId){
+    @GetMapping("/detail")
+    public ResponseEntity<?> getContractDetail(Authentication authentication, @RequestParam Long contractId){
         ContractResponse response = sellerContractService.getContractDetail(authentication, contractId);
         if(response == null){
             return ResponseEntity.badRequest().body("Failed to fetch contract detail");
@@ -64,7 +64,7 @@ public class SellerContractController {
         );
     }
 
-    @GetMapping("/contract-list")
+    @GetMapping("/list")
     public ResponseEntity<?> getContractList(Authentication authentication){
         List<ContractResponse> response = sellerContractService.getAllContracts(authentication);
         if(response == null || response.isEmpty()){
