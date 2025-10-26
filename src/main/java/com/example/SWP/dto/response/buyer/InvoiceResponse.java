@@ -1,6 +1,8 @@
 package com.example.SWP.dto.response.buyer;
 
 import com.example.SWP.enums.InvoiceStatus;
+import com.example.SWP.enums.PaymentMethod;
+import com.example.SWP.enums.PaymentType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

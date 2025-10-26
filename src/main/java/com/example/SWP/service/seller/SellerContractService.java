@@ -14,6 +14,7 @@ import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -61,16 +62,10 @@ public class SellerContractService {
         response.setPaymentType(order.getPaymentType());
         response.setDeliveryMethod(order.getDeliveryMethod());
         response.setCurrency("VND");
+        response.setPaymentType(order.getPaymentType());
 
         return response;
 
-    }
-
-    private String generateContractCode() {
-        String prefix = "CT";
-        String timestamp = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        return prefix + timestamp;
     }
 
     public void createContract(Authentication authentication, CreateContractRequest request) {
@@ -93,7 +88,7 @@ public class SellerContractService {
 
         Contract contract = new Contract();
         contract.setOrder(order);
-        contract.setContractCode(generateContractCode());
+        contract.setContractCode(Utils.generateCode("CT"));
         contract.setTitle(request.getTitle());
         contract.setContent(request.getContent());
         contract.setPrice(request.getPrice());

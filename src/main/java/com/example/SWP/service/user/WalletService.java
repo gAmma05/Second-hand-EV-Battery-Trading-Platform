@@ -12,6 +12,7 @@ import com.example.SWP.repository.UserRepository;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
 import com.example.SWP.service.payment.VnPayService;
+import com.example.SWP.utils.Utils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -36,7 +37,6 @@ public class WalletService {
     WalletTransactionRepository walletTransactionRepository;
     UserRepository userRepository;
     VnPayService vnPayService;
-    PriorityPackageRepository priorityPackageRepository;
 
     @NonFinal
     @Value("${vnpay.returnUrl.walletDeposit}")
@@ -55,7 +55,7 @@ public class WalletService {
                                 .build()
                 ));
 
-        String orderId = String.valueOf(System.currentTimeMillis());
+        String orderId = Utils.generateCode("DEP");
         String description = "Deposit to wallet";
 
         WalletTransaction transaction = WalletTransaction.builder()
@@ -167,4 +167,37 @@ public class WalletService {
 
         return transaction;
     }
+
+    // Thanh toán bằng ví
+    public void payWithWallet(
+            User user, BigDecimal amount, String orderId,
+            String description, TransactionType transactionType) {
+        Wallet wallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new BusinessException("Wallet has no balance", 404));
+
+        BigDecimal balanceBefore = wallet.getBalance();
+
+        if (balanceBefore.compareTo(amount) < 0) {
+            throw new BusinessException("Insufficient balance in wallet", 400);
+        }
+
+        BigDecimal balanceAfter = balanceBefore.subtract(amount);
+        wallet.setBalance(balanceAfter);
+        walletRepository.save(wallet);
+
+        WalletTransaction transaction = WalletTransaction.builder()
+                .wallet(wallet)
+                .orderId(orderId)
+                .amount(amount)
+                .type(transactionType)
+                .status(PaymentStatus.SUCCESS)
+                .description(description)
+                .balanceBefore(balanceBefore)
+                .balanceAfter(balanceAfter)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        walletTransactionRepository.save(transaction);
+    }
+
 }

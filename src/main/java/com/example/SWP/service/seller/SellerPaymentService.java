@@ -10,6 +10,7 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.*;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
+import com.example.SWP.utils.Utils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -56,10 +57,11 @@ public class SellerPaymentService {
         walletRepository.save(wallet);
 
         // Tạo SellerPackagePayment
+        String orderId = Utils.generateCode("SP-");
         SellerPackagePayment payment = SellerPackagePayment.builder()
                 .user(user)
                 .sellerPackage(pkg)
-                .orderId("WL-" + System.currentTimeMillis())
+                .orderId(orderId)
                 .build();
         packagePaymentRepository.save(payment);
 
@@ -87,7 +89,7 @@ public class SellerPaymentService {
                 .orderId(payment.getOrderId())
                 .amount(amount.negate()) // tiền ra
                 .description("Purchase seller package " + pkg.getType())
-                .type(TransactionType.PURCHASE_PACKAGE)
+                .type(TransactionType.PACKAGE)
                 .status(PaymentStatus.SUCCESS)
                 .balanceBefore(balanceBefore)
                 .balanceAfter(balanceAfter)
@@ -124,12 +126,14 @@ public class SellerPaymentService {
         walletRepository.save(wallet);
 
         // Tạo WalletTransaction
+        String orderId = Utils.generateCode("PP-");
+
         WalletTransaction transaction = WalletTransaction.builder()
                 .wallet(wallet)
-                .orderId("PP-" + System.currentTimeMillis())
+                .orderId(orderId)
                 .amount(price.negate())
                 .description("Purchase priority package: " + priorityPackage.getType())
-                .type(TransactionType.PURCHASE_PACKAGE)
+                .type(TransactionType.PACKAGE)
                 .status(PaymentStatus.SUCCESS)
                 .balanceBefore(balanceBefore)
                 .balanceAfter(balanceAfter)

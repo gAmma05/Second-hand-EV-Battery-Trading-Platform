@@ -1,16 +1,15 @@
 package com.example.SWP.controller.buyer;
 
+import com.example.SWP.dto.request.seller.PayInvoiceRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.InvoiceResponse;
-import com.example.SWP.service.buyer.BuyerPaymentService;
+import com.example.SWP.service.buyer.BuyerInvoiceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,25 +19,10 @@ import java.util.List;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerInvoiceController {
 
-    BuyerPaymentService buyerPaymentService;
-
-    @GetMapping("/create")
-    public ResponseEntity<?> createInvoice(Authentication authentication, @RequestParam Long contractId) {
-        InvoiceResponse response = buyerPaymentService.createInvoice(authentication, contractId);
-        if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to create invoice");
-        }
-        return ResponseEntity.ok(
-                ApiResponse.<InvoiceResponse>builder()
-                        .success(true)
-                        .message("Created invoice successfully")
-                        .data(response)
-                        .build()
-        );
-    }
+    BuyerInvoiceService buyerPaymentService;
 
     @GetMapping("/detail")
-    public ResponseEntity<?> getInvoiceDetail(Authentication authentication, @RequestParam Long invoiceId) {
+    public ResponseEntity<?> getInvoiceDetail(Authentication authentication, Long invoiceId) {
         InvoiceResponse response = buyerPaymentService.getInvoiceDetail(authentication, invoiceId);
         if (response == null) {
             return ResponseEntity.badRequest().body("Failed to fetch this invoice detail");
@@ -96,5 +80,19 @@ public class BuyerInvoiceController {
                         .build()
         );
     }
+
+    @PostMapping("/pay")
+    public ResponseEntity<?> payInvoice(Authentication authentication, @Valid @RequestBody PayInvoiceRequest request) {
+        buyerPaymentService.payInvoice(authentication, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message("Invoice paid successfully")
+                        .data(null)
+                        .build()
+        );
+    }
+
 
 }

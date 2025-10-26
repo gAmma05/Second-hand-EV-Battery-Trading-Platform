@@ -42,14 +42,10 @@ public class Order {
     DeliveryMethod deliveryMethod;
 
     @Enumerated(EnumType.STRING)
-    PaymentMethod paymentMethod;
-
-    @Enumerated(EnumType.STRING)
     PaymentType paymentType;
 
     @Enumerated(EnumType.STRING)
     OrderStatus status;
-
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;

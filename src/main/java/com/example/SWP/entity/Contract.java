@@ -1,6 +1,7 @@
 package com.example.SWP.entity;
 
 import com.example.SWP.enums.ContractStatus;
+import com.example.SWP.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,7 @@ public class Contract {
     @Column(columnDefinition = "TEXT")
     String content;
 
-    double price;
+    BigDecimal price;
 
     String currency;
 

@@ -1,6 +1,8 @@
 package com.example.SWP.enums;
 
 public enum InvoiceStatus {
-    VALID,
+    ACTIVE,
+    INACTIVE,
+    PAID,
     EXPIRED
 }
