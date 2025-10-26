@@ -2,9 +2,7 @@ package com.example.SWP.service.ghn;
 
 import com.example.SWP.dto.request.ghn.ServiceRequest;
 import com.example.SWP.dto.request.ghn.FeeRequest;
-import com.example.SWP.dto.response.ghn.DistrictResponse;
-import com.example.SWP.dto.response.ghn.ProvinceResponse;
-import com.example.SWP.dto.response.ghn.WardResponse;
+import com.example.SWP.dto.response.ghn.*;
 import com.example.SWP.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -167,7 +165,7 @@ public class GhnService {
         return String.join(", ", streetAddress, wardName, districtName, provinceName);
     }
 
-    public Object calculateShippingFee(FeeRequest request) {
+    public FeeResponse calculateShippingFee(FeeRequest request) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Token", request.getGhnToken());
         headers.set("ShopId", String.valueOf(request.getGhnShopId()));
@@ -191,14 +189,23 @@ public class GhnService {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         String url = GHN_URL + "/v2/shipping-order/fee";
 
-        ResponseEntity<Object> response = restTemplate.exchange(
-                url, HttpMethod.POST, entity, Object.class
+        ResponseEntity<Map> response = restTemplate.exchange(
+                url, HttpMethod.POST, entity, Map.class
         );
 
-        return response.getBody();
+        Map<String, Object> responseBody = response.getBody();
+        Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
+
+
+        return FeeResponse.builder()
+                .total((Integer) data.get("total"))
+                .service_fee((Integer) data.get("service_fee"))
+                .insurance_fee((Integer) data.get("insurance_fee"))
+                .build();
     }
 
-    public Object getAvailableServices(ServiceRequest serviceRequest) {
+
+    public List<AvailableServicesResponse> getAvailableServices(ServiceRequest serviceRequest) {
         String url = GHN_URL + "/v2/shipping-order/available-services";
 
         HttpHeaders headers = new HttpHeaders();
@@ -213,11 +220,28 @@ public class GhnService {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, Object.class
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, Map.class
             );
 
-            return response.getBody();
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody == null || !responseBody.containsKey("data")) {
+                return Collections.emptyList();
+            }
+
+            List<Map<String, Object>> dataList = (List<Map<String, Object>>) responseBody.get("data");
+
+            List<AvailableServicesResponse> services = new ArrayList<>();
+            for (Map<String, Object> item : dataList) {
+                AvailableServicesResponse service = AvailableServicesResponse.builder()
+                        .service_id((Integer) item.get("service_id"))
+                        .short_name((String) item.get("short_name"))
+                        .service_type_id((Integer) item.get("service_type_id"))
+                        .build();
+                services.add(service);
+            }
+
+            return services;
 
         } catch (Exception e) {
             throw new BusinessException(
@@ -226,6 +250,8 @@ public class GhnService {
             );
         }
     }
+
+
 
     public void validateGhnTokenAndShop(String token, Integer shopId) {
         String url = GHN_URL + "/v2/shop/all";

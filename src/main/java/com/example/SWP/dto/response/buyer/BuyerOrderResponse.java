@@ -1,6 +1,7 @@
 package com.example.SWP.dto.response.buyer;
 
 import com.example.SWP.dto.response.OrderDeliveryStatusResponse;
+import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.PaymentMethod;
 import com.example.SWP.enums.PaymentType;
@@ -20,11 +21,9 @@ public class BuyerOrderResponse {
     Long orderId;
     Long postId;
     String sellerName;
-    PaymentMethod paymentMethod;
     PaymentType paymentType;
+    DeliveryMethod deliveryMethod;
     OrderStatus status;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
-
-    OrderDeliveryStatusResponse deliveryStatus;
 }

@@ -44,6 +44,8 @@ public class Order {
     @Enumerated(EnumType.STRING)
     PaymentType paymentType;
 
+    Integer serviceTypeId;
+
     @Enumerated(EnumType.STRING)
     OrderStatus status;
 

@@ -1,15 +1,16 @@
 package com.example.SWP.service.buyer;
 
+import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.request.seller.PayInvoiceRequest;
 import com.example.SWP.dto.response.buyer.InvoiceResponse;
-import com.example.SWP.entity.Contract;
-import com.example.SWP.entity.Invoice;
-import com.example.SWP.entity.User;
+import com.example.SWP.dto.response.ghn.FeeResponse;
+import com.example.SWP.entity.*;
 import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.InvoiceRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.ghn.GhnService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.WalletService;
 import com.example.SWP.utils.Utils;
@@ -41,6 +42,8 @@ public class BuyerInvoiceService {
 
     NotificationService notificationService;
 
+    GhnService ghnService;
+
     @NonFinal
     @Value("${deposit-percentage}")
     BigDecimal depositPercentage;
@@ -63,6 +66,26 @@ public class BuyerInvoiceService {
                     .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
         } else {
             throw new BusinessException("Unknown payment type", 400);
+        }
+
+        Order order = contract.getOrder();
+        if(order.getDeliveryMethod() == DeliveryMethod.GHN) {
+            Post post = order.getPost();
+            User seller = order.getSeller();
+            User buyer = order.getBuyer();
+
+            FeeRequest feeRequest = new FeeRequest();
+
+            feeRequest.setFromDistrictId(seller.getDistrictId());
+            feeRequest.setToDistrictId(buyer.getDistrictId());
+            feeRequest.setToWardCode(buyer.getWardCode());
+            feeRequest.setServiceTypeId(order.getServiceTypeId());
+            feeRequest.setWeight(post.getWeight());
+            feeRequest.setGhnToken(seller.getGhnToken());
+            feeRequest.setGhnShopId(seller.getGhnShopId());
+
+            FeeResponse shippingFee = ghnService.calculateShippingFee(feeRequest);
+            totalPrice = totalPrice.add(BigDecimal.valueOf(shippingFee.getTotal()));
         }
 
         Invoice invoice = Invoice.builder()
