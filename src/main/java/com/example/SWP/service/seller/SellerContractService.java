@@ -14,6 +14,7 @@ import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -66,13 +67,6 @@ public class SellerContractService {
 
     }
 
-    private String generateContractCode() {
-        String prefix = "CT";
-        String timestamp = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        return prefix + timestamp;
-    }
-
     public void createContract(Authentication authentication, CreateContractRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
@@ -93,7 +87,7 @@ public class SellerContractService {
 
         Contract contract = new Contract();
         contract.setOrder(order);
-        contract.setContractCode(generateContractCode());
+        contract.setContractCode(Utils.generateCode("CT"));
         contract.setTitle(request.getTitle());
         contract.setContent(request.getContent());
         contract.setPrice(request.getPrice());
@@ -101,7 +95,6 @@ public class SellerContractService {
         contract.setSellerSigned(true);
         contract.setSellerSignedAt(LocalDateTime.now());
         contract.setStatus(ContractStatus.PENDING);
-        contract.setPaymentType(request.getPaymentType());
 
         contractRepository.save(contract);
         notificationService.sendNotificationToOneUser(order.getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
@@ -130,7 +123,6 @@ public class SellerContractService {
         response.setBuyerSigned(contract.isBuyerSigned());
         response.setBuyerSignedAt(contract.getBuyerSignedAt());
         response.setStatus(contract.getStatus());
-        response.setPaymentType(contract.getPaymentType());
 
         return response;
     }
@@ -160,7 +152,6 @@ public class SellerContractService {
             response.setBuyerSigned(contract.isBuyerSigned());
             response.setBuyerSignedAt(contract.getBuyerSignedAt());
             response.setStatus(contract.getStatus());
-            response.setPaymentType(contract.getPaymentType());
             responseList.add(response);
         }
         return responseList;

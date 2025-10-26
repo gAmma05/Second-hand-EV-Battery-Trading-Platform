@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,7 +21,7 @@ public class ContractResponse {
     String contractCode;
     String title;
     String content;
-    double price;
+    BigDecimal price;
     String currency;
     boolean sellerSigned;
     LocalDateTime sellerSignedAt;

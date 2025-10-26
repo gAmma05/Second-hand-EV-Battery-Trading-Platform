@@ -1,6 +1,7 @@
 package com.example.SWP.service.mail;
 
 import com.example.SWP.enums.OtpType;
+import com.example.SWP.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -19,18 +20,28 @@ public class MailService {
     private static final int OTP_EXPIRE_MINUTES = 15;
 
     public void sendOtpEmail(String email, String otp, OtpType type) {
-        String subject = (type == OtpType.REGISTER)
-                ? "Your OTP for registration"
-                : "Your OTP for password reset";
+        String subject = "Your OTP for " + type;
 
-        String text = "Dear user,\n\nYour OTP is: " + otp +
-                "\nIt will expire in " + OTP_EXPIRE_MINUTES + " minutes.\n\nThank you!";
+        String content = "Your OTP is: " + otp +
+                "\nIt will expire in " + OTP_EXPIRE_MINUTES + " minutes.";
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(email);
-        mailMessage.setSubject(subject);
-        mailMessage.setText(text);
-        mailSender.send(mailMessage);
+        sendEmail(email, subject, content);
+    }
+
+    public void sendEmail(String email, String subject, String content) {
+        if (email == null || subject == null || content == null) {
+            throw new BusinessException("Email, subject or content is null", 400);
+        }
+
+        try {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setTo(email);
+            mailMessage.setSubject(subject);
+            mailMessage.setText(content);
+            mailSender.send(mailMessage);
+        } catch (Exception e) {
+            throw new BusinessException("Failed to send email to " + email, 500);
+        }
     }
 
 }

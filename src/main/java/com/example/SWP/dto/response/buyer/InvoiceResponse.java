@@ -26,6 +26,5 @@ public class InvoiceResponse {
     LocalDateTime dueDate;
     LocalDateTime paidAt;
     InvoiceStatus status;
-    PaymentMethod paymentMethod;
     String message;
 }

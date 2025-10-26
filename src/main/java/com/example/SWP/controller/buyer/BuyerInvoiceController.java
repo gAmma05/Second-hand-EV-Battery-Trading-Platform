@@ -1,8 +1,10 @@
 package com.example.SWP.controller.buyer;
 
+import com.example.SWP.dto.request.seller.PayInvoiceRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.InvoiceResponse;
 import com.example.SWP.service.buyer.BuyerInvoiceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
@@ -18,21 +20,6 @@ import java.util.List;
 public class BuyerInvoiceController {
 
     BuyerInvoiceService buyerPaymentService;
-
-    @GetMapping("/create")
-    public ResponseEntity<?> createInvoice(Authentication authentication, Long contractId) {
-        InvoiceResponse response = buyerPaymentService.createInvoice(authentication, contractId);
-        if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to create invoice");
-        }
-        return ResponseEntity.ok(
-                ApiResponse.<InvoiceResponse>builder()
-                        .success(true)
-                        .message("Created invoice successfully")
-                        .data(response)
-                        .build()
-        );
-    }
 
     @GetMapping("/detail")
     public ResponseEntity<?> getInvoiceDetail(Authentication authentication, Long invoiceId) {
@@ -95,14 +82,14 @@ public class BuyerInvoiceController {
     }
 
     @PostMapping("/pay")
-    public ResponseEntity<?> payInvoice(Authentication authentication, @RequestParam Long invoiceId) {
-        buyerPaymentService.payInvoice(authentication, invoiceId);
+    public ResponseEntity<?> payInvoice(Authentication authentication, @Valid @RequestBody PayInvoiceRequest request) {
+        buyerPaymentService.payInvoice(authentication, request);
 
         return ResponseEntity.ok(
                 ApiResponse.<String>builder()
                         .success(true)
                         .message("Invoice paid successfully")
-                        .data("Payment completed for invoice ID: " + invoiceId)
+                        .data(null)
                         .build()
         );
     }

@@ -36,7 +36,7 @@ public class Contract {
     @Column(columnDefinition = "TEXT")
     String content;
 
-    double price;
+    BigDecimal price;
 
     String currency;
 
@@ -50,7 +50,4 @@ public class Contract {
 
     @Enumerated(EnumType.STRING)
     ContractStatus status;
-
-    @Enumerated(EnumType.STRING)
-    PaymentType paymentType;
 }

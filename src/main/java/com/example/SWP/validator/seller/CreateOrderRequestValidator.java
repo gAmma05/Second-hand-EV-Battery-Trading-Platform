@@ -19,10 +19,6 @@ public class CreateOrderRequestValidator {
         if(request.getPaymentType() == null){
             throw new BusinessException("Payment Type is required.", 400);
         }
-
-        if(request.getPaymentMethod() == null){
-            throw new BusinessException("Payment Method is required.", 400);
-        }
     }
 
     public void validateInvalid(CreateOrderRequest request){
@@ -33,11 +29,6 @@ public class CreateOrderRequestValidator {
         // PaymentType validation
         if (!EnumSet.allOf(PaymentType.class).contains(request.getPaymentType())) {
             throw new BusinessException("We don't support that payment type", 400);
-        }
-
-        // PaymentMethod validation
-        if (!EnumSet.allOf(PaymentMethod.class).contains(request.getPaymentMethod())) {
-            throw new BusinessException("We don't support that payment method", 400);
         }
     }
 }

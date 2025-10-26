@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+
 @Data
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -26,14 +28,11 @@ public class CreateContractRequest {
     String content;
 
     @NotNull(message = "Price is required")
-    double price;
+    BigDecimal price;
 
     @NotNull(message = "Currency is required")
     String currency;
 
     @NotNull(message = "SellerSigned is required")
     boolean sellerSigned;
-
-    @NotNull(message = "PaymentType is required")
-    PaymentType paymentType;
 }

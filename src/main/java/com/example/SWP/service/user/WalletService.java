@@ -173,7 +173,7 @@ public class WalletService {
             User user, BigDecimal amount, String orderId,
             String description, TransactionType transactionType) {
         Wallet wallet = walletRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException("Wallet not found", 404));
+                .orElseThrow(() -> new BusinessException("Wallet has no balance", 404));
 
         BigDecimal balanceBefore = wallet.getBalance();
 

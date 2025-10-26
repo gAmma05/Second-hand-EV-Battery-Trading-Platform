@@ -45,7 +45,6 @@ public class SellerOrderService {
         response.setPostId(order.getPost().getId());
         response.setBuyerName(order.getBuyer().getFullName());
         response.setPaymentType(order.getPaymentType());
-        response.setPaymentMethod(order.getPaymentMethod());
         response.setStatus(order.getStatus());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
@@ -161,7 +160,6 @@ public class SellerOrderService {
             response.setPostId(order.getPost().getId());
             response.setBuyerName(order.getBuyer().getFullName());
             response.setPaymentType(order.getPaymentType());
-            response.setPaymentMethod(order.getPaymentMethod());
             response.setStatus(order.getStatus());
             response.setCreatedAt(order.getCreatedAt());
             responseList.add(response);

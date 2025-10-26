@@ -12,6 +12,7 @@ import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -32,25 +33,34 @@ public class BuyerContractService {
     ContractRepository contractRepository;
 
     NotificationService notificationService;
-    private final OrderRepository orderRepository;
+
+    OrderRepository orderRepository;
+
+    ValidateService validateService;
+
+    BuyerInvoiceService buyerInvoiceService;
 
     public void signContract(Authentication authentication, Long contractId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("User does not exist", 404)
-        );
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You can't use this feature", 400);
-        }
+        User user = validateService.validateCurrentUser(authentication);
 
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
         );
 
-        if(contract.getStatus().equals(ContractStatus.SIGNED)
-                || contract.getStatus().equals(ContractStatus.CANCELLED)){
-            throw new BusinessException("This contract is already signed or cancelled," +
-                    " you no longer can sign this contract", 400);
+        ContractStatus status = contract.getStatus();
+
+        if (status == ContractStatus.SIGNED) {
+            throw new BusinessException(
+                    "This contract is already signed, you cannot sign it again",
+                    400
+            );
+        }
+
+        if (status == ContractStatus.CANCELLED) {
+            throw new BusinessException(
+                    "This contract has been cancelled, you cannot sign it",
+                    400
+            );
         }
 
         if(!contract.isSellerSigned()){
@@ -65,19 +75,19 @@ public class BuyerContractService {
         contract.setStatus(ContractStatus.SIGNED);
         contract.setBuyerSignedAt(LocalDateTime.now());
 
-        notificationService.sendNotificationToOneUser(contract.getOrder().getSeller().getEmail(), "About your contract", "Look like your contract has been signed by buyer, you should check it out.");
+        buyerInvoiceService.createInvoice(contractId);
+
+        // Thông báo cho seller
+        String sellerEmail = contract.getOrder().getSeller().getEmail();
+        String sellerTitle = "Contract Signed by Buyer";
+        String sellerContent = "Your contract has just been signed by the buyer. Please review the invoice and proceed accordingly.";
+        notificationService.sendNotificationToOneUser(sellerEmail, sellerTitle, sellerContent);
 
         contractRepository.save(contract);
     }
 
     public void cancelContract(Authentication authentication, Long contractId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("User does not exist", 404)
-        );
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You can't use this feature", 400);
-        }
+        User user = validateService.validateCurrentUser(authentication);
 
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
