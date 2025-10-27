@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("user/ghn")
+@RequestMapping("/ghn")
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class GhnController {
     GhnService ghnService;
@@ -33,12 +33,12 @@ public class GhnController {
         return ghnService.getWards(districtId);
     }
 
-    @PostMapping("/available-services")
+    @PostMapping("buyer/available-services")
     public List<AvailableServicesResponse> getAvailableServices(@RequestBody ServiceRequest request, Authentication authentication) {
         return ghnService.getAvailableServices(request, authentication);
     }
 
-    @PostMapping("/shipping-fee")
+    @PostMapping("buyer/shipping-fee")
     public FeeResponse calculateShippingFee(@RequestBody FeeRequest request) {
         return ghnService.calculateShippingFee(request);
     }
