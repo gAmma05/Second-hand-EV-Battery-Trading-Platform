@@ -64,7 +64,6 @@ public class SellerContractService {
         response.setTitle(order.getPost().getTitle());
         response.setPrice(order.getPost().getPrice());
         response.setPaymentType(order.getPaymentType());
-        response.setDeliveryMethod(order.getDeliveryMethod());
         response.setCurrency("VND");
         response.setPaymentType(order.getPaymentType());
 
@@ -72,26 +71,8 @@ public class SellerContractService {
 
     }
 
-<<<<<<< HEAD
-    private String generateContractCode() {
-        String prefix = "CT";
-        String timestamp = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        return prefix + timestamp;
-    }
-
     public void createContract(CreateContractRequest request) {
-=======
-    public void createContract(Authentication authentication, CreateContractRequest request) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
-
->>>>>>> main
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
@@ -139,7 +120,6 @@ public class SellerContractService {
         response.setPrice(contract.getPrice());
         response.setCurrency(contract.getCurrency());
         response.setPaymentType(contract.getOrder().getPaymentType());
-        response.setDeliveryMethod(contract.getOrder().getDeliveryMethod());
         response.setSellerSigned(contract.isSellerSigned());
         response.setSellerSignedAt(contract.getSellerSignedAt());
         response.setBuyerSigned(contract.isBuyerSigned());
@@ -170,7 +150,6 @@ public class SellerContractService {
             response.setPrice(contract.getPrice());
             response.setCurrency(contract.getCurrency());
             response.setPaymentType(contract.getOrder().getPaymentType());
-            response.setDeliveryMethod(contract.getOrder().getDeliveryMethod());
             response.setSellerSigned(contract.isSellerSigned());
             response.setSellerSignedAt(contract.getSellerSignedAt());
             response.setBuyerSigned(contract.isBuyerSigned());

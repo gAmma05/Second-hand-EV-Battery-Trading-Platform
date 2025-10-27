@@ -55,7 +55,6 @@ public class BuyerOrderService {
         response.setPostId(order.getPost().getId());
         response.setSellerName(order.getSeller().getFullName());
         response.setPaymentType(order.getPaymentType());
-        response.setPaymentMethod(order.getPaymentMethod());
         response.setStatus(order.getStatus());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());

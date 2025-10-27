@@ -40,13 +40,8 @@ public class BuyerContractService {
 
     BuyerInvoiceService buyerInvoiceService;
 
-<<<<<<< HEAD
     public void signContract(Long contractId) {
-=======
-    public void signContract(Authentication authentication, Long contractId) {
-        User user = validateService.validateCurrentUser(authentication);
 
->>>>>>> main
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
         );
@@ -91,15 +86,8 @@ public class BuyerContractService {
     }
 
     public void cancelContract(Authentication authentication, Long contractId) {
-<<<<<<< HEAD
 
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("User does not exist", 404)
-        );
-=======
         User user = validateService.validateCurrentUser(authentication);
->>>>>>> main
 
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)

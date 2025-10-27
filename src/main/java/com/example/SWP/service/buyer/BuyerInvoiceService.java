@@ -37,10 +37,7 @@ public class BuyerInvoiceService {
 
     InvoiceRepository invoiceRepository;
 
-<<<<<<< HEAD:src/main/java/com/example/SWP/service/buyer/BuyerPaymentService.java
-    public InvoiceResponse createInvoice(Long contractId) {
 
-=======
     WalletService walletService;
 
     NotificationService notificationService;
@@ -48,7 +45,6 @@ public class BuyerInvoiceService {
     @NonFinal
     @Value("${deposit-percentage}")
     BigDecimal depositPercentage;
->>>>>>> main:src/main/java/com/example/SWP/service/buyer/BuyerInvoiceService.java
 
 
     public void createInvoice(Long contractId) {
@@ -60,23 +56,6 @@ public class BuyerInvoiceService {
 
         BigDecimal totalPrice;
 
-<<<<<<< HEAD:src/main/java/com/example/SWP/service/buyer/BuyerPaymentService.java
-        String message = "Your invoice has been created, please check the information before paying";
-
-        return new InvoiceResponse(
-                invoice.getId(), invoice.getContract().getId(),
-                invoice.getInvoiceNumber(), invoice.getTotalPrice(),
-                invoice.getCurrency(), invoice.getCreatedAt(),
-                invoice.getDueDate(), invoice.getPaidAt(),
-                invoice.getStatus(), message
-        );
-    }
-
-    private boolean checkInvoiceIfValid(Long contractId) {
-        List<Invoice> list = invoiceRepository.getInvoiceByContract_IdAndStatus(contractId, InvoiceStatus.VALID);
-        if (list == null || list.isEmpty()) {
-            return false;
-=======
         if (contract.getOrder().getPaymentType() == PaymentType.FULL) {
             totalPrice = contract.getOrder().getPost().getPrice();
         } else if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
@@ -85,7 +64,6 @@ public class BuyerInvoiceService {
                     .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
         } else {
             throw new BusinessException("Unknown payment type", 400);
->>>>>>> main:src/main/java/com/example/SWP/service/buyer/BuyerInvoiceService.java
         }
 
         Invoice invoice = Invoice.builder()
