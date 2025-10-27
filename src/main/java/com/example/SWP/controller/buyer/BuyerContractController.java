@@ -23,8 +23,8 @@ public class BuyerContractController {
     BuyerContractService buyerContractService;
 
     @GetMapping("/approve")
-    public ResponseEntity<?> approveContract(Authentication authentication, @RequestParam Long contractId) {
-        buyerContractService.signContract(authentication, contractId);
+    public ResponseEntity<?> approveContract(@RequestParam Long contractId) {
+        buyerContractService.signContract(contractId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)

@@ -37,6 +37,7 @@ public class BuyerInvoiceService {
 
     InvoiceRepository invoiceRepository;
 
+
     WalletService walletService;
 
     NotificationService notificationService;
@@ -149,7 +150,7 @@ public class BuyerInvoiceService {
             throw new BusinessException("You are not a buyer, you can't use this feature", 400);
         }
 
-        List<Invoice> list = invoiceRepository.findAll();
+        List<Invoice> list = invoiceRepository.getInvoiceByContract_Order_Buyer_Id(user.getId());
 
         return getInvoicesList(list);
     }

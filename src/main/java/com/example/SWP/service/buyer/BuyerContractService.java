@@ -85,6 +85,7 @@ public class BuyerContractService {
     }
 
     public void cancelContract(Authentication authentication, Long contractId) {
+
         User user = validateService.validateCurrentUser(authentication);
 
         Contract contract = contractRepository.findById(contractId).orElseThrow(
@@ -97,6 +98,10 @@ public class BuyerContractService {
 
         if(contract.getStatus().equals(ContractStatus.CANCELLED)){
             throw new BusinessException("This contract is already cancelled, you can't cancel it.", 400);
+        }
+
+        if(!contract.getOrder().getBuyer().getId().equals(user.getId())){
+            throw new BusinessException("This contract is not belong to you, you can't cancel it.", 400);
         }
 
         contract.setStatus(ContractStatus.CANCELLED);

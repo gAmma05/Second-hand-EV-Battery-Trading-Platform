@@ -23,8 +23,8 @@ public class SellerContractController {
     SellerContractService sellerContractService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createContract(Authentication authentication, CreateContractRequest request) {
-        sellerContractService.createContract(authentication, request);
+    public ResponseEntity<?> createContract(CreateContractRequest request) {
+        sellerContractService.createContract(request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
