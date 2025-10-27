@@ -2,6 +2,7 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
+import com.example.SWP.dto.response.PreContractResponse;
 import com.example.SWP.dto.response.ghn.FeeResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
@@ -10,6 +11,7 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
+import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -77,13 +80,14 @@ public class SellerContractService {
     }
 
     public void createContract(Authentication authentication, CreateContractRequest request) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
-
-
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
+
+        User user = validateService.validateCurrentUser(authentication);
+
+        if(!Objects.equals(order.getSeller().getId(), user.getId())){
+            throw new BusinessException("This order is not belong to you", 400);
+        }
 
         if (order.getStatus().equals(OrderStatus.PENDING)) {
             throw new BusinessException("You can't create contract until the order is approved", 400);
