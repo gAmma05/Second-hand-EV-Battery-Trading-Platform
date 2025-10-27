@@ -27,12 +27,12 @@ public class Complaint {
     Order order;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    User complainer;
+    @JoinColumn(name = "complainant_id", nullable = false)
+    User complainant;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    User againUser;
+    @JoinColumn(name = "against_id", nullable = false)
+    User againstUser;
 
     @Enumerated(EnumType.STRING)
     ComplaintType type;

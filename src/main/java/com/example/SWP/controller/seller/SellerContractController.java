@@ -22,9 +22,24 @@ public class SellerContractController {
 
     SellerContractService sellerContractService;
 
+    @GetMapping("/contract-preview")
+    public ResponseEntity<?> getContractPreview(Authentication authentication, @RequestParam Long orderId) {
+        PreContractResponse response = sellerContractService.getPreContractByOrderId(authentication, orderId);
+        if (response == null) {
+            return ResponseEntity.badRequest().body("Failed to fetch contract preview");
+        }
+        return ResponseEntity.ok(
+                ApiResponse.<PreContractResponse>builder()
+                        .success(true)
+                        .message("Contract preview fetched successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<?> createContract(CreateContractRequest request) {
-        sellerContractService.createContract(request);
+    public ResponseEntity<?> createContract(Authentication authentication, CreateContractRequest request) {
+        sellerContractService.createContract(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
@@ -34,9 +49,9 @@ public class SellerContractController {
     }
 
     @GetMapping("/detail")
-    public ResponseEntity<?> getContractDetail(Authentication authentication, @RequestParam Long contractId){
+    public ResponseEntity<?> getContractDetail(Authentication authentication, @RequestParam Long contractId) {
         ContractResponse response = sellerContractService.getContractDetail(authentication, contractId);
-        if(response == null){
+        if (response == null) {
             return ResponseEntity.badRequest().body("Failed to fetch contract detail");
         }
         return ResponseEntity.ok(
@@ -49,9 +64,9 @@ public class SellerContractController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> getContractList(Authentication authentication){
+    public ResponseEntity<?> getContractList(Authentication authentication) {
         List<ContractResponse> response = sellerContractService.getAllContracts(authentication);
-        if(response == null || response.isEmpty()){
+        if (response == null || response.isEmpty()) {
             return ResponseEntity.badRequest().body("Failed to fetch contract list");
         }
         return ResponseEntity.ok(
