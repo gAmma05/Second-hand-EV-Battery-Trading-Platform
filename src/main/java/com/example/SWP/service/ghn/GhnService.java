@@ -4,15 +4,19 @@ import com.example.SWP.dto.request.ghn.ServiceRequest;
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.response.ghn.*;
 import com.example.SWP.entity.OrderDelivery;
+import com.example.SWP.entity.Post;
+import com.example.SWP.entity.User;
 import com.example.SWP.enums.DeliveryProvider;
 import com.example.SWP.enums.DeliveryStatus;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.OrderDeliveryRepository;
+import com.example.SWP.repository.PostRepository;
+import com.example.SWP.repository.UserRepository;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -25,7 +29,8 @@ import java.util.*;
 public class GhnService {
 
     final RestTemplate restTemplate;
-    final OrderDeliveryRepository orderDeliveryRepository;
+    final PostRepository postRepository;
+    final UserRepository userRepository;
 
     @Value("${ghn.token}")
     String GHN_TOKEN;
@@ -212,17 +217,46 @@ public class GhnService {
     }
 
 
-    public List<AvailableServicesResponse> getAvailableServices(ServiceRequest serviceRequest) {
+    public List<AvailableServicesResponse> getAvailableServices(
+            ServiceRequest serviceRequest,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        Post post = postRepository.findById(serviceRequest.getPostId())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
+
+        User seller = post.getUser();
+        if (seller == null || seller.getGhnShopId() == null || seller.getGhnToken() == null) {
+            throw new BusinessException("Người mua chưa có thông tin GHN", 400);
+        }
+
+        User buyer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người mua", 404));
+
+        Integer fromDistrictId = seller.getDistrictId();
+        Integer toDistrictId = buyer.getDistrictId();
+
+        if (fromDistrictId == null) {
+            throw new BusinessException("Người bán chưa cập nhật địa chỉ", 400);
+        }
+
+        if (toDistrictId == null) {
+            throw new BusinessException("Người mua chưa cập nhật địa chỉ", 400);
+        }
+
+
         String url = GHN_URL + "/v2/shipping-order/available-services";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Token", serviceRequest.getGhnToken());
+
+        headers.set("Token", seller.getGhnToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("shop_id", serviceRequest.getGhnShopId());
-        body.put("from_district", serviceRequest.getFromDistrictId());
-        body.put("to_district", serviceRequest.getToDistrictId());
+        body.put("shop_id", seller.getGhnShopId());
+        body.put("from_district", seller.getDistrictId());
+        body.put("to_district", buyer.getDistrictId());
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
