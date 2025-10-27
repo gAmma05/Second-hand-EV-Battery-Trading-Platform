@@ -1,11 +1,15 @@
 package com.example.SWP.dto.request.seller;
 
+import com.example.SWP.enums.PaymentMethod;
+import com.example.SWP.enums.PaymentType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+
+import java.math.BigDecimal;
 
 @Data
 @RequiredArgsConstructor
@@ -24,7 +28,7 @@ public class CreateContractRequest {
     String content;
 
     @NotNull(message = "Price is required")
-    double price;
+    BigDecimal price;
 
     @NotNull(message = "Currency is required")
     String currency;

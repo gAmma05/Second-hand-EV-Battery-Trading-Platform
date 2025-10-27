@@ -1,12 +1,10 @@
 package com.example.SWP.entity;
 
 import com.example.SWP.enums.InvoiceStatus;
+import com.example.SWP.enums.PaymentMethod;
 import com.example.SWP.enums.PaymentType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
@@ -17,6 +15,7 @@ import java.time.LocalDateTime;
 @Table(name = "invoices")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Invoice {
     @Id
@@ -29,9 +28,6 @@ public class Invoice {
 
     @Column(nullable = false)
     String invoiceNumber;
-
-    @Enumerated(EnumType.STRING)
-    PaymentType paymentType;
 
     BigDecimal totalPrice;
 

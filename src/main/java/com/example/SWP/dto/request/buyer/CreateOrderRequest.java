@@ -20,8 +20,6 @@ public class CreateOrderRequest {
     @NotNull(message = "deliveryMethod is required")
     DeliveryMethod deliveryMethod;
 
-    @NotNull(message = "paymentMethod is required")
-    PaymentMethod paymentMethod;
 
     @NotNull(message = "paymentType is required")
     PaymentType paymentType;

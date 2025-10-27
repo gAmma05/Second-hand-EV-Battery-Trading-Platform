@@ -104,7 +104,6 @@ public class BuyerOrderService {
         order.setSeller(postRepository.findById(request.getPostId()).orElseThrow().getUser());
         order.setPost(postRepository.findById(request.getPostId()).orElseThrow());
         order.setDeliveryMethod(request.getDeliveryMethod());
-        order.setPaymentMethod(request.getPaymentMethod());
         order.setPaymentType(request.getPaymentType());
         order.setCreatedAt(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
@@ -156,7 +155,6 @@ public class BuyerOrderService {
             response.setPostId(order.getPost().getId());
             response.setSellerName(order.getSeller().getFullName());
             response.setPaymentType(order.getPaymentType());
-            response.setPaymentMethod(order.getPaymentMethod());
             response.setStatus(order.getStatus());
             response.setCreatedAt(order.getCreatedAt());
             list.add(response);

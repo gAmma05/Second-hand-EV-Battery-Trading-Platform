@@ -14,6 +14,7 @@ import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -65,11 +66,13 @@ public class SellerContractService {
         response.setPaymentType(order.getPaymentType());
         response.setDeliveryMethod(order.getDeliveryMethod());
         response.setCurrency("VND");
+        response.setPaymentType(order.getPaymentType());
 
         return response;
 
     }
 
+<<<<<<< HEAD
     private String generateContractCode() {
         String prefix = "CT";
         String timestamp = LocalDateTime.now()
@@ -78,6 +81,17 @@ public class SellerContractService {
     }
 
     public void createContract(CreateContractRequest request) {
+=======
+    public void createContract(Authentication authentication, CreateContractRequest request) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+
+        if (user.getRole() != Role.SELLER) {
+            throw new BusinessException("User is not a seller", 400);
+        }
+
+>>>>>>> main
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
@@ -89,7 +103,7 @@ public class SellerContractService {
 
         Contract contract = new Contract();
         contract.setOrder(order);
-        contract.setContractCode(generateContractCode());
+        contract.setContractCode(Utils.generateCode("CT"));
         contract.setTitle(request.getTitle());
         contract.setContent(request.getContent());
         contract.setPrice(request.getPrice());
