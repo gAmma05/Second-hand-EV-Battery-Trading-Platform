@@ -6,6 +6,7 @@ import com.example.SWP.dto.response.ghn.*;
 import com.example.SWP.service.ghn.GhnService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +34,8 @@ public class GhnController {
     }
 
     @PostMapping("/available-services")
-    public List<AvailableServicesResponse> getAvailableServices(@RequestBody ServiceRequest request) {
-        return ghnService.getAvailableServices(request);
+    public List<AvailableServicesResponse> getAvailableServices(@RequestBody ServiceRequest request, Authentication authentication) {
+        return ghnService.getAvailableServices(request, authentication);
     }
 
     @PostMapping("/shipping-fee")

@@ -64,6 +64,12 @@ public class BuyerOrderService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
+        if (user.getDistrictId() == null || user.getWardCode() == null || user.getWardCode().isEmpty()
+        ) {
+            throw new BusinessException("You must fill in your address information before creating an order", 400);
+        }
+
+
         Post post = postRepository.findById(request.getPostId()).orElseThrow(
                 () -> new BusinessException("Post does not exist", 404));
 
@@ -71,8 +77,8 @@ public class BuyerOrderService {
             throw new BusinessException("You or someone have already created an order for this post", 400);
         }
 
-        if(request.getDeliveryMethod() == DeliveryMethod.GHN) {
-            if(request.getServiceTypeId() == null) {
+        if (request.getDeliveryMethod() == DeliveryMethod.GHN) {
+            if (request.getServiceTypeId() == null) {
                 throw new BusinessException("Service type id is required for GHN delivery method", 400);
             }
         }
@@ -88,7 +94,7 @@ public class BuyerOrderService {
         order.setCreatedAt(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
 
-        if(request.getDeliveryMethod() == DeliveryMethod.GHN) {
+        if (request.getDeliveryMethod() == DeliveryMethod.GHN) {
             order.setServiceTypeId(request.getServiceTypeId());
         } else {
             order.setServiceTypeId(null);
