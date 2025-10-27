@@ -3,7 +3,12 @@ package com.example.SWP.service.ghn;
 import com.example.SWP.dto.request.ghn.ServiceRequest;
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.response.ghn.*;
+import com.example.SWP.entity.OrderDelivery;
+import com.example.SWP.enums.DeliveryProvider;
+import com.example.SWP.enums.DeliveryStatus;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.repository.OrderDeliveryRepository;
+import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +25,8 @@ import java.util.*;
 public class GhnService {
 
     final RestTemplate restTemplate;
+    final OrderDeliveryRepository orderDeliveryRepository;
+
     @Value("${ghn.token}")
     String GHN_TOKEN;
     @Value("${ghn.url}")
@@ -300,7 +307,21 @@ public class GhnService {
         }
     }
 
+    public DeliveryStatus getOrderStatus(String trackingNumber) {
+        if(trackingNumber == null || trackingNumber.isEmpty()) {
+            throw new BusinessException("Tracking number không được để trống", 400);
+        }
 
+        return DeliveryStatus.DELIVERED;
+    }
 
+    public void createOrder(OrderDelivery orderDelivery) {
+        if (orderDelivery == null) {
+            throw new BusinessException("OrderDelivery không tồn tại", 404);
+        }
+
+        orderDelivery.setDeliveryProvider(DeliveryProvider.GHN);
+        orderDelivery.setDeliveryTrackingNumber(Utils.generateCode("GHN"));
+    }
 
 }

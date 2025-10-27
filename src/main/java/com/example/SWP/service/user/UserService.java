@@ -74,20 +74,6 @@ public class UserService {
             user.setPhone(request.getPhone());
         }
 
-        if(request.getGhnToken() != null || request.getGhnShopId() != null) {
-            String tokenToValidate = request.getGhnToken() != null ? request.getGhnToken() : user.getGhnToken();
-            Integer shopIdToValidate = request.getGhnShopId() != null ? request.getGhnShopId() : user.getGhnShopId();
-
-            ghnService.validateGhnTokenAndShop(tokenToValidate, shopIdToValidate);
-
-            if(request.getGhnToken() != null) {
-                user.setGhnToken(request.getGhnToken());
-            }
-            if(request.getGhnShopId() != null) {
-                user.setGhnShopId(request.getGhnShopId());
-            }
-        }
-
         if (request.getStreetAddress() != null &&
                 request.getProvinceId() != null &&
                 request.getDistrictId() != null &&
@@ -117,6 +103,21 @@ public class UserService {
             if (request.getSocialMedia() != null) {
                 user.setSocialMedia(request.getSocialMedia());
             }
+
+            if(request.getGhnToken() != null || request.getGhnShopId() != null) {
+                String tokenToValidate = request.getGhnToken() != null ? request.getGhnToken() : user.getGhnToken();
+                Integer shopIdToValidate = request.getGhnShopId() != null ? request.getGhnShopId() : user.getGhnShopId();
+
+                ghnService.validateGhnTokenAndShop(tokenToValidate, shopIdToValidate);
+
+                if(request.getGhnToken() != null) {
+                    user.setGhnToken(request.getGhnToken());
+                }
+                if(request.getGhnShopId() != null) {
+                    user.setGhnShopId(request.getGhnShopId());
+                }
+            }
+
         }
 
         userRepository.save(user);

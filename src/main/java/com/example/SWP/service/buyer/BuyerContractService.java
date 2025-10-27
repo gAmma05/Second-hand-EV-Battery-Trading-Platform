@@ -1,16 +1,15 @@
 package com.example.SWP.service.buyer;
 
-import com.example.SWP.dto.response.buyer.ContractResponse;
+import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
 import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
-import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
@@ -20,15 +19,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerContractService {
-
-    UserRepository userRepository;
 
     ContractRepository contractRepository;
 
@@ -39,6 +35,8 @@ public class BuyerContractService {
     ValidateService validateService;
 
     BuyerInvoiceService buyerInvoiceService;
+
+    ContractMapper contractMapper;
 
     public void signContract(Authentication authentication, Long contractId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -115,65 +113,24 @@ public class BuyerContractService {
     }
 
     public ContractResponse getContractDetail(Authentication authentication, Long contractId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("User does not exist", 404)
-        );
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You can't use this feature", 400);
+        User user = validateService.validateCurrentUser(authentication);
+
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new BusinessException(
+                        "Contract does not exist, it could be system issue. Try again", 404));
+
+        if (!contract.getOrder().getBuyer().getId().equals(user.getId())) {
+            throw new BusinessException("This contract does not belong to you", 403);
         }
 
-        Contract contract = contractRepository.findById(contractId).orElseThrow(
-                () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
-        );
-
-        ContractResponse response = new ContractResponse();
-        response.setContractId(contract.getId());
-        response.setOrderId(contract.getOrder().getId());
-        response.setContractCode(contract.getContractCode());
-        response.setTitle(contract.getTitle());
-        response.setContent(contract.getContent());
-        response.setPrice(contract.getPrice());
-        response.setCurrency(contract.getCurrency());
-        response.setStatus(contract.getStatus());
-
-        return response;
+        return contractMapper.toContractResponse(contract);
     }
 
-    public List<ContractResponse> getAllContractsSignedBySeller(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("User does not exist", 404)
-        );
+    public List<ContractResponse> getAllContracts(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
+        List<Contract> contractList = contractRepository
+                .findByOrder_Buyer_Id(user.getId());
 
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("You can't use this feature", 400);
-        }
-
-        List<Contract> contractList = contractRepository.findByOrder_Buyer_Id(user.getId());
-        return getContractList(contractList);
-    }
-
-    private List<ContractResponse> getContractList(List<Contract> contractList) {
-        List<ContractResponse> responseList = new ArrayList<>();
-        for (Contract contract : contractList) {
-            if (contract.isSellerSigned()) {
-                ContractResponse response = new ContractResponse();
-                response.setContractId(contract.getId());
-                response.setOrderId(contract.getOrder().getId());
-                response.setContractCode(contract.getContractCode());
-                response.setTitle(contract.getTitle());
-                response.setContent(contract.getContent());
-                response.setPrice(contract.getPrice());
-                response.setCurrency(contract.getCurrency());
-                response.setBuyerSigned(contract.isBuyerSigned());
-                response.setBuyerSignedAt(contract.getBuyerSignedAt());
-                response.setSellerSigned(contract.isSellerSigned());
-                response.setSellerSignedAt(contract.getSellerSignedAt());
-                response.setStatus(contract.getStatus());
-                responseList.add(response);
-            }
-        }
-        return responseList;
+        return contractMapper.toContractResponses(contractList);
     }
 }

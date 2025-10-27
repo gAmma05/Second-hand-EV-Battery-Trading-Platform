@@ -3,17 +3,14 @@ package com.example.SWP.service.buyer;
 import com.example.SWP.dto.request.buyer.CancelOrderRequest;
 import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 
-import com.example.SWP.dto.response.OrderDeliveryStatusResponse;
 import com.example.SWP.dto.response.buyer.BuyerOrderResponse;
 import com.example.SWP.entity.Order;
-import com.example.SWP.entity.OrderDeliveryStatus;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.OrderDeliveryStatusRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;

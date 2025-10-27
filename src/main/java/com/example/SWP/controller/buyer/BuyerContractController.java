@@ -1,7 +1,7 @@
 package com.example.SWP.controller.buyer;
 
 import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.dto.response.buyer.ContractResponse;
+import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.service.buyer.BuyerContractService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -62,7 +62,7 @@ public class BuyerContractController {
 
     @GetMapping("/list")
     public ResponseEntity<?> getContractList(Authentication authentication){
-        List<ContractResponse> contractList = buyerContractService.getAllContractsSignedBySeller(authentication);
+        List<ContractResponse> contractList = buyerContractService.getAllContracts(authentication);
         if(contractList == null || contractList.isEmpty()){
             return ResponseEntity.badRequest().body("Failed to fetch contract list");
         }
