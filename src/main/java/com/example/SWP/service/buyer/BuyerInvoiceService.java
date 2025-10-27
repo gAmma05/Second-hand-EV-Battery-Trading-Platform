@@ -2,21 +2,21 @@ package com.example.SWP.service.buyer;
 
 import com.example.SWP.dto.request.seller.PayInvoiceRequest;
 import com.example.SWP.dto.response.buyer.InvoiceResponse;
-import com.example.SWP.entity.Contract;
-import com.example.SWP.entity.Invoice;
-import com.example.SWP.entity.User;
+import com.example.SWP.entity.*;
 import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.InvoiceRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.seller.SellerOrderDeliveryService;
 import com.example.SWP.service.user.WalletService;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -41,55 +41,68 @@ public class BuyerInvoiceService {
 
     NotificationService notificationService;
 
+    SellerOrderDeliveryService sellerOrderDeliveryService;
+
     @NonFinal
     @Value("${deposit-percentage}")
     BigDecimal depositPercentage;
 
-
     public void createInvoice(Long contractId) {
-        if (contractRepository.findById(contractId).isEmpty()) {
-            throw new BusinessException("Contract does not exist, it could be system issue. Try again", 404);
-        }
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
 
-        Contract contract = contractRepository.findById(contractId).get();
-
-        BigDecimal totalPrice;
+        BigDecimal firstInvoiceAmount;
 
         if (contract.getOrder().getPaymentType() == PaymentType.FULL) {
-            totalPrice = contract.getOrder().getPost().getPrice();
+            firstInvoiceAmount = contract.getOrder().getPost().getPrice();
         } else if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
-            totalPrice = contract.getPrice()
+            firstInvoiceAmount = contract.getPrice()
                     .multiply(depositPercentage)
                     .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
         } else {
             throw new BusinessException("Unknown payment type", 400);
         }
 
-        Invoice invoice = Invoice.builder()
+        Invoice depositInvoice = Invoice.builder()
                 .contract(contract)
                 .invoiceNumber(Utils.generateCode("IN"))
-                .totalPrice(totalPrice)
+                .totalPrice(firstInvoiceAmount)
                 .currency(contract.getCurrency())
                 .createdAt(LocalDateTime.now())
                 .dueDate(LocalDateTime.now().plusDays(7))
-                .paidAt(null)
                 .status(InvoiceStatus.ACTIVE)
                 .build();
 
-        // Thông báo cho buyer
+        invoiceRepository.save(depositInvoice);
+
+        if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
+            BigDecimal finalAmount = contract.getPrice().subtract(firstInvoiceAmount);
+
+            Invoice finalInvoice = Invoice.builder()
+                    .contract(contract)
+                    .invoiceNumber(Utils.generateCode("IN"))
+                    .totalPrice(finalAmount)
+                    .currency(contract.getCurrency())
+                    .createdAt(LocalDateTime.now())
+                    .dueDate(null)
+                    .status(InvoiceStatus.INACTIVE)
+                    .build();
+
+            invoiceRepository.save(finalInvoice);
+        }
+
         String buyerEmail = contract.getOrder().getBuyer().getEmail();
-        String buyerTitle = "Invoice Created";
-        String buyerContent = "Dear " + contract.getOrder().getBuyer().getFullName() + ",\n\n" +
-                "Your invoice has been created successfully.\n" +
-                "Invoice Number: " + invoice.getInvoiceNumber() + "\n" +
-                "Total Price: " + invoice.getTotalPrice() + " " + invoice.getCurrency() + "\n" +
-                "Due Date: " + invoice.getDueDate() + "\n\n" +
-                "Thank you!";
-
-        notificationService.sendNotificationToOneUser(buyerEmail, buyerTitle, buyerContent);
-
-        invoiceRepository.save(invoice);
+        notificationService.sendNotificationToOneUser(
+                buyerEmail,
+                "Invoice Created",
+                "Dear " + contract.getOrder().getBuyer().getFullName() + ",\n\n" +
+                        "Your invoice has been created successfully.\n" +
+                        "Contract ID: " + contract.getId() + "\n" +
+                        "Payment Type: " + contract.getOrder().getPaymentType() + "\n\n" +
+                        "Thank you!"
+        );
     }
+
 
 
     public InvoiceResponse getInvoiceDetail(Authentication authentication, Long invoiceId) {
@@ -199,42 +212,90 @@ public class BuyerInvoiceService {
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
         Invoice invoice = invoiceRepository.getInvoiceByIdAndContract_Order_Buyer_Id(request.getInvoiceId(), user.getId());
-
         if (invoice == null) {
             throw new BusinessException("Invoice not found or not belong to you", 404);
         }
 
-        if (invoice.getStatus() == InvoiceStatus.EXPIRED) {
-            throw new BusinessException("Invoice has expired, please create a new one", 400);
+        if (invoice.getStatus() == InvoiceStatus.INACTIVE) {
+            throw new BusinessException("Invoice is not active", 400);
         }
 
+        if (invoice.getStatus() == InvoiceStatus.EXPIRED) {
+            throw new BusinessException("Invoice has expired", 400);
+        }
         if (invoice.getStatus() == InvoiceStatus.PAID) {
-            throw new BusinessException("This invoice is already paid", 400);
+            throw new BusinessException("Invoice already paid", 400);
         }
 
         if (request.getPaymentMethod() == PaymentMethod.WALLET) {
-            walletService.payWithWallet(user, invoice.getTotalPrice(),
+            walletService.payWithWallet(
+                    user,
+                    invoice.getTotalPrice(),
                     invoice.getInvoiceNumber(),
                     Utils.generatePaymentDescription(TransactionType.INVOICE, invoice.getInvoiceNumber()),
-                    TransactionType.INVOICE);
-            invoice.setPaidAt(LocalDateTime.now());
-            invoice.setStatus(InvoiceStatus.PAID);
-            invoiceRepository.save(invoice);
-
-            User seller = invoice.getContract().getOrder().getSeller();
-            String sellerEmail = seller.getEmail();
-            String sellerTitle = "Invoice Paid";
-            String sellerContent = "Dear " + seller.getFullName() + ",\n\n" +
-                    "The invoice #" + invoice.getInvoiceNumber() + " has been paid by the buyer.\n" +
-                    "Total Price: " + invoice.getTotalPrice() + " " + invoice.getCurrency() + "\n" +
-                    "Paid At: " + invoice.getPaidAt() + "\n\n" +
-                    "Please proceed with the next steps of the order.\n\n" +
-                    "Thank you!";
-
-            notificationService.sendNotificationToOneUser(sellerEmail, sellerTitle, sellerContent);
-
+                    TransactionType.INVOICE
+            );
         } else {
             throw new BusinessException("Unsupported payment method", 400);
+        }
+
+        invoice.setPaidAt(LocalDateTime.now());
+        invoice.setStatus(InvoiceStatus.PAID);
+        invoiceRepository.save(invoice);
+
+        User seller = invoice.getContract().getOrder().getSeller();
+        notificationService.sendNotificationToOneUser(
+                seller.getEmail(),
+                "Invoice Paid",
+                "Invoice #" + invoice.getInvoiceNumber() + " has been paid by the buyer."
+        );
+
+        sellerOrderDeliveryService.createDeliveryStatus(invoice.getContract().getOrder());
+    }
+
+    public void createFinalInvoiceIfDeposit(Order order) {
+        if (order == null) {
+            throw new BusinessException("Order không tồn tại", 404);
+        }
+
+        if (order.getPaymentType() != PaymentType.DEPOSIT) {
+            return;
+        }
+
+        Contract contract = contractRepository.findByOrder_Id(order.getId())
+                .orElseThrow(() -> new BusinessException("Order chưa có hợp đồng để tạo hóa đơn cuối", 400));
+
+        BigDecimal remainingPrice = contract.getPrice()
+                .subtract(contract.getPrice()
+                        .multiply(BigDecimal.valueOf(100).subtract(depositPercentage))
+                        .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP));
+
+        Invoice invoice = Invoice.builder()
+                .contract(contract)
+                .invoiceNumber(Utils.generateCode("IN"))
+                .totalPrice(remainingPrice)
+                .currency(contract.getCurrency())
+                .createdAt(LocalDateTime.now())
+                .dueDate(LocalDateTime.now().plusDays(7))
+                .status(InvoiceStatus.ACTIVE)
+                .build();
+
+        invoiceRepository.save(invoice);
+
+        User buyer = contract.getOrder().getBuyer();
+        if (buyer != null) {
+            String buyerTitle = "Hóa đơn thanh toán phần còn lại đã được tạo";
+            String buyerContent = String.format(
+                    "Xin chào %s,\n\nHóa đơn thanh toán phần còn lại của bạn đã được tạo.\n" +
+                            "Mã hóa đơn: %s\nSố tiền cần thanh toán: %s %s\nHạn thanh toán: %s\n\nTrân trọng,\nĐội ngũ hỗ trợ.",
+                    buyer.getFullName(),
+                    invoice.getInvoiceNumber(),
+                    invoice.getTotalPrice(),
+                    invoice.getCurrency(),
+                    invoice.getDueDate().toLocalDate()
+            );
+
+            notificationService.sendNotificationToOneUser(buyer.getEmail(), buyerTitle, buyerContent);
         }
     }
 }

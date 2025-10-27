@@ -3,15 +3,14 @@ package com.example.SWP.service.buyer;
 import com.example.SWP.dto.request.buyer.CancelOrderRequest;
 import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 
-import com.example.SWP.dto.response.OrderDeliveryStatusResponse;
 import com.example.SWP.dto.response.buyer.BuyerOrderResponse;
 import com.example.SWP.entity.Order;
-import com.example.SWP.entity.OrderDeliveryStatus;
+import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
+import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.OrderDeliveryStatusRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;
@@ -41,60 +40,39 @@ public class BuyerOrderService {
 
     CreateOrderRequestValidator createOrderRequestValidator;
 
-    OrderDeliveryStatusRepository orderDeliveryStatusRepository;
-
 
     public BuyerOrderResponse getOrderDetail(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
-
-        OrderDeliveryStatus ods = orderDeliveryStatusRepository.findByOrder_Id(orderId);
 
         BuyerOrderResponse response = new BuyerOrderResponse();
         response.setOrderId(orderId);
         response.setPostId(order.getPost().getId());
         response.setSellerName(order.getSeller().getFullName());
         response.setPaymentType(order.getPaymentType());
-        response.setPaymentMethod(order.getPaymentMethod());
+        response.setDeliveryMethod(order.getDeliveryMethod());
         response.setStatus(order.getStatus());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
-
-        if (ods != null) {
-            response.setDeliveryStatus(getOrderDeliveryStatusResponse(ods));
-        } else {
-            response.setDeliveryStatus(null);
-        }
         return response;
     }
-
-    private OrderDeliveryStatusResponse getOrderDeliveryStatusResponse(OrderDeliveryStatus order) {
-        OrderDeliveryStatusResponse ods = new OrderDeliveryStatusResponse();
-        ods.setOdsId(order.getId());
-        ods.setProvider(order.getDeliveryProvider());
-        ods.setTrackingNumber(order.getDeliveryTrackingNumber());
-        ods.setStatus(order.getStatus());
-        ods.setCreatedAt(order.getCreatedAt());
-        ods.setUpdatedAt(order.getUpdatedAt());
-        return ods;
-    }
-
 
     public void createOrder(Authentication authentication, CreateOrderRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        if (user.getRole() != Role.BUYER) {
-            throw new BusinessException("User is not a buyer", 400);
-        }
+        Post post = postRepository.findById(request.getPostId()).orElseThrow(
+                () -> new BusinessException("Post does not exist", 404));
 
-        if (!postRepository.existsById(request.getPostId())) {
-            throw new BusinessException("Post does not exist. You cannot create order on this post", 404);
-        }
-
-        if (isOrderAvailable(request.getPostId(), OrderStatus.PENDING) || isOrderAvailable(request.getPostId(), OrderStatus.APPROVED)) {
+        if (isOrderAvailable(post.getId(), OrderStatus.PENDING) || isOrderAvailable(post.getId(), OrderStatus.APPROVED)) {
             throw new BusinessException("You or someone have already created an order for this post", 400);
+        }
+
+        if(request.getDeliveryMethod() == DeliveryMethod.GHN) {
+            if(request.getServiceTypeId() == null) {
+                throw new BusinessException("Service type id is required for GHN delivery method", 400);
+            }
         }
 
         createOrderRequestValidator.validateInvalid(request);
@@ -107,6 +85,12 @@ public class BuyerOrderService {
         order.setPaymentType(request.getPaymentType());
         order.setCreatedAt(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
+
+        if(request.getDeliveryMethod() == DeliveryMethod.GHN) {
+            order.setServiceTypeId(request.getServiceTypeId());
+        } else {
+            order.setServiceTypeId(null);
+        }
 
         orderRepository.save(order);
 
@@ -127,7 +111,8 @@ public class BuyerOrderService {
             throw new BusinessException("User is not a buyer", 400);
         }
 
-        Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new BusinessException("Order does not exist", 404));
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BusinessException("You cannot cancel this order since the seller has approved it, you can cancel it through contract implementation", 400);

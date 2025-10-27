@@ -1,17 +1,12 @@
 package com.example.SWP.service.seller;
 
-import com.example.SWP.dto.request.seller.OrderDeliveryStatusRequest;
-import com.example.SWP.dto.response.OrderDeliveryStatusResponse;
 import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.response.seller.RejectOrderResponse;
 import com.example.SWP.entity.Order;
-import com.example.SWP.entity.OrderDeliveryStatus;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.DeliveryStatus;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.OrderDeliveryStatusRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
@@ -33,7 +28,6 @@ public class SellerOrderService {
     OrderRepository orderRepository;
     NotificationService notificationService;
     UserRepository userRepository;
-    OrderDeliveryStatusRepository orderDeliveryStatusRepository;
 
     public SellerOrderResponse getOrderDetail(Authentication authentication, Long orderId) {
         String email = authentication.getName();
@@ -46,7 +40,6 @@ public class SellerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
-        OrderDeliveryStatus ods = orderDeliveryStatusRepository.findByOrder_Id(orderId);
 
         SellerOrderResponse response = new SellerOrderResponse();
         response.setOrderId(orderId);
@@ -54,26 +47,11 @@ public class SellerOrderService {
         response.setBuyerName(order.getBuyer().getFullName());
         response.setPaymentType(order.getPaymentType());
         response.setStatus(order.getStatus());
+        response.setDeliveryMethod(order.getDeliveryMethod());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
 
-        if(ods != null){
-            response.setDeliveryStatus(getOrderDeliveryStatusResponse(ods));
-        }else{
-            response.setDeliveryStatus(null);
-        }
         return response;
-    }
-
-    private OrderDeliveryStatusResponse getOrderDeliveryStatusResponse(OrderDeliveryStatus order){
-        OrderDeliveryStatusResponse ods = new OrderDeliveryStatusResponse();
-        ods.setOdsId(order.getId());
-        ods.setProvider(order.getDeliveryProvider());
-        ods.setTrackingNumber(order.getDeliveryTrackingNumber());
-        ods.setStatus(order.getStatus());
-        ods.setCreatedAt(order.getCreatedAt());
-        ods.setUpdatedAt(order.getUpdatedAt());
-        return ods;
     }
 
     public void approveOrder(Authentication authentication, Long orderId) {
@@ -192,6 +170,7 @@ public class SellerOrderService {
             response.setPostId(order.getPost().getId());
             response.setBuyerName(order.getBuyer().getFullName());
             response.setPaymentType(order.getPaymentType());
+            response.setDeliveryMethod(order.getDeliveryMethod());
             response.setStatus(order.getStatus());
             response.setCreatedAt(order.getCreatedAt());
             responseList.add(response);
@@ -199,23 +178,5 @@ public class SellerOrderService {
         return responseList;
     }
 
-    public void updateOrderStatus(OrderDeliveryStatusRequest request) {
-        Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new RuntimeException("Order does not exist"));
 
-        OrderDeliveryStatus ods = orderDeliveryStatusRepository.findByOrder_Id(order.getId());
-        if(ods == null){
-            throw new BusinessException("Order delivery status does not exist, please try again", 404);
-        }
-
-        if(ods.getStatus().equals(DeliveryStatus.PREPARING)){
-            ods.setStatus(DeliveryStatus.READY);
-        }else if(ods.getStatus().equals(DeliveryStatus.READY)){
-            ods.setStatus(DeliveryStatus.PENDING);
-        }else if(ods.getStatus().equals(DeliveryStatus.PENDING)){
-            ods.setStatus(DeliveryStatus.DELIVERED);
-        }
-
-        orderDeliveryStatusRepository.save(ods);
-    }
 }
