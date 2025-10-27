@@ -168,7 +168,6 @@ public class WalletService {
         return transaction;
     }
 
-    // Thanh toán bằng ví
     public void payWithWallet(
             User user, BigDecimal amount, String orderId,
             String description, TransactionType transactionType) {

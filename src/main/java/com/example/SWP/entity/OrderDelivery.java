@@ -3,10 +3,7 @@ package com.example.SWP.entity;
 import com.example.SWP.enums.DeliveryProvider;
 import com.example.SWP.enums.DeliveryStatus;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
@@ -17,8 +14,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 
-public class OrderDeliveryStatus {
+public class OrderDelivery {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

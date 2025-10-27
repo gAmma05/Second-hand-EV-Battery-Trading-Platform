@@ -23,4 +23,6 @@ public class CreateOrderRequest {
 
     @NotNull(message = "paymentType is required")
     PaymentType paymentType;
+
+    Integer serviceTypeId;
 }
