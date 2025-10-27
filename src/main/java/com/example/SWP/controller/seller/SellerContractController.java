@@ -3,7 +3,7 @@ package com.example.SWP.controller.seller;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.PreContractResponse;
-import com.example.SWP.dto.response.buyer.ContractResponse;
+import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.service.seller.SellerContractService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,22 +21,6 @@ import java.util.List;
 public class SellerContractController {
 
     SellerContractService sellerContractService;
-
-    @GetMapping("/contract-preview")
-    public ResponseEntity<?> preContractReview(Authentication authentication, @RequestParam Long orderId) {
-        PreContractResponse response = sellerContractService.getPreContractByOrderId(authentication, orderId);
-        if (response == null) {
-            return new ResponseEntity<>("Failed to fetch pre-contract", HttpStatus.BAD_REQUEST);
-        }
-
-        return ResponseEntity.ok(
-                ApiResponse.<PreContractResponse>builder()
-                        .success(true)
-                        .message("Pre-contract fetched successfully")
-                        .data(response)
-                        .build()
-        );
-    }
 
     @PostMapping("/create")
     public ResponseEntity<?> createContract(CreateContractRequest request) {

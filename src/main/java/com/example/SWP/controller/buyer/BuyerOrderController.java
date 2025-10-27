@@ -5,8 +5,8 @@ import com.example.SWP.dto.request.buyer.CancelOrderRequest;
 import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.BuyerOrderResponse;
+import com.example.SWP.service.buyer.BuyerOrderDeliveryService;
 import com.example.SWP.service.buyer.BuyerOrderService;
-import com.example.SWP.service.seller.SellerService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +14,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/buyer/order")
+@RequestMapping("/buyer/orders")
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerOrderController {
-
-    SellerService sellerService;
 
     BuyerOrderService buyerOrderService;
 

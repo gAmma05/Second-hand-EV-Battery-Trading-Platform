@@ -1,6 +1,7 @@
-package com.example.SWP.dto.response.buyer;
+package com.example.SWP.dto.response.user;
 
 import com.example.SWP.enums.ContractStatus;
+import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ContractResponse {
-    Long contractId;
+    Long id;
     Long orderId;
     String contractCode;
     String title;
@@ -24,9 +25,8 @@ public class ContractResponse {
     BigDecimal price;
     String currency;
     boolean sellerSigned;
-    LocalDateTime sellerSignedAt;
     boolean buyerSigned;
+    LocalDateTime sellerSignedAt;
     LocalDateTime buyerSignedAt;
     ContractStatus status;
-    PaymentType paymentType;
 }

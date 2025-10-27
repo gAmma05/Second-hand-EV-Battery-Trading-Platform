@@ -1,5 +1,6 @@
 package com.example.SWP.dto.response;
 
+import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,6 @@ public class PreContractResponse {
     String title;
     BigDecimal price;
     String currency;
+    DeliveryMethod deliveryMethod;
     PaymentType paymentType;
 }

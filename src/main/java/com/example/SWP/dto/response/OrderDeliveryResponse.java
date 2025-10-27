@@ -14,14 +14,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class OrderDeliveryStatusResponse {
-    Long odsId;
-    DeliveryProvider provider;
-    String trackingNumber;
+public class OrderDeliveryResponse {
+    Long id;
+    String orderId;
+    DeliveryProvider deliveryProvider;
+    String deliveryTrackingNumber;
     LocalDateTime deliveryDate;
-
     DeliveryStatus status;
-
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

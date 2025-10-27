@@ -1,31 +1,32 @@
 package com.example.SWP.service.seller;
 
+import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
-import com.example.SWP.dto.response.PreContractResponse;
-import com.example.SWP.dto.response.buyer.ContractResponse;
+import com.example.SWP.dto.response.ghn.FeeResponse;
+import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
+import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.ghn.GhnService;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,10 @@ public class SellerContractService {
     OrderRepository orderRepository;
     ContractRepository contractRepository;
     NotificationService notificationService;
+    ContractMapper contractMapper;
+    GhnService ghnService;
+    ValidateService validateService;
+
 
     public PreContractResponse getPreContractByOrderId(Authentication authentication, Long orderId) {
         String email = authentication.getName();
@@ -71,7 +76,11 @@ public class SellerContractService {
 
     }
 
-    public void createContract(CreateContractRequest request) {
+    public void createContract(Authentication authentication, CreateContractRequest request) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+
 
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
@@ -87,77 +96,51 @@ public class SellerContractService {
         contract.setContractCode(Utils.generateCode("CT"));
         contract.setTitle(request.getTitle());
         contract.setContent(request.getContent());
-        contract.setPrice(request.getPrice());
         contract.setCurrency(request.getCurrency());
         contract.setSellerSigned(true);
         contract.setSellerSignedAt(LocalDateTime.now());
         contract.setStatus(ContractStatus.PENDING);
+
+        if(order.getDeliveryMethod() == DeliveryMethod.GHN) {
+            FeeRequest feeRequest = FeeRequest.builder()
+                    .fromDistrictId(order.getSeller().getDistrictId())
+                    .toDistrictId(order.getBuyer().getDistrictId())
+                    .toWardCode(order.getBuyer().getWardCode())
+                    .serviceTypeId(order.getServiceTypeId())
+                    .ghnToken(order.getSeller().getGhnToken())
+                    .ghnShopId(order.getSeller().getGhnShopId())
+                    .weight(order.getPost().getWeight())
+                    .build();
+
+            FeeResponse feeResponse = ghnService.calculateShippingFee(feeRequest);
+            contract.setPrice(request.getPrice().add(BigDecimal.valueOf(feeResponse.getTotal())));
+        } else {
+            contract.setPrice(request.getPrice());
+        }
 
         contractRepository.save(contract);
         notificationService.sendNotificationToOneUser(order.getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
     }
 
     public ContractResponse getContractDetail(Authentication authentication, Long contractId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
+        User user = validateService.validateCurrentUser(authentication);
+
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
 
-        if(!Objects.equals(contract.getOrder().getBuyer().getId(), user.getId())){
-            throw new BusinessException("This contract is not belong to you", 400);
+        if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
+            throw new BusinessException("This contract does not belong to you", 400);
         }
 
-        ContractResponse response = new ContractResponse();
-        response.setContractId(contract.getId());
-        response.setOrderId(contract.getOrder().getId());
-        response.setContractCode(contract.getContractCode());
-        response.setTitle(contract.getTitle());
-        response.setContent(contract.getContent());
-        response.setPrice(contract.getPrice());
-        response.setCurrency(contract.getCurrency());
-        response.setPaymentType(contract.getOrder().getPaymentType());
-        response.setSellerSigned(contract.isSellerSigned());
-        response.setSellerSignedAt(contract.getSellerSignedAt());
-        response.setBuyerSigned(contract.isBuyerSigned());
-        response.setBuyerSignedAt(contract.getBuyerSignedAt());
-        response.setStatus(contract.getStatus());
+        return contractMapper.toContractResponse(contract);
 
-        return response;
     }
 
     public List<ContractResponse> getAllContracts(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+        User user = validateService.validateCurrentUser(authentication);
+        List<Contract> list = contractRepository
+                .findByOrder_Seller_Id(user.getId());
 
-        List<Contract> list = contractRepository.findByOrder_Seller_Id(user.getId());
-        return getSellerContracts(list);
+        return contractMapper.toContractResponses(list);
     }
-
-    private List<ContractResponse> getSellerContracts(List<Contract> contractList) {
-        List<ContractResponse> responseList = new ArrayList<>();
-        for (Contract contract : contractList) {
-            ContractResponse response = new ContractResponse();
-            response.setContractId(contract.getId());
-            response.setOrderId(contract.getOrder().getId());
-            response.setContractCode(contract.getContractCode());
-            response.setTitle(contract.getTitle());
-            response.setContent(contract.getContent());
-            response.setPrice(contract.getPrice());
-            response.setCurrency(contract.getCurrency());
-            response.setPaymentType(contract.getOrder().getPaymentType());
-            response.setSellerSigned(contract.isSellerSigned());
-            response.setSellerSignedAt(contract.getSellerSignedAt());
-            response.setBuyerSigned(contract.isBuyerSigned());
-            response.setBuyerSignedAt(contract.getBuyerSignedAt());
-            response.setStatus(contract.getStatus());
-            responseList.add(response);
-        }
-        return responseList;
-    }
-
 }
