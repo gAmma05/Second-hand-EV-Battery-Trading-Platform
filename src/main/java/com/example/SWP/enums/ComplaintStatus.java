@@ -4,6 +4,5 @@ public enum ComplaintStatus {
     PENDING,
     RESOLVING,
     RESOLVED,
-    FAILED,
-    ADMIN_RESOLVING
+    REJECTED
 }
