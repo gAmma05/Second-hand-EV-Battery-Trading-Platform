@@ -1,45 +1,25 @@
-package com.example.SWP.entity;
+package com.example.SWP.dto.response;
 
 import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.enums.ComplaintType;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
-
 @Data
-@Entity
-@Table(name = "complaints")
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Complaint {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ComplaintResponse {
     Long id;
-
-    @OneToOne
-    @JoinColumn(name = "order_id", nullable = false)
-    Order order;
-
-    @Enumerated(EnumType.STRING)
+    Long orderId;
     ComplaintType type;
-
-    @Column(columnDefinition = "TEXT")
     String description;
-
     String evidenceUrls;
-
     String resolutionNotes;
-
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
-
-    @Enumerated(EnumType.STRING)
+    String createdAt;
+    String updatedAt;
     ComplaintStatus status;
-
 }
