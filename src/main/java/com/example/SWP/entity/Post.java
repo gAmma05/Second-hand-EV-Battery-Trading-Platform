@@ -55,7 +55,6 @@ public class Post {
     @Column(name = "payment_type")
     Set<PaymentType> paymentTypes = new HashSet<>();
 
-    String address;
     boolean isTrusted;
 
     Long priorityPackageId;
