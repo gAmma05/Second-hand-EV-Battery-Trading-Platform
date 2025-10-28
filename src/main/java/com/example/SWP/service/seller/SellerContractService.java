@@ -2,7 +2,7 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
-import com.example.SWP.dto.response.PreContractResponse;
+import com.example.SWP.dto.request.seller.SignContractRequest;
 import com.example.SWP.dto.response.ghn.FeeResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
@@ -11,7 +11,6 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
@@ -44,39 +43,26 @@ public class SellerContractService {
     GhnService ghnService;
     ValidateService validateService;
 
+    public void signContract(Authentication authentication, SignContractRequest request) {
+        User user = validateService.validateCurrentUser(authentication);
+        Contract contract = contractRepository.findById(request.getContractId())
+                .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
 
-    public PreContractResponse getPreContractByOrderId(Authentication authentication, Long orderId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
-
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
+        if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
+            throw new BusinessException("This contract is not belong to you, you can't sign it", 400);
         }
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
-
-        if(!Objects.equals(order.getSeller().getId(), user.getId())){
-            throw new BusinessException("This order is not belong to you", 400);
+        if (contract.getStatus() != ContractStatus.PENDING) {
+            throw new BusinessException("This contract is not pending, you can't sign it", 400);
         }
 
-        if (order.getStatus().equals(OrderStatus.PENDING)) {
-            throw new BusinessException("You can't create contract until the order is approved", 400);
-        } else if (order.getStatus().equals(OrderStatus.REJECTED)) {
-            throw new BusinessException("This order is already rejected, you can no longer create contract on this order", 400);
-        }
+        contract.setContent(request.getContent());
+        contract.setSellerSigned(true);
+        contract.setSellerSignedAt(LocalDateTime.now());
 
-        PreContractResponse response = new PreContractResponse();
-        response.setOrderId(orderId);
-        response.setTitle(order.getPost().getTitle());
-        response.setPrice(order.getPost().getPrice());
-        response.setPaymentType(order.getPaymentType());
-        response.setCurrency("VND");
-        response.setPaymentType(order.getPaymentType());
+        contractRepository.save(contract);
 
-        return response;
-
+        notificationService.sendNotificationToOneUser(contract.getOrder().getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
     }
 
     public void createContract(Authentication authentication, CreateContractRequest request) {
@@ -85,7 +71,7 @@ public class SellerContractService {
 
         User user = validateService.validateCurrentUser(authentication);
 
-        if(!Objects.equals(order.getSeller().getId(), user.getId())){
+        if (!Objects.equals(order.getSeller().getId(), user.getId())) {
             throw new BusinessException("This order is not belong to you", 400);
         }
 
@@ -99,13 +85,10 @@ public class SellerContractService {
         contract.setOrder(order);
         contract.setContractCode(Utils.generateCode("CT"));
         contract.setTitle(request.getTitle());
-        contract.setContent(request.getContent());
         contract.setCurrency(request.getCurrency());
-        contract.setSellerSigned(true);
-        contract.setSellerSignedAt(LocalDateTime.now());
         contract.setStatus(ContractStatus.PENDING);
 
-        if(order.getDeliveryMethod() == DeliveryMethod.GHN) {
+        if (order.getDeliveryMethod() == DeliveryMethod.GHN) {
             FeeRequest feeRequest = FeeRequest.builder()
                     .fromDistrictId(order.getSeller().getDistrictId())
                     .toDistrictId(order.getBuyer().getDistrictId())
@@ -123,7 +106,6 @@ public class SellerContractService {
         }
 
         contractRepository.save(contract);
-        notificationService.sendNotificationToOneUser(order.getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
     }
 
     public ContractResponse getContractDetail(Authentication authentication, Long contractId) {

@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/buyer/complaints")
 @RequiredArgsConstructor
@@ -44,6 +46,38 @@ public class BuyerComplaintController {
                         .success(true)
                         .message("Complaint detail fetched successfully")
                         .data(response)
+                        .build()
+        );
+    }
+
+    @PatchMapping("/agree")
+    public ResponseEntity<?> agreeComplaint(Authentication authentication, @RequestParam Long complaintId) {
+        buyerComplaintService.acceptComplaint(authentication, complaintId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Complaint accepted successfully")
+                        .build()
+        );
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getComplaintList(Authentication authentication) {
+        List<ComplaintResponse> list = buyerComplaintService.getMyComplaints(authentication);
+        if (list == null || list.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.<ComplaintResponse>builder()
+                            .success(false)
+                            .message("List is empty")
+                            .build()
+            );
+        }
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<ComplaintResponse>>builder()
+                        .success(true)
+                        .message("Fetched complaint list successfully")
+                        .data(list)
                         .build()
         );
     }

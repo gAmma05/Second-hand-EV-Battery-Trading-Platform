@@ -40,19 +40,19 @@ public class BuyerOrderDeliveryService {
         User user = validateService.validateCurrentUser(authentication);
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order không tồn tại", 404));
+                .orElseThrow(() -> new BusinessException("Order not found", 404));
 
         if (!order.getBuyer().getId().equals(user.getId())) {
-            throw new BusinessException("Bạn không có quyền xác nhận đơn hàng này", 403);
+            throw new BusinessException("You don't have permission to confirm this order", 403);
         }
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(orderId);
         if (orderDelivery == null) {
-            throw new BusinessException("Order chưa có trạng thái vận chuyển", 404);
+            throw new BusinessException("Order does not have delivery status yet", 404);
         }
 
         if (orderDelivery.getStatus() != DeliveryStatus.DELIVERED) {
-            throw new BusinessException("Đơn hàng chưa được giao để xác nhận", 400);
+            throw new BusinessException("Order has not delivered yet", 400);
         }
 
         orderDelivery.setStatus(DeliveryStatus.RECEIVED);
@@ -60,7 +60,7 @@ public class BuyerOrderDeliveryService {
         orderDeliveryRepository.save(orderDelivery);
 
         Contract contract = contractRepository.findByOrder_Id(orderId)
-                .orElseThrow(() -> new BusinessException("Contract không tồn tại", 404));
+                .orElseThrow(() -> new BusinessException("Contract not found", 404));
 
         if(order.getPaymentType() == PaymentType.DEPOSIT) {
             invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
@@ -76,15 +76,15 @@ public class BuyerOrderDeliveryService {
         User user = validateService.validateCurrentUser(authentication);
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order không tồn tại", 404));
+                .orElseThrow(() -> new BusinessException("Order not found", 404));
 
         if (!order.getBuyer().getId().equals(user.getId())) {
-            throw new BusinessException("Bạn không có quyền xem đơn hàng này", 403);
+            throw new BusinessException("You don't have permission to view this order", 403);
         }
 
         OrderDelivery delivery = orderDeliveryRepository.findByOrderId(orderId);
         if (delivery == null) {
-            throw new BusinessException("Đơn hàng chưa có thông tin vận chuyển", 404);
+            throw new BusinessException("This order does not have delivery information yet", 404);
         }
 
         return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
