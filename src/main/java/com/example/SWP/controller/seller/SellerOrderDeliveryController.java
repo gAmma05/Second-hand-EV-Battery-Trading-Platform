@@ -34,16 +34,30 @@ public class SellerOrderDeliveryController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{orderId}")
-    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateDeliveryStatus(@PathVariable Long orderId,
-                                                            @RequestParam DeliveryStatus deliveryStatus) {
-
-        OrderDeliveryResponse response = sellerOrderDeliveryService.updateDeliveryStatus(orderId, deliveryStatus);
-
+    @PutMapping("/{orderId}/manual")
+    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateManualStatus(
+            @PathVariable Long orderId,
+            @RequestParam DeliveryStatus deliveryStatus
+    ) {
+        OrderDeliveryResponse response = sellerOrderDeliveryService.updateManualDeliveryStatus(orderId, deliveryStatus);
         return ResponseEntity.ok(
                 ApiResponse.<OrderDeliveryResponse>builder()
                         .success(true)
-                        .message("Order delivery status updated successfully")
+                        .message("Manual delivery status updated successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @PutMapping("/{orderId}/ghn")
+    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateGhnStatus(
+            @PathVariable Long orderId
+    ) {
+        OrderDeliveryResponse response = sellerOrderDeliveryService.updateGhnDeliveryStatus(orderId);
+        return ResponseEntity.ok(
+                ApiResponse.<OrderDeliveryResponse>builder()
+                        .success(true)
+                        .message("GHN delivery status synced successfully")
                         .data(response)
                         .build()
         );
