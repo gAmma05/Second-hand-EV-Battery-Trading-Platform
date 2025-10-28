@@ -1,5 +1,6 @@
 package com.example.SWP.dto.request.ghn;
 
+import com.example.SWP.entity.Post;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,8 +12,5 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ServiceRequest {
-    String ghnToken;
-    Integer ghnShopId;
-    Integer fromDistrictId;
-    Integer toDistrictId;
+    Long postId;
 }

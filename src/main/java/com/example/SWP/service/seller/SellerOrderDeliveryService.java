@@ -82,43 +82,44 @@ public class SellerOrderDeliveryService {
         return orderDeliveryMapper.toOrderDeliveryResponseList(deliveries);
     }
 
-    public OrderDeliveryResponse updateDeliveryStatus(Long orderId, DeliveryStatus newStatus) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order không tồn tại", 404));
+    public OrderDeliveryResponse updateManualDeliveryStatus(Long id, DeliveryStatus newStatus) {
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(id).orElseThrow(
+                () -> new BusinessException("Đơn hàng không tồn tại", 404)
+        );
 
-        OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(orderId);
-        if (orderDelivery == null) {
-            throw new BusinessException("Order chưa có trạng thái vận chuyển", 404);
+        if (orderDelivery.getDeliveryProvider() == DeliveryProvider.GHN) {
+            throw new BusinessException("Không thể cập nhật trạng thái thủ công cho đơn GHN", 400);
         }
 
-        if (order.getDeliveryMethod() == DeliveryMethod.GHN) {
-
-            if (orderDelivery.getDeliveryProvider() == null && newStatus == DeliveryStatus.READY) {
-                ghnService.createOrder(orderDelivery);
-                orderDelivery.setDeliveryProvider(DeliveryProvider.GHN);
-                orderDelivery.setStatus(DeliveryStatus.READY);
-            }
-
-            else if (orderDelivery.getDeliveryProvider() == DeliveryProvider.GHN) {
-                DeliveryStatus ghStatus = ghnService.getOrderStatus(orderDelivery.getDeliveryTrackingNumber());
-                orderDelivery.setStatus(ghStatus);
-            }
-
-            else if (orderDelivery.getDeliveryProvider() == null) {
-                orderDelivery.setStatus(newStatus);
-            }
-
-            else {
-                throw new BusinessException("Không thể cập nhật trạng thái thủ công sau khi đơn GHN đã được tạo", 400);
-            }
+        if (orderDelivery.getStatus() == DeliveryStatus.DELIVERED) {
+            throw new BusinessException("Không thể cập nhật trạng thái cho đơn đã giao", 400);
         }
 
-        else {
-            orderDelivery.setStatus(newStatus);
+        orderDelivery.setStatus(newStatus);
+        orderDelivery.setUpdatedAt(LocalDateTime.now());
+
+        orderDeliveryRepository.save(orderDelivery);
+
+        return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
+    }
+
+
+    public OrderDeliveryResponse updateGhnDeliveryStatus(Long id) {
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(id).orElseThrow(
+                () -> new BusinessException("Đơn hàng không tồn tại", 404)
+        );
+
+        if (orderDelivery.getDeliveryProvider() != DeliveryProvider.GHN) {
+            throw new BusinessException("Chỉ có thể cập nhật trạng thái đơn GHN", 400);
         }
+
+        DeliveryStatus ghnStatus = ghnService.getOrderStatus(orderDelivery.getDeliveryTrackingNumber());
+        orderDelivery.setStatus(ghnStatus);
 
         orderDelivery.setUpdatedAt(LocalDateTime.now());
         orderDeliveryRepository.save(orderDelivery);
+
         return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
     }
+
 }
