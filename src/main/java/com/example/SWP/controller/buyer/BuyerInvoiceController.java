@@ -74,7 +74,7 @@ public class BuyerInvoiceController {
         );
     }
 
-    @GetMapping
+    @GetMapping("/status")
     public ResponseEntity<?> getInvoicesByStatus(
             Authentication authentication,
             @RequestParam("status") InvoiceStatus status
