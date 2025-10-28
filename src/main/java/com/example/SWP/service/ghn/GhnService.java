@@ -178,9 +178,11 @@ public class GhnService {
         return String.join(", ", streetAddress, wardName, districtName, provinceName);
     }
 
-    public FeeResponse calculateShippingFee(FeeRequest request) {
-        User buyer = userRepository.findById(request.getBuyerId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người mua", 404));
+    public FeeResponse calculateShippingFee(FeeRequest request, User buyer) {
+
+        if(buyer == null) {
+            throw  new BusinessException("Người mua không tồn tại", 404);
+        }
 
         if (buyer.getRole() != Role.BUYER) {
             throw new BusinessException("Người dùng không phải là người mua", 400);
@@ -214,12 +216,12 @@ public class GhnService {
         body.put("to_district_id", toDistrictId);
         body.put("to_ward_code", toWardCode);
         body.put("service_type_id", request.getServiceTypeId());
-        body.put("weight", request.getWeight());
+        body.put("weight", post.getWeight());
 
         if (request.getServiceTypeId() == 5) {
             List<Map<String, Object>> itemsList = new ArrayList<>();
             Map<String, Object> item = new HashMap<>();
-            item.put("weight", request.getWeight());
+            item.put("weight", post.getWeight());
             itemsList.add(item);
             body.put("items", itemsList);
         }
@@ -308,7 +310,23 @@ public class GhnService {
                 services.add(service);
             }
 
-            AvailableServicesResponse selectedService = getAvailableServicesResponse(post, services);
+            AvailableServicesResponse selectedService = null;
+
+            if (post.getWeight() > 20) {
+                for (AvailableServicesResponse s : services) {
+                    if (s.getService_type_id() == 5) {
+                        selectedService = s;
+                        break;
+                    }
+                }
+            } else {
+                for (AvailableServicesResponse s : services) {
+                    if (s.getService_type_id() == 2) {
+                        selectedService = s;
+                        break;
+                    }
+                }
+            }
 
             return selectedService != null
                     ? List.of(selectedService)
@@ -320,27 +338,6 @@ public class GhnService {
                     500
             );
         }
-    }
-
-    private static AvailableServicesResponse getAvailableServicesResponse(Post post, List<AvailableServicesResponse> services) {
-        AvailableServicesResponse selectedService = null;
-
-        if (post.getWeight() > 20) {
-            for (AvailableServicesResponse s : services) {
-                if (s.getService_type_id() == 5) {
-                    selectedService = s;
-                    break;
-                }
-            }
-        } else {
-            for (AvailableServicesResponse s : services) {
-                if (s.getService_type_id() == 2) {
-                    selectedService = s;
-                    break;
-                }
-            }
-        }
-        return selectedService;
     }
 
 

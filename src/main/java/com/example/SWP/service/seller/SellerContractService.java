@@ -117,12 +117,10 @@ public class SellerContractService {
 
             FeeRequest feeRequest = FeeRequest.builder()
                     .postId(order.getPost().getId())
-                    .buyerId(buyer.getId())
                     .serviceTypeId(order.getServiceTypeId())
-                    .weight(order.getPost().getWeight())
                     .build();
 
-            FeeResponse feeResponse = ghnService.calculateShippingFee(feeRequest);
+            FeeResponse feeResponse = ghnService.calculateShippingFee(feeRequest, buyer);
             contract.setPrice(request.getPrice().add(BigDecimal.valueOf(feeResponse.getTotal())));
         } else {
             contract.setPrice(request.getPrice());
