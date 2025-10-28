@@ -19,6 +19,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -56,6 +57,7 @@ public class BuyerComplaintService {
 
         Complaint complaint = complaintMapper.toComplaint(request);
         complaint.setStatus(ComplaintStatus.PENDING);
+        complaint.setCreatedAt(LocalDateTime.now());
 
         complaintRepository.save(complaint);
 
@@ -94,6 +96,7 @@ public class BuyerComplaintService {
         }
 
         complaint.setStatus(ComplaintStatus.REJECTED);
+        complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
 
         notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "About your product", "Your resolution has been rejected by the buyer. Reason: " + request.getReason() + ".");

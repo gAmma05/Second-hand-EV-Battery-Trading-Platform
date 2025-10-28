@@ -19,5 +19,6 @@ public interface ComplaintMapper {
     Complaint toComplaint(CreateComplaintRequest request);
 
     void updateComplaint(RejectComplaintRequest request, @MappingTarget Complaint complaint);
+    @Mapping(source = "resolution", target = "resolutionNotes")
     void updateComplaint(ComplaintResolutionRequest request, @MappingTarget Complaint complaint);
 }
