@@ -5,6 +5,7 @@ import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.PreContractResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.service.seller.SellerContractService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class SellerContractController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createContract(Authentication authentication, CreateContractRequest request) {
+    public ResponseEntity<?> createContract(Authentication authentication, @Valid CreateContractRequest request) {
         sellerContractService.createContract(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()

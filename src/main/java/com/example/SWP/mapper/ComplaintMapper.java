@@ -15,6 +15,7 @@ public interface ComplaintMapper {
     ComplaintResponse toComplaintResponse(Complaint complaint);
 
     @Mapping(source = "orderId", target = "order.id")
+    @Mapping(source = "complaintType", target = "type")
     Complaint toComplaint(CreateComplaintRequest request);
 
     void updateComplaint(RejectComplaintRequest request, @MappingTarget Complaint complaint);

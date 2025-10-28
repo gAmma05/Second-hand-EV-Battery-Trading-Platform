@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,7 +19,7 @@ public class BuyerContractController {
 
     BuyerContractService buyerContractService;
 
-    @GetMapping("/approve")
+    @PatchMapping("/approve")
     public ResponseEntity<?> approveContract(Authentication authentication, @RequestParam Long contractId) {
         buyerContractService.signContract(authentication, contractId);
         return ResponseEntity.ok(
@@ -33,7 +30,7 @@ public class BuyerContractController {
         );
     }
 
-    @GetMapping("/cancel")
+    @PatchMapping("/cancel")
     public ResponseEntity<?> cancelContract(Authentication authentication, @RequestParam Long contractId) {
         buyerContractService.cancelContract(authentication, contractId);
         return ResponseEntity.ok(
