@@ -11,7 +11,5 @@ import lombok.experimental.FieldDefaults;
 @Builder
 public class FeeRequest {
     Long postId;
-    Long buyerId;
     Integer serviceTypeId;
-    Integer weight;
 }
