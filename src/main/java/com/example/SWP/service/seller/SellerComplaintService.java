@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.example.SWP.exception.BusinessException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,8 +42,12 @@ public class SellerComplaintService {
         Complaint complaint = complaintRepository.findById(complaintId)
                 .orElseThrow(() -> new BusinessException("Complaint not found", 404));
 
-        if (Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
+        if (!Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
             throw new BusinessException("This complaint is not your", 400);
+        }
+
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.PENDING)) {
+            throw new BusinessException("Failed to accept complaint, complaint is not pending", 400);
         }
 
         complaint.setStatus(ComplaintStatus.RESOLVING);
@@ -61,11 +66,17 @@ public class SellerComplaintService {
                 () -> new BusinessException("Complaint not found", 404)
         );
 
-        if (Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
+        if (!Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
             throw new BusinessException("This complaint is not your", 400);
         }
 
+        if(!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLVING)) {
+            throw new BusinessException("Failed to response complaint, complaint is not being resolved", 400);
+        }
+
         complaintMapper.updateComplaint(request, complaint);
+        complaint.setStatus(ComplaintStatus.RESOLVED);
+        complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
 
         notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "About your complaint", "The seller has given you a resolution for your complaint. Resolution: " + complaint.getResolutionNotes() + ".");
