@@ -45,6 +45,10 @@ public class BuyerContractService {
                 () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
         );
 
+        if(!contract.getOrder().getBuyer().getId().equals(user.getId())){
+            throw new BusinessException("This contract is not belong to you, you can't sign it", 400);
+        }
+
         ContractStatus status = contract.getStatus();
 
         if (status == ContractStatus.SIGNED) {
@@ -75,7 +79,6 @@ public class BuyerContractService {
 
         buyerInvoiceService.createInvoice(contractId);
 
-        // Thông báo cho seller
         String sellerEmail = contract.getOrder().getSeller().getEmail();
         String sellerTitle = "Contract Signed by Buyer";
         String sellerContent = "Your contract has just been signed by the buyer. Please review the invoice and proceed accordingly.";
@@ -114,7 +117,7 @@ public class BuyerContractService {
 
         orderRepository.save(order);
 
-        notificationService.sendNotificationToOneUser(contract.getOrder().getSeller().getEmail(), "About your contract", "Look like your contract has been cancelled by buyer, you should check it out.");
+        notificationService.sendNotificationToOneUser(contract.getOrder().getSeller().getEmail(), "Your order has been cancelled", "Look like your contract has been cancelled by buyer, you should check it out.");
     }
 
     public ContractResponse getContractDetail(Authentication authentication, Long contractId) {

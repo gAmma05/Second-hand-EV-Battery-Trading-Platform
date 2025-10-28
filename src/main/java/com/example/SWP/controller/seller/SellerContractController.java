@@ -1,14 +1,13 @@
 package com.example.SWP.controller.seller;
 
 import com.example.SWP.dto.request.seller.CreateContractRequest;
+import com.example.SWP.dto.request.seller.SignContractRequest;
 import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.dto.response.PreContractResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.service.seller.SellerContractService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -23,17 +22,13 @@ public class SellerContractController {
 
     SellerContractService sellerContractService;
 
-    @GetMapping("/contract-preview")
-    public ResponseEntity<?> getContractPreview(Authentication authentication, @RequestParam Long orderId) {
-        PreContractResponse response = sellerContractService.getPreContractByOrderId(authentication, orderId);
-        if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to fetch contract preview");
-        }
+    @PatchMapping("/contract-signature")
+    public ResponseEntity<?> signContract(Authentication authentication, @RequestBody SignContractRequest request) {
+        sellerContractService.signContract(authentication, request);
         return ResponseEntity.ok(
-                ApiResponse.<PreContractResponse>builder()
+                ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Contract preview fetched successfully")
-                        .data(response)
+                        .message("Contract signed successfully")
                         .build()
         );
     }

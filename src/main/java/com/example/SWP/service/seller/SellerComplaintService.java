@@ -1,6 +1,7 @@
 package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.seller.ComplaintResolutionRequest;
+import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ComplaintStatus;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.example.SWP.exception.BusinessException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -38,7 +41,7 @@ public class SellerComplaintService {
         Complaint complaint = complaintRepository.findById(complaintId)
                 .orElseThrow(() -> new BusinessException("Complaint not found", 404));
 
-        if(Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
+        if (Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
             throw new BusinessException("This complaint is not your", 400);
         }
 
@@ -58,7 +61,7 @@ public class SellerComplaintService {
                 () -> new BusinessException("Complaint not found", 404)
         );
 
-        if(Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
+        if (Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
             throw new BusinessException("This complaint is not your", 400);
         }
 
@@ -68,4 +71,24 @@ public class SellerComplaintService {
         notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "About your complaint", "The seller has given you a resolution for your complaint. Resolution: " + complaint.getResolutionNotes() + ".");
 
     }
+
+    public List<ComplaintResponse> getMyComplaints(Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new BusinessException("No user found", 404)
+        );
+
+        List<Complaint> list = complaintRepository.findByOrder_Seller_Id(user.getId());
+        return getComplaintsList(list);
+    }
+
+    private List<ComplaintResponse> getComplaintsList(List<Complaint> list) {
+        List<ComplaintResponse> response = new ArrayList<>();
+        for (Complaint one : list) {
+            ComplaintResponse complaint = complaintMapper.toComplaintResponse(one);
+            response.add(complaint);
+        }
+        return response;
+    }
+
 }
