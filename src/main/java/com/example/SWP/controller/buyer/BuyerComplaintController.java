@@ -1,6 +1,7 @@
 package com.example.SWP.controller.buyer;
 
 import com.example.SWP.dto.request.buyer.CreateComplaintRequest;
+import com.example.SWP.dto.request.buyer.RejectComplaintRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.service.buyer.BuyerComplaintService;
@@ -25,7 +26,7 @@ public class BuyerComplaintController {
     ComplaintService complaintService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createComplaint(Authentication authentication, @Valid CreateComplaintRequest request) {
+    public ResponseEntity<?> createComplaint(Authentication authentication, @Valid @RequestBody CreateComplaintRequest request) {
         buyerComplaintService.createComplaint(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
@@ -57,6 +58,17 @@ public class BuyerComplaintController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Complaint accepted successfully")
+                        .build()
+        );
+    }
+
+    @PatchMapping("/reject")
+    public ResponseEntity<?> rejectComplaint(Authentication authentication, @RequestBody RejectComplaintRequest request) {
+        buyerComplaintService.rejectComplaint(authentication, request);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Complaint rejected successfully")
                         .build()
         );
     }

@@ -25,6 +25,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -48,9 +49,20 @@ public class BuyerInvoiceService {
     @Value("${deposit-percentage}")
     BigDecimal depositPercentage;
 
+    private boolean checkIfInvoiceExist(Long contractId, InvoiceStatus status) {
+        return invoiceRepository.findByContractIdAndStatus(contractId, status)
+                .isPresent();
+    }
+
     public void createInvoice(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
+
+        if (checkIfInvoiceExist(contractId, InvoiceStatus.ACTIVE) || checkIfInvoiceExist(contractId, InvoiceStatus.INACTIVE)) {
+            throw new BusinessException("You already created the invoice for this order. Please pay!", 400);
+        }else if(checkIfInvoiceExist(contractId, InvoiceStatus.PAID)){
+            throw new BusinessException("You already paid this order. You can't create invoice again.", 400);
+        }
 
         BigDecimal firstInvoiceAmount;
 
@@ -256,7 +268,7 @@ public class BuyerInvoiceService {
 
     public void createFinalInvoiceIfDeposit(Order order) {
         if (order == null) {
-            throw new BusinessException("Order không tồn tại", 404);
+            throw new BusinessException("Order not found", 404);
         }
 
         if (order.getPaymentType() != PaymentType.DEPOSIT) {
@@ -264,7 +276,7 @@ public class BuyerInvoiceService {
         }
 
         Contract contract = contractRepository.findByOrder_Id(order.getId())
-                .orElseThrow(() -> new BusinessException("Order chưa có hợp đồng để tạo hóa đơn cuối", 400));
+                .orElseThrow(() -> new BusinessException("Order does not have contract to create final invoice to pay", 400));
 
         BigDecimal remainingPrice = contract.getPrice()
                 .subtract(contract.getPrice()
@@ -285,10 +297,10 @@ public class BuyerInvoiceService {
 
         User buyer = contract.getOrder().getBuyer();
         if (buyer != null) {
-            String buyerTitle = "Hóa đơn thanh toán phần còn lại đã được tạo";
+            String buyerTitle = "Invoice to pay the rest is created";
             String buyerContent = String.format(
-                    "Xin chào %s,\n\nHóa đơn thanh toán phần còn lại của bạn đã được tạo.\n" +
-                            "Mã hóa đơn: %s\nSố tiền cần thanh toán: %s %s\nHạn thanh toán: %s\n\nTrân trọng,\nĐội ngũ hỗ trợ.",
+                    "Hello %s,\n\nYour invoice to pay the rest is created.\n" +
+                            "Invoice code: %s\nAmount payable: %s %s\nDue date: %s\n\nBest Regard,\nSupport team.",
                     buyer.getFullName(),
                     invoice.getInvoiceNumber(),
                     invoice.getTotalPrice(),

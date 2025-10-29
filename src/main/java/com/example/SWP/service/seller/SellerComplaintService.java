@@ -70,12 +70,12 @@ public class SellerComplaintService {
             throw new BusinessException("This complaint is not your", 400);
         }
 
-        if(!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLVING)) {
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLVING)) {
             throw new BusinessException("Failed to response complaint, complaint is not being resolved", 400);
         }
 
         complaintMapper.updateComplaint(request, complaint);
-        complaint.setStatus(ComplaintStatus.RESOLVED);
+        complaint.setStatus(ComplaintStatus.RESOLUTION_GIVEN);
         complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
 

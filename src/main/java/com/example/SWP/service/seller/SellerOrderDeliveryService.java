@@ -34,12 +34,12 @@ public class SellerOrderDeliveryService {
 
     public void createDeliveryStatus(Order order) {
         if (order == null) {
-            throw new BusinessException("Order không tồn tại", 404);
+            throw new BusinessException("Order not found", 404);
         }
 
         OrderDelivery existing = orderDeliveryRepository.findByOrderId(order.getId());
         if (existing != null) {
-            throw new BusinessException("Order đã có trạng thái giao hàng", 400);
+            throw new BusinessException("Order already had delivery status", 400);
         }
 
         OrderDelivery orderDelivery = new OrderDelivery();
@@ -60,12 +60,12 @@ public class SellerOrderDeliveryService {
                 .orElseThrow(() -> new BusinessException("Order không tồn tại", 404));
 
         if (!order.getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("Bạn không có quyền xem đơn hàng này", 403);
+            throw new BusinessException("You don't have permission to view this order", 403);
         }
 
         OrderDelivery delivery = orderDeliveryRepository.findByOrderId(orderId);
         if (delivery == null) {
-            throw new BusinessException("Đơn hàng chưa có thông tin vận chuyển", 404);
+            throw new BusinessException("This order does not have delivery information yet", 404);
         }
 
         return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
@@ -84,11 +84,11 @@ public class SellerOrderDeliveryService {
 
     public OrderDeliveryResponse updateDeliveryStatus(Long orderId, DeliveryStatus newStatus) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order không tồn tại", 404));
+                .orElseThrow(() -> new BusinessException("Order not found", 404));
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(orderId);
         if (orderDelivery == null) {
-            throw new BusinessException("Order chưa có trạng thái vận chuyển", 404);
+            throw new BusinessException("Order doesn't have delivery status yet", 404);
         }
 
         if (order.getDeliveryMethod() == DeliveryMethod.GHN) {
@@ -109,7 +109,7 @@ public class SellerOrderDeliveryService {
             }
 
             else {
-                throw new BusinessException("Không thể cập nhật trạng thái thủ công sau khi đơn GHN đã được tạo", 400);
+                throw new BusinessException("Cannot update the status after the GHN is created", 400);
             }
         }
 

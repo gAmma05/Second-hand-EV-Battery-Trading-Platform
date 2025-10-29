@@ -1,11 +1,10 @@
-package com.example.SWP.controller.seller;
+package com.example.SWP.controller.admin;
 
-import com.example.SWP.dto.request.seller.ComplaintResolutionRequest;
+import com.example.SWP.dto.request.admin.HandleComplaintRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.ComplaintResponse;
+import com.example.SWP.service.admin.AdminComplaintService;
 import com.example.SWP.service.complaint.ComplaintService;
-import com.example.SWP.service.seller.SellerComplaintService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
@@ -15,43 +14,29 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/seller/complaints")
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
-public class SellerComplaintController {
+@RequestMapping("/admin/complaints")
+public class AdminComplaintController {
 
-    SellerComplaintService sellerComplaintService;
+    AdminComplaintService adminComplaintService;
 
     ComplaintService complaintService;
 
-    @PatchMapping("/accept")
-    public ResponseEntity<?> acceptComplaintRequest(Authentication authentication, @RequestParam Long complaintId) {
-        sellerComplaintService.acceptComplaint(authentication, complaintId);
+    @PatchMapping("/handle")
+    public ResponseEntity<?> approveComplaint(@RequestBody HandleComplaintRequest request) {
+        adminComplaintService.handleComplaint(request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint accepted successfully")
+                        .message("Complaint handled successfully")
                         .build()
         );
     }
 
-    @PatchMapping("/resolution")
-    public ResponseEntity<?> resolveComplaint(Authentication authentication, @Valid @RequestBody ComplaintResolutionRequest request) {
-        sellerComplaintService.responseComplaint(authentication, request);
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Complaint resolved successfully")
-                        .build()
-        );
-    }
-
-    @PostMapping("/detail")
+    @GetMapping("/detail")
     public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
         ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);
-        if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to fetch complaint detail");
-        }
         return ResponseEntity.ok(
                 ApiResponse.<ComplaintResponse>builder()
                         .success(true)
@@ -62,22 +47,21 @@ public class SellerComplaintController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> getComplaintList(Authentication authentication) {
-        List<ComplaintResponse> list = sellerComplaintService.getMyComplaints(authentication);
-        if (list == null || list.isEmpty()) {
-            return ResponseEntity.badRequest().body(
+    public ResponseEntity<?> getComplaintList() {
+        List<ComplaintResponse> response = adminComplaintService.getMyComplaints();
+        if (response == null || response.isEmpty()) {
+            return ResponseEntity.ok(
                     ApiResponse.<ComplaintResponse>builder()
-                            .success(false)
+                            .success(true)
                             .message("List is empty")
                             .build()
             );
         }
-
         return ResponseEntity.ok(
                 ApiResponse.<List<ComplaintResponse>>builder()
                         .success(true)
                         .message("Fetched complaint list successfully")
-                        .data(list)
+                        .data(response)
                         .build()
         );
     }
