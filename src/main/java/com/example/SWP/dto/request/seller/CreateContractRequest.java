@@ -23,6 +23,10 @@ public class CreateContractRequest {
     @Size(max = 100, message = "Title must be less than 100 characters")
     String title;
 
+    @NotNull(message = "Content is required")
+    @Size(max = 1000, message = "Content must be less than 1000 characters")
+    String content;
+
     @NotNull(message = "Price is required")
     BigDecimal price;
 
