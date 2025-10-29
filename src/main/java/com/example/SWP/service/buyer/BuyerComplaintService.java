@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -40,12 +41,19 @@ public class BuyerComplaintService {
     NotificationService notificationService;
 
     public void createComplaint(Authentication authentication, CreateComplaintRequest request) {
+
+        int DUE_DATE = 7;
+
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new BusinessException("No user found", 404)
         );
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
+
+        if (ChronoUnit.DAYS.between(LocalDateTime.now(), orderDelivery.getCreatedAt()) >= DUE_DATE) {
+            throw new BusinessException("You cannot create complaint after " + DUE_DATE + " days", 400);
+        }
 
         if (!Objects.equals(orderDelivery.getOrder().getBuyer().getId(), user.getId())) {
             throw new BusinessException("This order is not your", 400);
@@ -114,7 +122,7 @@ public class BuyerComplaintService {
 
     private List<ComplaintResponse> getComplaintsList(List<Complaint> list) {
         List<ComplaintResponse> response = new ArrayList<>();
-        for(Complaint one : list) {
+        for (Complaint one : list) {
             ComplaintResponse complaint = complaintMapper.toComplaintResponse(one);
             response.add(complaint);
         }
