@@ -22,17 +22,6 @@ public class SellerContractController {
 
     SellerContractService sellerContractService;
 
-    @PatchMapping("/contract-signature")
-    public ResponseEntity<?> signContract(Authentication authentication, @RequestBody SignContractRequest request) {
-        sellerContractService.signContract(authentication, request);
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Contract signed successfully")
-                        .build()
-        );
-    }
-
     @PostMapping("/create")
     public ResponseEntity<?> createContract(Authentication authentication, @Valid @RequestBody CreateContractRequest request) {
         sellerContractService.createContract(authentication, request);

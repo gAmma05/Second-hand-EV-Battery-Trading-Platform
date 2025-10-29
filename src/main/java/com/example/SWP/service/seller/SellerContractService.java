@@ -43,28 +43,6 @@ public class SellerContractService {
     GhnService ghnService;
     ValidateService validateService;
 
-    public void signContract(Authentication authentication, SignContractRequest request) {
-        User user = validateService.validateCurrentUser(authentication);
-        Contract contract = contractRepository.findById(request.getContractId())
-                .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
-
-        if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("This contract is not belong to you, you can't sign it", 400);
-        }
-
-        if (contract.getStatus() != ContractStatus.PENDING) {
-            throw new BusinessException("This contract is not pending, you can't sign it", 400);
-        }
-
-        contract.setContent(request.getContent());
-        contract.setSellerSigned(true);
-        contract.setSellerSignedAt(LocalDateTime.now());
-
-        contractRepository.save(contract);
-
-        notificationService.sendNotificationToOneUser(contract.getOrder().getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
-    }
-
     public void createContract(Authentication authentication, CreateContractRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
@@ -85,7 +63,10 @@ public class SellerContractService {
         contract.setOrder(order);
         contract.setContractCode(Utils.generateCode("CT"));
         contract.setTitle(request.getTitle());
+        contract.setContent(request.getContent());
         contract.setCurrency(request.getCurrency());
+        contract.setSellerSigned(true);
+        contract.setSellerSignedAt(LocalDateTime.now());
         contract.setStatus(ContractStatus.PENDING);
 
         if (order.getDeliveryMethod() == DeliveryMethod.GHN) {
