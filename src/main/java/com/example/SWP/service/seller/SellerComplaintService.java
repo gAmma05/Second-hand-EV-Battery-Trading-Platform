@@ -83,6 +83,29 @@ public class SellerComplaintService {
 
     }
 
+    public void requestToAdmin(Authentication authentication, Long contractId) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new BusinessException("No user found", 404)
+        );
+
+        Complaint complaint = complaintRepository.findById(contractId).orElseThrow(
+                () -> new BusinessException("Complaint not found", 404)
+        );
+
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.REJECTED) &&
+                !Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLVING)) {
+            throw new BusinessException("Failed to request admin, complaint must be rejected or being resolved to request", 400);
+        }
+
+
+        complaint.setStatus(ComplaintStatus.ADMIN_SOLVING);
+        complaint.setUpdatedAt(LocalDateTime.now());
+        complaintRepository.save(complaint);
+
+        notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "About your complaint", "The seller has requested admin to solve your complaint. Please wait for the resolution.");
+    }
+
     public List<ComplaintResponse> getMyComplaints(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
