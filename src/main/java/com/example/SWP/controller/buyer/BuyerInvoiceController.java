@@ -19,21 +19,7 @@ import java.util.List;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerInvoiceController {
 
-
     BuyerInvoiceService buyerInvoiceService;
-
-    @GetMapping("/create")
-    public ResponseEntity<?> createInvoice(@RequestParam Long contractId) {
-        buyerInvoiceService.createInvoice(contractId);
-        return ResponseEntity.ok(
-                ApiResponse.<InvoiceResponse>builder()
-                        .success(true)
-                        .message("Created invoice successfully")
-                        .build()
-        );
-    }
-
-
 
     @GetMapping("/detail")
     public ResponseEntity<?> getInvoiceDetail(Authentication authentication, Long invoiceId) {
