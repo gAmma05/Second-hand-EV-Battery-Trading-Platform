@@ -3,7 +3,6 @@ package com.example.SWP.controller.buyer;
 import com.example.SWP.dto.request.seller.PayInvoiceRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.InvoiceResponse;
-import com.example.SWP.enums.InvoiceStatus;
 import com.example.SWP.service.buyer.BuyerInvoiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,19 +21,8 @@ public class BuyerInvoiceController {
 
     BuyerInvoiceService buyerInvoiceService;
 
-    @PostMapping
-    public ResponseEntity<?> createInvoice(@RequestParam Long contractId) {
-        buyerInvoiceService.createInvoice(contractId);
-        return ResponseEntity.ok(
-                ApiResponse.<InvoiceResponse>builder()
-                        .success(true)
-                        .message("Created invoice successfully")
-                        .build()
-        );
-    }
-
-    @GetMapping("/{invoiceId}")
-    public ResponseEntity<?> getInvoiceDetail(Authentication authentication, @PathVariable Long invoiceId) {
+    @GetMapping("/detail")
+    public ResponseEntity<?> getInvoiceDetail(Authentication authentication, Long invoiceId) {
         InvoiceResponse response = buyerInvoiceService.getInvoiceDetail(authentication, invoiceId);
         if (response == null) {
             return ResponseEntity.badRequest().body("Failed to fetch this invoice detail");
@@ -48,48 +36,50 @@ public class BuyerInvoiceController {
         );
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAllInvoices(Authentication authentication) {
+    @GetMapping("/full-list")
+    public ResponseEntity<?> getAllInvoice(Authentication authentication) {
         List<InvoiceResponse> response = buyerInvoiceService.getAllInvoices(authentication);
-
+        if (response == null || response.isEmpty()) {
+            return ResponseEntity.badRequest().body("Failed to fetch invoice list or you don't have any invoice yet");
+        }
         return ResponseEntity.ok(
                 ApiResponse.<List<InvoiceResponse>>builder()
                         .success(true)
-                        .message("All invoices retrieved successfully")
+                        .message("Fetched invoice list successfully")
                         .data(response)
                         .build()
         );
     }
 
-    @GetMapping("/orders/{orderId}")
-    public ResponseEntity<?> getAllInvoicesByOrderId(Authentication authentication, @PathVariable Long orderId) {
-        List<InvoiceResponse> response = buyerInvoiceService.getAllInvoicesByOrderId(authentication, orderId);
-
+    @GetMapping("/expired-list")
+    public ResponseEntity<?> getExpiredList(Authentication authentication) {
+        List<InvoiceResponse> response = buyerInvoiceService.getExpiredInvoices(authentication);
+        if (response == null || response.isEmpty()) {
+            return ResponseEntity.badRequest().body("Failed to fetch expired invoice list or you don't have any expired invoice yet");
+        }
         return ResponseEntity.ok(
                 ApiResponse.<List<InvoiceResponse>>builder()
                         .success(true)
-                        .message("All invoices retrieved successfully")
+                        .message("Fetched expired invoice list successfully")
                         .data(response)
                         .build()
         );
     }
 
-    @GetMapping("/status")
-    public ResponseEntity<?> getInvoicesByStatus(
-            Authentication authentication,
-            @RequestParam("status") InvoiceStatus status
-    ) {
-        List<InvoiceResponse> response = buyerInvoiceService.getInvoicesByStatus(authentication, status);
-
+    @GetMapping("/valid-list")
+    public ResponseEntity<?> getValidList(Authentication authentication) {
+        List<InvoiceResponse> response = buyerInvoiceService.getValidInvoices(authentication);
+        if (response == null || response.isEmpty()) {
+            return null;
+        }
         return ResponseEntity.ok(
                 ApiResponse.<List<InvoiceResponse>>builder()
                         .success(true)
-                        .message("Fetched " + status + " invoices successfully")
+                        .message("Fetched valid invoice list successfully")
                         .data(response)
                         .build()
         );
     }
-
 
     @PostMapping("/pay")
     public ResponseEntity<?> payInvoice(Authentication authentication, @Valid @RequestBody PayInvoiceRequest request) {
@@ -103,4 +93,6 @@ public class BuyerInvoiceController {
                         .build()
         );
     }
+
+
 }

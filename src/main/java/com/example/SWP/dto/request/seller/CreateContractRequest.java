@@ -32,7 +32,4 @@ public class CreateContractRequest {
 
     @NotNull(message = "Currency is required")
     String currency;
-
-    @NotNull(message = "SellerSigned is required")
-    boolean sellerSigned;
 }

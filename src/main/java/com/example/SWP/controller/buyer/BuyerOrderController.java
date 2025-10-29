@@ -7,6 +7,7 @@ import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.BuyerOrderResponse;
 import com.example.SWP.service.buyer.BuyerOrderDeliveryService;
 import com.example.SWP.service.buyer.BuyerOrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
@@ -44,8 +45,8 @@ public class BuyerOrderController {
         );
     }
 
-    @PostMapping("/cancel")
-    public ResponseEntity<ApiResponse<Void>> cancelOrder(Authentication authentication, CancelOrderRequest request) {
+    @PatchMapping("/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelOrder(Authentication authentication, @Valid @RequestBody CancelOrderRequest request) {
         buyerOrderService.cancelOrder(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()

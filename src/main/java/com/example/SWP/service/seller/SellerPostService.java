@@ -76,6 +76,7 @@ public class SellerPostService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .price(request.getPrice())
+                .address(request.getAddress())
                 .deliveryMethods(request.getDeliveryMethods())
                 .paymentTypes(request.getPaymentTypes())
                 .postDate(LocalDateTime.now())
@@ -174,6 +175,7 @@ public class SellerPostService {
         post.setTitle(request.getTitle());
         post.setDescription(request.getDescription());
         post.setPrice(request.getPrice());
+        post.setAddress(request.getAddress());
         post.setDeliveryMethods(request.getDeliveryMethods());
         post.setPaymentTypes(request.getPaymentTypes());
         post.setUpdateDate(LocalDateTime.now());

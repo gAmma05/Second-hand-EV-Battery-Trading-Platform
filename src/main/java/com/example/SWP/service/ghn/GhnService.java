@@ -4,20 +4,15 @@ import com.example.SWP.dto.request.ghn.ServiceRequest;
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.response.ghn.*;
 import com.example.SWP.entity.OrderDelivery;
-import com.example.SWP.entity.Post;
-import com.example.SWP.entity.User;
 import com.example.SWP.enums.DeliveryProvider;
 import com.example.SWP.enums.DeliveryStatus;
-import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.PostRepository;
-import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -30,8 +25,7 @@ import java.util.*;
 public class GhnService {
 
     final RestTemplate restTemplate;
-    final PostRepository postRepository;
-    final UserRepository userRepository;
+    final OrderDeliveryRepository orderDeliveryRepository;
 
     @Value("${ghn.token}")
     String GHN_TOKEN;
@@ -178,50 +172,23 @@ public class GhnService {
         return String.join(", ", streetAddress, wardName, districtName, provinceName);
     }
 
-    public FeeResponse calculateShippingFee(FeeRequest request, User buyer) {
-
-        if(buyer == null) {
-            throw  new BusinessException("Người mua không tồn tại", 404);
-        }
-
-        if (buyer.getRole() != Role.BUYER) {
-            throw new BusinessException("Người dùng không phải là người mua", 400);
-        }
-
-        if (buyer.getDistrictId() == null || buyer.getWardCode() == null) {
-            throw new BusinessException("Người mua chưa cập nhật địa chỉ", 400);
-        }
-
-        Post post = postRepository.findById(request.getPostId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
-
-        User seller = post.getUser();
-        if (seller == null || seller.getGhnShopId() == null || seller.getGhnToken() == null) {
-            throw new BusinessException("Người bán chưa có thông tin GHN", 400);
-        }
-
-        String token = seller.getGhnToken();
-        Integer shopId = seller.getGhnShopId();
-        Integer fromDistrictId = seller.getDistrictId();
-        Integer toDistrictId = buyer.getDistrictId();
-        String toWardCode = buyer.getWardCode();
-
+    public FeeResponse calculateShippingFee(FeeRequest request) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Token", token);
-        headers.set("ShopId", String.valueOf(shopId));
+        headers.set("Token", request.getGhnToken());
+        headers.set("ShopId", String.valueOf(request.getGhnShopId()));
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("from_district_id", fromDistrictId);
-        body.put("to_district_id", toDistrictId);
-        body.put("to_ward_code", toWardCode);
+        body.put("from_district_id", request.getFromDistrictId());
+        body.put("to_district_id", request.getToDistrictId());
+        body.put("to_ward_code", request.getToWardCode());
         body.put("service_type_id", request.getServiceTypeId());
-        body.put("weight", post.getWeight());
+        body.put("weight", request.getWeight());
 
-        if (request.getServiceTypeId() == 5) {
+        if(request.getServiceTypeId() == 5) {
             List<Map<String, Object>> itemsList = new ArrayList<>();
             Map<String, Object> item = new HashMap<>();
-            item.put("weight", post.getWeight());
+            item.put("weight", request.getWeight());
             itemsList.add(item);
             body.put("items", itemsList);
         }
@@ -245,46 +212,17 @@ public class GhnService {
     }
 
 
-    public List<AvailableServicesResponse> getAvailableServices(
-            ServiceRequest serviceRequest,
-            Authentication authentication) {
-
-        String email = authentication.getName();
-
-        Post post = postRepository.findById(serviceRequest.getPostId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
-
-        User seller = post.getUser();
-        if (seller == null || seller.getGhnShopId() == null || seller.getGhnToken() == null) {
-            throw new BusinessException("Người mua chưa có thông tin GHN", 400);
-        }
-
-        User buyer = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người mua", 404));
-
-        Integer fromDistrictId = seller.getDistrictId();
-        Integer toDistrictId = buyer.getDistrictId();
-
-        if (fromDistrictId == null) {
-            throw new BusinessException("Người bán chưa cập nhật địa chỉ", 400);
-        }
-
-        if (toDistrictId == null) {
-            throw new BusinessException("Người mua chưa cập nhật địa chỉ", 400);
-        }
-
-
+    public List<AvailableServicesResponse> getAvailableServices(ServiceRequest serviceRequest) {
         String url = GHN_URL + "/v2/shipping-order/available-services";
 
         HttpHeaders headers = new HttpHeaders();
-
-        headers.set("Token", seller.getGhnToken());
+        headers.set("Token", serviceRequest.getGhnToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("shop_id", seller.getGhnShopId());
-        body.put("from_district", seller.getDistrictId());
-        body.put("to_district", buyer.getDistrictId());
+        body.put("shop_id", serviceRequest.getGhnShopId());
+        body.put("from_district", serviceRequest.getFromDistrictId());
+        body.put("to_district", serviceRequest.getToDistrictId());
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
@@ -310,27 +248,7 @@ public class GhnService {
                 services.add(service);
             }
 
-            AvailableServicesResponse selectedService = null;
-
-            if (post.getWeight() > 20) {
-                for (AvailableServicesResponse s : services) {
-                    if (s.getService_type_id() == 5) {
-                        selectedService = s;
-                        break;
-                    }
-                }
-            } else {
-                for (AvailableServicesResponse s : services) {
-                    if (s.getService_type_id() == 2) {
-                        selectedService = s;
-                        break;
-                    }
-                }
-            }
-
-            return selectedService != null
-                    ? List.of(selectedService)
-                    : Collections.emptyList();
+            return services;
 
         } catch (Exception e) {
             throw new BusinessException(
@@ -339,6 +257,7 @@ public class GhnService {
             );
         }
     }
+
 
 
     public void validateGhnTokenAndShop(String token, Integer shopId) {
@@ -389,7 +308,7 @@ public class GhnService {
     }
 
     public DeliveryStatus getOrderStatus(String trackingNumber) {
-        if (trackingNumber == null || trackingNumber.isEmpty()) {
+        if(trackingNumber == null || trackingNumber.isEmpty()) {
             throw new BusinessException("Tracking number không được để trống", 400);
         }
 

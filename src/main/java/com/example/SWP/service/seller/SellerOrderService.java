@@ -1,7 +1,7 @@
 package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.response.seller.SellerOrderResponse;
-import com.example.SWP.dto.response.seller.RejectOrderResponse;
+import com.example.SWP.dto.request.seller.RejectOrderRequest;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.OrderStatus;
@@ -83,7 +83,7 @@ public class SellerOrderService {
         orderRepository.save(order);
     }
 
-    public void rejectOrder(Authentication authentication, RejectOrderResponse response) {
+    public void rejectOrder(Authentication authentication, RejectOrderRequest response) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));

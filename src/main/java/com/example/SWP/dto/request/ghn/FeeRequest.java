@@ -10,6 +10,13 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class FeeRequest {
-    Long postId;
+    Integer fromDistrictId;
+    Integer toDistrictId;
+    String toWardCode;
     Integer serviceTypeId;
+
+    Integer weight;
+
+    String ghnToken;
+    Integer ghnShopId;
 }

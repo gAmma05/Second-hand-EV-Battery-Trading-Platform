@@ -1,4 +1,4 @@
-package com.example.SWP.dto.request.ghn;
+package com.example.SWP.dto.request.seller;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -7,12 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ServiceRequest {
-    String ghnToken;
-    Integer ghnShopId;
-    Integer fromDistrictId;
-    Integer toDistrictId;
+public class RejectOrderRequest {
+    Long orderId;
+    String reason;
 }
