@@ -2,7 +2,7 @@ package com.example.SWP.controller.seller;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.seller.SellerOrderResponse;
-import com.example.SWP.dto.response.seller.RejectOrderResponse;
+import com.example.SWP.dto.request.seller.RejectOrderRequest;
 import com.example.SWP.service.seller.SellerOrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +34,8 @@ public class SellerOrderController {
     }
 
     @PostMapping("/reject")
-    public ResponseEntity<ApiResponse<Void>> rejectOrder(Authentication authentication, RejectOrderResponse rejectOrderResponse) {
-        sellerOrderService.rejectOrder(authentication, rejectOrderResponse);
+    public ResponseEntity<ApiResponse<Void>> rejectOrder(Authentication authentication, RejectOrderRequest rejectOrderRequest) {
+        sellerOrderService.rejectOrder(authentication, rejectOrderRequest);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)

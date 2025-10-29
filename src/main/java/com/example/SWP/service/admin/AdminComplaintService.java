@@ -49,7 +49,7 @@ public class AdminComplaintService {
     }
 
     public List<ComplaintResponse> getMyComplaints() {
-        List<Complaint> list = complaintRepository.findAll();
+        List<Complaint> list = complaintRepository.findByStatus(ComplaintStatus.ADMIN_SOLVING);
         return getComplaintsList(list);
     }
 
