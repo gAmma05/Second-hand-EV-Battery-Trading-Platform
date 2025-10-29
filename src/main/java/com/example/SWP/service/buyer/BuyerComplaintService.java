@@ -88,7 +88,7 @@ public class BuyerComplaintService {
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new BusinessException("No user found", 404)
         );
-        Complaint complaint = complaintRepository.findById(request.getId())
+        Complaint complaint = complaintRepository.findById(request.getComplaintId())
                 .orElseThrow(() -> new BusinessException("Complaint not found", 404));
 
         if (!Objects.equals(complaint.getOrder().getBuyer().getId(), user.getId())) {

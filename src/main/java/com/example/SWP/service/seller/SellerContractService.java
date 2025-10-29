@@ -38,7 +38,7 @@ public class SellerContractService {
     ContractMapper contractMapper;
     GhnService ghnService;
     ValidateService validateService;
-    
+
     public void createContract(Authentication authentication, CreateContractRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));

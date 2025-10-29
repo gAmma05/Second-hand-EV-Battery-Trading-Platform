@@ -10,6 +10,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RejectComplaintRequest {
-    Long id;
+    Long complaintId;
     String reason;
 }

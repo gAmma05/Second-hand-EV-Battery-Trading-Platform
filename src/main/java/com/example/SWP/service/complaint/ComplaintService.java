@@ -34,10 +34,14 @@ public class ComplaintService {
 
         Complaint complaint = null;
 
-        if(Objects.equals(user.getRole(), Role.SELLER)) {
+        if (Objects.equals(user.getRole(), Role.SELLER)) {
             complaint = complaintRepository.findByIdAndOrder_Seller_Id(complaintId, user.getId());
-        }else if(Objects.equals(user.getRole(), Role.BUYER)) {
+        } else if (Objects.equals(user.getRole(), Role.BUYER)) {
             complaint = complaintRepository.findByIdAndOrder_Buyer_Id(complaintId, user.getId());
+        } else if (Objects.equals(user.getRole(), Role.ADMIN)) {
+            complaint = complaintRepository.findById(complaintId).orElseThrow(
+                    () -> new BusinessException("Complaint not found", 404)
+            );
         }
 
         return complaintMapper.toComplaintResponse(complaint);
