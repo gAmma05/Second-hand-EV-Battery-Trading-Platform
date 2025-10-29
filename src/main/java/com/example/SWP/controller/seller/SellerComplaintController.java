@@ -35,6 +35,17 @@ public class SellerComplaintController {
         );
     }
 
+    @PatchMapping("/admin-request")
+    public ResponseEntity<?> adminRequestComplaint(Authentication authentication, @RequestParam Long complaintId) {
+        sellerComplaintService.requestToAdmin(authentication, complaintId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Complaint requested to admin successfully")
+                        .build()
+        );
+    }
+
     @PatchMapping("/resolution")
     public ResponseEntity<?> resolveComplaint(Authentication authentication, @Valid @RequestBody ComplaintResolutionRequest request) {
         sellerComplaintService.responseComplaint(authentication, request);
