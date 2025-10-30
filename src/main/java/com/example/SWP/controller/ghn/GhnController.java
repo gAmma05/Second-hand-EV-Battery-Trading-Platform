@@ -47,6 +47,4 @@ public class GhnController {
         User buyer = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         return ghnService.calculateShippingFee(request, buyer);
     }
-
-
 }
