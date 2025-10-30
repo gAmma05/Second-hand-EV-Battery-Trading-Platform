@@ -2,7 +2,6 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
-import com.example.SWP.dto.response.PreContractResponse;
 import com.example.SWP.dto.response.ghn.FeeResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
@@ -11,12 +10,10 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
-import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.ghn.GhnService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.validate.ValidateService;
@@ -29,55 +26,18 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class SellerContractService {
 
-    UserRepository userRepository;
     OrderRepository orderRepository;
     ContractRepository contractRepository;
     NotificationService notificationService;
     ContractMapper contractMapper;
     GhnService ghnService;
     ValidateService validateService;
-
-
-    public PreContractResponse getPreContractByOrderId(Authentication authentication, Long orderId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
-
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
-
-        if (!Objects.equals(order.getSeller().getId(), user.getId())) {
-            throw new BusinessException("This order is not belong to you", 400);
-        }
-
-        if (order.getStatus().equals(OrderStatus.PENDING)) {
-            throw new BusinessException("You can't create contract until the order is approved", 400);
-        } else if (order.getStatus().equals(OrderStatus.REJECTED)) {
-            throw new BusinessException("This order is already rejected, you can no longer create contract on this order", 400);
-        }
-
-        PreContractResponse response = new PreContractResponse();
-        response.setOrderId(orderId);
-        response.setTitle(order.getPost().getTitle());
-        response.setPrice(order.getPost().getPrice());
-        response.setPaymentType(order.getPaymentType());
-        response.setCurrency("VND");
-        response.setPaymentType(order.getPaymentType());
-
-        return response;
-
-    }
 
     public void createContract(Authentication authentication, CreateContractRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
@@ -106,7 +66,6 @@ public class SellerContractService {
                 .order(order)
                 .contractCode(Utils.generateCode("CT"))
                 .title(request.getTitle())
-                .content(request.getContent())
                 .currency(request.getCurrency())
                 .sellerSigned(true)
                 .sellerSignedAt(LocalDateTime.now())

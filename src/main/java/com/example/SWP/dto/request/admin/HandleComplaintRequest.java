@@ -1,6 +1,5 @@
-package com.example.SWP.dto.response.seller;
+package com.example.SWP.dto.request.admin;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -9,10 +8,14 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RejectOrderResponse {
-    Long orderId;
-    String reason;
+public class HandleComplaintRequest {
+
+    @NotNull(message = "Complaint ID is required")
+    Long complaintId;
+
+    @NotNull(message = "Resolution is required")
+    String resolution;
 }
