@@ -1,6 +1,5 @@
 package com.example.SWP.dto.request.ghn;
 
-import com.example.SWP.entity.Post;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
