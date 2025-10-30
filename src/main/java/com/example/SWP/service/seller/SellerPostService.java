@@ -2,6 +2,7 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
+import com.example.SWP.dto.request.user.ai.AiProductRequest;
 import com.example.SWP.entity.*;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
@@ -11,6 +12,7 @@ import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.PriorityPackagePaymentRepository;
 import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.ai.AiService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +36,7 @@ public class SellerPostService {
     ValidateService validateService;
     SellerPaymentService sellerPaymentService;
     PriorityPackagePaymentRepository priorityPackagePaymentRepository;
+    AiService aiService;
 
     @NonFinal
     @Value("${post.expire.days}")
@@ -62,6 +65,25 @@ public class SellerPostService {
             if (request.getBatteryType() == null || request.getCapacity() == null || request.getVoltage() == null) {
                 throw new BusinessException("BatteryType, capacity, and voltage are required for BATTERY", 400);
             }
+        }
+
+        AiProductRequest aiProductRequest = AiProductRequest.builder()
+                .productType(request.getProductType())
+                .vehicleBrand(request.getVehicleBrand())
+                .model(request.getModel())
+                .yearOfManufacture(request.getYearOfManufacture())
+                .color(request.getColor())
+                .mileage(request.getMileage())
+                .batteryType(request.getBatteryType())
+                .capacity(request.getCapacity())
+                .voltage(request.getVoltage())
+                .batteryBrand(request.getBatteryBrand())
+                .build();
+
+        boolean isValid = aiService.validateProduct(aiProductRequest);
+
+        if (!isValid) {
+            throw new BusinessException("Product information appears to be incorrect or unrelated. Please verify the details and try again.", 400);
         }
 
         SellerPackage sellerPackage = null;
@@ -140,7 +162,6 @@ public class SellerPostService {
 
         return post;
     }
-
 
     public Post updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
         // Lấy user hiện tại

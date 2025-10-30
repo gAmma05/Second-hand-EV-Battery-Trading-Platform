@@ -9,9 +9,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+
 public class AiProductRequest {
     ProductType productType;
-    String description;
 
     String vehicleBrand;
     String model;
@@ -23,4 +23,6 @@ public class AiProductRequest {
     Integer capacity;
     String voltage;
     String batteryBrand;
+
+    String description;
 }

@@ -46,6 +46,11 @@ public class SellerOrderDeliveryService {
 
         orderDelivery.setOrder(order);
         orderDelivery.setStatus(DeliveryStatus.PREPARING);
+
+        if(order.getDeliveryMethod() == DeliveryMethod.GHN) {
+            ghnService.createGhnOrder(orderDelivery);
+        }
+
         orderDelivery.setDeliveryDate(LocalDateTime.now().plusDays(7));
         orderDelivery.setCreatedAt(LocalDateTime.now());
         orderDelivery.setUpdatedAt(LocalDateTime.now());

@@ -47,9 +47,6 @@ public class User {
     String socialMedia;
     int remainingPosts;
 
-    String ghnToken;
-    Integer ghnShopId;
-
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     @Enumerated(EnumType.STRING)

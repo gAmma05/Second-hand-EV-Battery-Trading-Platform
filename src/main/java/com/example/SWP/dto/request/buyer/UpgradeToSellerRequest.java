@@ -24,10 +24,4 @@ public class UpgradeToSellerRequest {
     @NotBlank(message = "Social media is required")
     @Size(max = 200, message = "Social media must not exceed 200 characters")
     String socialMedia;
-
-    @NotBlank(message = "GHN Token is required")
-    String ghnToken;
-
-    @NotNull(message = "GHN Shop ID is required")
-    Integer ghnShopId;
 }
