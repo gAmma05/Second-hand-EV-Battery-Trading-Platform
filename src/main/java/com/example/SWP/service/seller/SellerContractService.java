@@ -116,6 +116,8 @@ public class SellerContractService {
             throw new BusinessException("You can't create contract until the order is approved", 400);
         } else if (order.getStatus().equals(OrderStatus.REJECTED)) {
             throw new BusinessException("This order is already rejected, you can no longer create contract on this order", 400);
+        } else if(order.getStatus().equals(OrderStatus.DONE)) {
+            throw new BusinessException("This order is already done, you can no longer create contract on this order", 400);
         }
 
         Contract contract = Contract.builder()
@@ -126,17 +128,19 @@ public class SellerContractService {
                 .status(ContractStatus.PENDING)
                 .build();
 
+        Post post = order.getPost();
+
         if (order.getDeliveryMethod() == DeliveryMethod.GHN) {
 
             FeeRequest feeRequest = FeeRequest.builder()
-                    .postId(order.getPost().getId())
+                    .postId(post.getId())
                     .serviceTypeId(order.getServiceTypeId())
                     .build();
 
             FeeResponse feeResponse = ghnService.calculateShippingFee(feeRequest, buyer);
-            contract.setPrice(request.getPrice().add(BigDecimal.valueOf(feeResponse.getTotal())));
+            contract.setPrice(post.getPrice().add(BigDecimal.valueOf(feeResponse.getTotal())));
         } else {
-            contract.setPrice(request.getPrice());
+            contract.setPrice(post.getPrice());
         }
 
         contractRepository.save(contract);
