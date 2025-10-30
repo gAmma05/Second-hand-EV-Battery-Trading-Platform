@@ -44,7 +44,7 @@ public class AdminPostService {
             throw new BusinessException("Post is not pending approval", 400);
         }
 
-        post.setStatus(PostStatus.REJECTED);
+        post.setStatus(PostStatus.POSTED);
         postRepository.save(post);
     }
 

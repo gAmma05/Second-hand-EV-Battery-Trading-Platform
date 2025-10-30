@@ -16,6 +16,7 @@ public interface PostMapper {
 
     @Mapping(target = "trusted", expression = "java(post.isTrusted())")
     @Mapping(target = "images", source = "images", qualifiedByName = "mapImages")
+    @Mapping(target = "userId", source = "user.id")
     PostResponse toPostResponse(Post post);
 
     List<PostResponse> toPostResponseList(List<Post> posts);

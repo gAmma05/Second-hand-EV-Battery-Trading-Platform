@@ -25,6 +25,5 @@ public class SellerPackage {
     String description;
     BigDecimal price;
     int postLimit;
-    int durationDays;
 }
 

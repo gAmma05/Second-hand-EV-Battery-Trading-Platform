@@ -1,11 +1,9 @@
 package com.example.SWP.dto.response.seller;
 
-import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -46,7 +44,7 @@ public class PostResponse {
 
     PostStatus status;
 
-    UserResponse user;
+    Long userId;
 
     List<String> images;
 

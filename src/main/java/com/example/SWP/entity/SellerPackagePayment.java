@@ -17,8 +17,6 @@ public class SellerPackagePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String orderId;
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     User user;

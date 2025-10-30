@@ -70,14 +70,12 @@ public class DataInitializer implements CommandLineRunner {
             SellerPackage basic = SellerPackage.builder()
                     .type(SellerPackageType.BASIC)
                     .price(basicPrice_sellerPackage)
-                    .durationDays(basicDurationDays_sellerPackage)
                     .postLimit(basicMaxPosts_sellerPackage)
                     .build();
 
             SellerPackage premium = SellerPackage.builder()
                     .type(SellerPackageType.PREMIUM)
                     .price(premiumPrice_sellerPackage)
-                    .durationDays(premiumDurationDays_sellerPackage)
                     .postLimit(premiumMaxPosts_sellerPackage)
                     .build();
 
@@ -144,7 +142,8 @@ public class DataInitializer implements CommandLineRunner {
                     .password(passwordEncoder.encode("seller"))
                     .fullName("Seller")
                     .status(true)
-                    .remainingPosts(1000)
+                    .remainingBasicPosts(1000)
+                    .remainingPremiumPosts(1000)
                     .role(Role.SELLER)
                     .provider(AuthProvider.MANUAL)
                     .build();

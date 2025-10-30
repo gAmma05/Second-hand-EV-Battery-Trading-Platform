@@ -3,6 +3,7 @@ package com.example.SWP.controller.seller;
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.dto.response.ApiResponse;
+import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.service.seller.SellerPostService;
@@ -24,14 +25,14 @@ public class SellerPostController {
     SellerPostService postService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Post>> createPost(
+    public ResponseEntity<ApiResponse<PostResponse>> createPost(
             Authentication authentication,
             @Valid @RequestBody CreatePostRequest request
     ) {
-        Post post = postService.createPost(authentication, request);
+        PostResponse post = postService.createPost(authentication, request);
 
         return ResponseEntity.ok(
-                ApiResponse.<Post>builder()
+                ApiResponse.<PostResponse>builder()
                         .success(true)
                         .message("Post created successfully")
                         .data(post)
@@ -40,14 +41,14 @@ public class SellerPostController {
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<ApiResponse<Post>> updatePost(
+    public ResponseEntity<ApiResponse<PostResponse>> updatePost(
             Authentication authentication,
             @PathVariable Long postId,
             @RequestBody UpdatePostRequest request
     ) {
-        Post updatedPost = postService.updatePost(authentication, postId, request);
+        PostResponse updatedPost = postService.updatePost(authentication, postId, request);
         return ResponseEntity.ok(
-                ApiResponse.<Post>builder()
+                ApiResponse.<PostResponse>builder()
                         .success(true)
                         .message("Post updated successfully")
                         .data(updatedPost)
@@ -56,10 +57,10 @@ public class SellerPostController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Post>>> getMyPosts(Authentication authentication) {
-        List<Post> posts = postService.getMyPosts(authentication);
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getMyPosts(Authentication authentication) {
+        List<PostResponse> posts = postService.getMyPosts(authentication);
         return ResponseEntity.ok(
-                ApiResponse.<List<Post>>builder()
+                ApiResponse.<List<PostResponse>>builder()
                         .success(true)
                         .message("List of your posts retrieved successfully")
                         .data(posts)
@@ -68,13 +69,13 @@ public class SellerPostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<ApiResponse<Post>> getPostById(
+    public ResponseEntity<ApiResponse<PostResponse>> getPostById(
             Authentication authentication,
             @PathVariable Long postId
     ) {
-        Post post = postService.getPostById(authentication, postId);
+        PostResponse post = postService.getPostById(authentication, postId);
         return ResponseEntity.ok(
-                ApiResponse.<Post>builder()
+                ApiResponse.<PostResponse>builder()
                         .success(true)
                         .message("Post retrieved successfully")
                         .data(post)
@@ -84,12 +85,12 @@ public class SellerPostController {
 
 
     @GetMapping("/posts/status/{status}")
-    public ResponseEntity<ApiResponse<List<Post>>> getPostsByStatus(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getPostsByStatus(
             Authentication authentication,
             @PathVariable PostStatus status) {
-        List<Post> posts = postService.getMyPostsByStatus(authentication, status);
+        List<PostResponse> posts = postService.getMyPostsByStatus(authentication, status);
         return ResponseEntity.ok(
-                ApiResponse.<List<Post>>builder()
+                ApiResponse.<List<PostResponse>>builder()
                         .success(true)
                         .message("Posts retrieved successfully")
                         .data(posts)

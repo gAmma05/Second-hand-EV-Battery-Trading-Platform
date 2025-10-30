@@ -50,7 +50,7 @@ public class SellerService {
         user.setStoreName(request.getShopName());
         user.setStoreDescription(request.getShopDescription());
         user.setSocialMedia(request.getSocialMedia());
-        user.setRemainingPosts(3);
+        user.setRemainingBasicPosts(3);
         userRepository.save(user);
     }
 

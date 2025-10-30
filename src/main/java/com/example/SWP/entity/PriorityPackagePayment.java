@@ -17,8 +17,6 @@ public class PriorityPackagePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String orderId;
-
     @ManyToOne
     @JoinColumn(name = "post_id")
     Post post;
