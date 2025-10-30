@@ -2,5 +2,6 @@ package com.example.SWP.enums;
 
 public enum OtpType {
     REGISTER,
-    FORGOT_PASSWORD
+    FORGOT_PASSWORD,
+    CONTRACT_SIGN
 }

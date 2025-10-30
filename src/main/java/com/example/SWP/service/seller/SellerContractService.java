@@ -2,6 +2,7 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
+import com.example.SWP.dto.request.user.VerifyContractSignatureRequest;
 import com.example.SWP.dto.response.ghn.FeeResponse;
 import com.example.SWP.dto.response.seller.ContractTemplateResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
@@ -15,6 +16,8 @@ import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.service.ghn.GhnService;
+import com.example.SWP.service.mail.MailService;
+import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
@@ -40,6 +43,8 @@ public class SellerContractService {
     ContractMapper contractMapper;
     GhnService ghnService;
     ValidateService validateService;
+    MailService mailService;
+    OtpService otpService;
 
     @NonFinal
     @Value("${deposit-percentage}")
@@ -123,7 +128,6 @@ public class SellerContractService {
         Contract contract = Contract.builder()
                 .order(order)
                 .contractCode(Utils.generateCode("CT"))
-                .sellerSigned(true)
                 .sellerSignedAt(LocalDateTime.now())
                 .status(ContractStatus.PENDING)
                 .build();
@@ -145,6 +149,43 @@ public class SellerContractService {
 
         contractRepository.save(contract);
         notificationService.sendNotificationToOneUser(order.getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
+    }
+
+    public void sendContractSignOtp(Authentication authentication, Long contractId) {
+        User user = validateService.validateCurrentUser(authentication);
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new BusinessException("Contract not found", 404));
+
+        if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
+            throw new BusinessException("You are not allowed to sign this contract", 403);
+        }
+
+        String otp = otpService.generateAndStoreOtp(user.getEmail(), OtpType.CONTRACT_SIGN);
+
+        mailService.sendOtpEmail(user.getEmail(), otp, OtpType.CONTRACT_SIGN);
+    }
+
+    public void verifyContractSignOtp(Authentication authentication, VerifyContractSignatureRequest request) {
+        User user = validateService.validateCurrentUser(authentication);
+
+        Contract contract = contractRepository.findById(request.getContractId())
+                .orElseThrow(() -> new BusinessException("Contract not found", 404));
+
+        if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
+            throw new BusinessException("You are not allowed to sign this contract", 403);
+        }
+
+        otpService.verifyOtp(user.getEmail(), request.getOtp(), OtpType.CONTRACT_SIGN);
+
+        contract.setSellerSigned(true);
+        contract.setSellerSignedAt(LocalDateTime.now());
+        contractRepository.save(contract);
+
+        notificationService.sendNotificationToOneUser(
+                contract.getOrder().getBuyer().getEmail(),
+                "Contract Signed",
+                "The seller has signed the contract. Please check your order."
+        );
     }
 
     public ContractResponse getContractDetail(Authentication authentication, Long contractId) {

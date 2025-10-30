@@ -82,7 +82,6 @@ public class SellerPostController {
         );
     }
 
-
     @GetMapping("/posts/status/{status}")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getPostsByStatus(
             Authentication authentication,

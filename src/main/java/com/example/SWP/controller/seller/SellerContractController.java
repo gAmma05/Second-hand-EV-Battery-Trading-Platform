@@ -2,6 +2,7 @@ package com.example.SWP.controller.seller;
 
 import com.example.SWP.dto.request.seller.CreateContractRequest;
 import com.example.SWP.dto.request.seller.SignContractRequest;
+import com.example.SWP.dto.request.user.VerifyContractSignatureRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.seller.ContractTemplateResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
@@ -36,8 +37,7 @@ public class SellerContractController {
         );
     }
 
-
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<?> createContract(Authentication authentication, @Valid @RequestBody CreateContractRequest request) {
         sellerContractService.createContract(authentication, request);
         return ResponseEntity.ok(
@@ -48,12 +48,34 @@ public class SellerContractController {
         );
     }
 
-    @GetMapping("/detail")
-    public ResponseEntity<?> getContractDetail(Authentication authentication, @RequestParam Long contractId) {
+    @PostMapping("/{contractId}/sign/send-otp")
+    public ResponseEntity<?> sendContractOtp(Authentication authentication, @PathVariable Long contractId) {
+        sellerContractService.sendContractSignOtp(authentication, contractId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("OTP has been sent to your email to sign the contract.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/sign/verify")
+    public ResponseEntity<?> verifyContractSignature(
+            Authentication authentication,
+            @Valid @RequestBody VerifyContractSignatureRequest request
+    ) {
+        sellerContractService.verifyContractSignOtp(authentication, request);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Contract has been signed successfully.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/{contractId}")
+    public ResponseEntity<?> getContractDetail(Authentication authentication, @PathVariable Long contractId) {
         ContractResponse response = sellerContractService.getContractDetail(authentication, contractId);
-        if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to fetch contract detail");
-        }
         return ResponseEntity.ok(
                 ApiResponse.<ContractResponse>builder()
                         .success(true)
@@ -63,12 +85,10 @@ public class SellerContractController {
         );
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public ResponseEntity<?> getContractList(Authentication authentication) {
         List<ContractResponse> response = sellerContractService.getAllContracts(authentication);
-        if (response == null || response.isEmpty()) {
-            return ResponseEntity.badRequest().body("Failed to fetch contract list");
-        }
+
         return ResponseEntity.ok(
                 ApiResponse.<List<ContractResponse>>builder()
                         .success(true)

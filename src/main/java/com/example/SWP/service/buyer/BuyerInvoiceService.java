@@ -34,20 +34,12 @@ import java.util.List;
 public class BuyerInvoiceService {
 
     UserRepository userRepository;
-
     ContractRepository contractRepository;
-
     InvoiceRepository invoiceRepository;
-
-
     WalletService walletService;
-
     NotificationService notificationService;
-
     SellerOrderDeliveryService sellerOrderDeliveryService;
-
     InvoiceMapper invoiceMapper;
-
     ValidateService validateService;
 
     @NonFinal
