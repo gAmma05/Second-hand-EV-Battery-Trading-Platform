@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InvoiceResponse {
-    Long id;
+    Long invoiceId;
     Long contractId;
     String invoiceNumber;
     BigDecimal totalPrice;
@@ -26,4 +26,5 @@ public class InvoiceResponse {
     LocalDateTime dueDate;
     LocalDateTime paidAt;
     InvoiceStatus status;
+    String message;
 }

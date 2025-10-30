@@ -4,20 +4,15 @@ import com.example.SWP.dto.request.ghn.ServiceRequest;
 import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.response.ghn.*;
 import com.example.SWP.entity.OrderDelivery;
-import com.example.SWP.entity.Post;
-import com.example.SWP.entity.User;
 import com.example.SWP.enums.DeliveryProvider;
 import com.example.SWP.enums.DeliveryStatus;
-import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.PostRepository;
-import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -30,8 +25,7 @@ import java.util.*;
 public class GhnService {
 
     final RestTemplate restTemplate;
-    final PostRepository postRepository;
-    final UserRepository userRepository;
+    final OrderDeliveryRepository orderDeliveryRepository;
 
     @Value("${ghn.token}")
     String GHN_TOKEN;
@@ -212,16 +206,16 @@ public class GhnService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("from_district_id", fromDistrictId);
-        body.put("to_district_id", toDistrictId);
-        body.put("to_ward_code", toWardCode);
+        body.put("from_district_id", request.getFromDistrictId());
+        body.put("to_district_id", request.getToDistrictId());
+        body.put("to_ward_code", request.getToWardCode());
         body.put("service_type_id", request.getServiceTypeId());
-        body.put("weight", post.getWeight());
+        body.put("weight", request.getWeight());
 
-        if (request.getServiceTypeId() == 5) {
+        if(request.getServiceTypeId() == 5) {
             List<Map<String, Object>> itemsList = new ArrayList<>();
             Map<String, Object> item = new HashMap<>();
-            item.put("weight", post.getWeight());
+            item.put("weight", request.getWeight());
             itemsList.add(item);
             body.put("items", itemsList);
         }
@@ -310,27 +304,7 @@ public class GhnService {
                 services.add(service);
             }
 
-            AvailableServicesResponse selectedService = null;
-
-            if (post.getWeight() > 20) {
-                for (AvailableServicesResponse s : services) {
-                    if (s.getService_type_id() == 5) {
-                        selectedService = s;
-                        break;
-                    }
-                }
-            } else {
-                for (AvailableServicesResponse s : services) {
-                    if (s.getService_type_id() == 2) {
-                        selectedService = s;
-                        break;
-                    }
-                }
-            }
-
-            return selectedService != null
-                    ? List.of(selectedService)
-                    : Collections.emptyList();
+            return services;
 
         } catch (Exception e) {
             throw new BusinessException(
@@ -341,7 +315,7 @@ public class GhnService {
     }
 
     public DeliveryStatus getOrderStatus(String trackingNumber) {
-        if (trackingNumber == null || trackingNumber.isEmpty()) {
+        if(trackingNumber == null || trackingNumber.isEmpty()) {
             throw new BusinessException("Tracking number không được để trống", 400);
         }
 

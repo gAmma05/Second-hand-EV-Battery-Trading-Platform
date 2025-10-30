@@ -32,6 +32,10 @@ public class CreatePostRequest {
     @Positive(message = "Price must be greater than 0")
     BigDecimal price;
 
+    @NotBlank(message = "Address is required")
+    @Size(max = 500, message = "Address must not exceed 500 characters")
+    String address;
+
     Long priorityPackageId;
 
     @NotEmpty(message = "At least one delivery method is required")
