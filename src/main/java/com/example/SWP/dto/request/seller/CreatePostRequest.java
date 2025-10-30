@@ -47,6 +47,7 @@ public class CreatePostRequest {
     @Positive(message = "Weight must be greater than 0")
     Integer weight;
 
+    boolean wantsTrustedLabel;
 
     String vehicleBrand;
     String model;

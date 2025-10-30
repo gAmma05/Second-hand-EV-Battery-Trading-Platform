@@ -7,5 +7,4 @@ import java.util.Optional;
 
 
 public interface PriorityPackagePaymentRepository extends JpaRepository<PriorityPackagePayment, Long> {
-    Optional<PriorityPackagePayment> findByOrderId(String orderId);
 }

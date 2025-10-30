@@ -5,6 +5,7 @@ import com.example.SWP.dto.request.user.wallet.WithdrawRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.entity.wallet.WalletTransaction;
 import com.example.SWP.enums.PaymentStatus;
+import com.example.SWP.enums.TransactionType;
 import com.example.SWP.service.user.WalletService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -157,6 +158,21 @@ public class WalletController {
 
             return ResponseEntity.badRequest().body(errorResponse);
         }
+    }
+
+    @GetMapping("/transactions/type")
+    public ResponseEntity<ApiResponse<List<WalletTransaction>>> getTransactionsByType(
+            Authentication authentication,
+            @RequestParam TransactionType type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<WalletTransaction> transactions = walletService.getTransactionsByType(authentication.getName(), type, page, size);
+        ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
+                .success(true)
+                .message("Filtered transaction history fetched successfully")
+                .data(transactions)
+                .build();
+        return ResponseEntity.ok(response);
     }
 
 }

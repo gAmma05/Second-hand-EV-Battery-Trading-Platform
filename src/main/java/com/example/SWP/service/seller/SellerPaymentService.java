@@ -5,11 +5,13 @@ import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.entity.wallet.WalletTransaction;
 import com.example.SWP.enums.PaymentStatus;
+import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.enums.TransactionType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.*;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
+import com.example.SWP.service.user.WalletService;
 import com.example.SWP.utils.Utils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +30,9 @@ public class SellerPaymentService {
     SellerPackagePaymentRepository packagePaymentRepository;
     UserRepository userRepository;
     SellerPackageRepository packageRepository;
-    WalletRepository walletRepository;
-    WalletTransactionRepository walletTransactionRepository;
     PriorityPackageRepository priorityPackageRepository;
     PriorityPackagePaymentRepository priorityPackagePaymentRepository;
+    WalletService walletService;
 
     @Transactional
     public void sellerPackagePayment(String email, Long packageId) {
@@ -41,62 +42,33 @@ public class SellerPaymentService {
         SellerPackage pkg = packageRepository.findById(packageId)
                 .orElseThrow(() -> new BusinessException("Package not found", 404));
 
-        Wallet wallet = walletRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException("Wallet not found", 404));
-
         BigDecimal amount = pkg.getPrice();
 
-        if (wallet.getBalance().compareTo(amount) < 0) {
-            throw new BusinessException("Insufficient wallet balance", 400);
-        }
+        String code = Utils.generateCode("SPP");
 
-        BigDecimal balanceBefore = wallet.getBalance();
-        BigDecimal balanceAfter = balanceBefore.subtract(amount);
-
-        wallet.setBalance(balanceAfter);
-        walletRepository.save(wallet);
+        walletService.payWithWallet(
+                user,
+                amount,
+                code,
+                Utils.generatePaymentDescription(TransactionType.PACKAGE, code),
+                TransactionType.PACKAGE
+        );
 
         // Tạo SellerPackagePayment
-        String orderId = Utils.generateCode("SP-");
         SellerPackagePayment payment = SellerPackagePayment.builder()
                 .user(user)
                 .sellerPackage(pkg)
-                .orderId(orderId)
                 .build();
         packagePaymentRepository.save(payment);
 
-        // Cập nhật gói seller
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiry = user.getPlanExpiry();
-        boolean isStillActive = expiry != null && expiry.isAfter(now);
-        LocalDateTime newExpiry;
-
-        if (isStillActive) {
-            newExpiry = expiry.plusDays(pkg.getDurationDays());
-            user.setRemainingPosts(user.getRemainingPosts() + pkg.getPostLimit());
-        } else {
-            newExpiry = now.plusDays(pkg.getDurationDays());
-            user.setRemainingPosts(pkg.getPostLimit());
+        // Cập nhật số lượng đăng bài của user
+        if (pkg.getType() == SellerPackageType.BASIC) {
+            user.setRemainingBasicPosts(user.getRemainingBasicPosts() + pkg.getPostLimit());
+        } else if (pkg.getType() == SellerPackageType.PREMIUM) {
+            user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() + pkg.getPostLimit());
         }
 
-        user.setSellerPackageId(pkg.getId());
-        user.setPlanExpiry(newExpiry);
         userRepository.save(user);
-
-        // Lưu WalletTransaction chi tiết
-        WalletTransaction transaction = WalletTransaction.builder()
-                .wallet(wallet)
-                .orderId(payment.getOrderId())
-                .amount(amount.negate()) // tiền ra
-                .description("Purchase seller package " + pkg.getType())
-                .type(TransactionType.PACKAGE)
-                .status(PaymentStatus.SUCCESS)
-                .balanceBefore(balanceBefore)
-                .balanceAfter(balanceAfter)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-        walletTransactionRepository.save(transaction);
     }
 
     @Transactional
@@ -105,48 +77,21 @@ public class SellerPaymentService {
         PriorityPackage priorityPackage = priorityPackageRepository.findById(priorityPackageId)
                 .orElseThrow(() -> new BusinessException("Priority package not found", 404));
 
-        // Lấy ví của user
-        Wallet wallet = walletRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException("Wallet not found", 404));
+        BigDecimal amount = priorityPackage.getPrice();
+        String code = Utils.generateCode("PPP");
+        walletService.payWithWallet(
+                user,
+                amount,
+                code,
+                Utils.generatePaymentDescription(TransactionType.PACKAGE, code),
+                TransactionType.PACKAGE
+        );
 
-        BigDecimal price = priorityPackage.getPrice();
-
-        // Kiểm tra số dư
-        if (wallet.getBalance().compareTo(price) < 0) {
-            throw new BusinessException("Not enough balance in wallet", 400);
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-
-        BigDecimal balanceBefore = wallet.getBalance();
-        BigDecimal balanceAfter = balanceBefore.subtract(price);
-
-        // Trừ tiền
-        wallet.setBalance(balanceAfter);
-        walletRepository.save(wallet);
-
-        // Tạo WalletTransaction
-        String orderId = Utils.generateCode("PP-");
-
-        WalletTransaction transaction = WalletTransaction.builder()
-                .wallet(wallet)
-                .orderId(orderId)
-                .amount(price.negate())
-                .description("Purchase priority package: " + priorityPackage.getType())
-                .type(TransactionType.PACKAGE)
-                .status(PaymentStatus.SUCCESS)
-                .balanceBefore(balanceBefore)
-                .balanceAfter(balanceAfter)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-        walletTransactionRepository.save(transaction);
-
-        // Tạo PriorityPackagePayment, post = null tạm thời
+        // Tạo PriorityPackagePayment, post = null tạm thời do chua tao
         PriorityPackagePayment payment = PriorityPackagePayment.builder()
                 .priorityPackage(priorityPackage)
-                .orderId(transaction.getOrderId())
                 .build();
+
         priorityPackagePaymentRepository.save(payment);
 
         return payment;

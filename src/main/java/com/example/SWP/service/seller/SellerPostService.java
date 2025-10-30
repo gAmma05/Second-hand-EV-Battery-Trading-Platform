@@ -2,15 +2,19 @@ package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
+import com.example.SWP.dto.request.user.ai.AiProductRequest;
+import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.*;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
 import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.mapper.PostMapper;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.PriorityPackagePaymentRepository;
 import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.ai.AiService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,39 +39,62 @@ public class SellerPostService {
     ValidateService validateService;
     SellerPaymentService sellerPaymentService;
     PriorityPackagePaymentRepository priorityPackagePaymentRepository;
+    AiService aiService;
+    private final PostMapper postMapper;
 
     @NonFinal
     @Value("${post.expire.days}")
     int expireDays;
 
-    @NonFinal
-    @Value("${post.update.limitDays}")
-    int limitDays;
-
-    public Post createPost(Authentication authentication, CreatePostRequest request) {
+    public PostResponse createPost(Authentication authentication, CreatePostRequest request) {
         User user = validateService.validateCurrentUser(authentication);
 
-        if (user.getRemainingPosts() <= 0) {
+        if (request.isWantsTrustedLabel() && user.getRemainingPremiumPosts() <= 0) {
             throw new BusinessException(
-                    "You have no remaining post slots. Please upgrade your plan or wait for reset.",
+                    "You have no remaining premium post slots for trusted label. Please upgrade your plan.",
+                    400
+            );
+        }
+
+        if(!request.isWantsTrustedLabel() && user.getRemainingBasicPosts() <= 0) {
+            throw new BusinessException(
+                    "You have no remaining basic post slots. Please upgrade your plan or wait for reset.",
                     400
             );
         }
 
         // Validate theo productType
-        if (request.getProductType() == ProductType.VEHICLE) {
-            if (request.getVehicleBrand() == null || request.getModel() == null || request.getYearOfManufacture() == null) {
-                throw new BusinessException("Brand, model, and yearOfManufacture are required for VEHICLE", 400);
-            }
-        } else if (request.getProductType() == ProductType.BATTERY) {
-            if (request.getBatteryType() == null || request.getCapacity() == null || request.getVoltage() == null) {
-                throw new BusinessException("BatteryType, capacity, and voltage are required for BATTERY", 400);
-            }
-        }
+        validateService.validatePost(
+                request.getProductType(),
+                request.getVehicleBrand(),
+                request.getModel(),
+                request.getYearOfManufacture(),
+                request.getColor(),
+                request.getMileage(),
+                request.getBatteryType(),
+                request.getBatteryBrand(),
+                request.getCapacity(),
+                request.getVoltage()
+        );
 
-        SellerPackage sellerPackage = null;
-        if (user.getSellerPackageId() != null) {
-            sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
+        // Validate với AI
+        AiProductRequest aiProductRequest = AiProductRequest.builder()
+                .productType(request.getProductType())
+                .vehicleBrand(request.getVehicleBrand())
+                .model(request.getModel())
+                .yearOfManufacture(request.getYearOfManufacture())
+                .color(request.getColor())
+                .mileage(request.getMileage())
+                .batteryType(request.getBatteryType())
+                .capacity(request.getCapacity())
+                .voltage(request.getVoltage())
+                .batteryBrand(request.getBatteryBrand())
+                .build();
+
+        boolean isValid = aiService.validateProduct(aiProductRequest);
+
+        if (!isValid) {
+            throw new BusinessException("Product information appears to be incorrect or unrelated. Please verify the details and try again.", 400);
         }
 
         // Build post
@@ -103,11 +131,12 @@ public class SellerPostService {
         Post post = postBuilder.build();
 
         // Set status và trusted theo gói
-        if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
+        if (request.isWantsTrustedLabel()) {
+            post.setStatus(PostStatus.PENDING);
+
+        } else {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
-        } else if (sellerPackage.getType() == SellerPackageType.PREMIUM) {
-            post.setStatus(PostStatus.PENDING);
         }
 
         List<PostImage> postImages = new ArrayList<>();
@@ -131,43 +160,69 @@ public class SellerPostService {
             priorityPackagePaymentRepository.save(payment);
         }
 
-        // Lưu post (cùng lúc lưu ảnh nhờ cascade)
+        // Lưu post
         post = postRepository.save(post);
 
         // Cập nhật số lượng post còn lại của user
-        user.setRemainingPosts(user.getRemainingPosts() - 1);
+        if(request.isWantsTrustedLabel()) {
+            user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() - 1);
+        } else {
+            user.setRemainingBasicPosts(user.getRemainingBasicPosts() - 1);
+        }
         userRepository.save(user);
-
-        return post;
+        return postMapper.toPostResponse(post);
     }
 
-
-    public Post updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
-        // Lấy user hiện tại
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+    public PostResponse updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
+        // Xác thực user
+        User user = validateService.validateCurrentUser(authentication);
 
         // Lấy post cần update
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Post not found", 404));
 
+        // Chỉ cho phép update post có trạng thái POSTED
+        if(post.getStatus() != PostStatus.POSTED) {
+            throw new BusinessException("Only posts with status POSTED can be updated", 400);
+        }
+
+        // Kiểm tra quyền sở hữu post
         if (!post.getUser().getId().equals(user.getId())) {
             throw new BusinessException("You do not have permission to update this post", 403);
         }
 
-        if (post.getPostDate().plusDays(limitDays).isBefore(LocalDateTime.now())) {
-            throw new BusinessException("You cannot update this post after " + limitDays + " days from posting", 400);
-        }
+        // Validate theo productType
+        validateService.validatePost(
+                request.getProductType(),
+                request.getVehicleBrand(),
+                request.getModel(),
+                request.getYearOfManufacture(),
+                request.getColor(),
+                request.getMileage(),
+                request.getBatteryType(),
+                request.getBatteryBrand(),
+                request.getCapacity(),
+                request.getVoltage()
+        );
 
-        if (request.getProductType() == ProductType.VEHICLE) {
-            if (request.getVehicleBrand() == null || request.getModel() == null || request.getYearOfManufacture() == null) {
-                throw new BusinessException("Brand, model, and yearOfManufacture are required for CAR", 400);
-            }
-        } else if (request.getProductType() == ProductType.BATTERY) {
-            if (request.getBatteryType() == null || request.getCapacity() == null || request.getVoltage() == null) {
-                throw new BusinessException("BatteryType, capacity, and voltage are required for BATTERY", 400);
-            }
+        // Validate với AI
+        AiProductRequest aiProductRequest = AiProductRequest.builder()
+                .productType(request.getProductType())
+                .vehicleBrand(request.getVehicleBrand())
+                .model(request.getModel())
+                .yearOfManufacture(request.getYearOfManufacture())
+                .color(request.getColor())
+                .mileage(request.getMileage())
+                .batteryType(request.getBatteryType())
+                .capacity(request.getCapacity())
+                .voltage(request.getVoltage())
+                .batteryBrand(request.getBatteryBrand())
+                .build();
+
+        boolean isValid = aiService.validateProduct(aiProductRequest);
+
+        if (!isValid) {
+            throw new BusinessException("Product information appears to be incorrect or unrelated. Please verify the details and try again.", 400);
         }
 
         post.setProductType(request.getProductType());
@@ -194,16 +249,30 @@ public class SellerPostService {
         }
 
         // Set status và trusted theo gói
-        SellerPackage sellerPackage = null;
-        if (user.getSellerPackageId() != null) {
-            sellerPackage = sellerPackageRepository.findById(user.getSellerPackageId()).orElse(null);
-        }
+        if (request.isWantsTrustedLabel()) {
+            post.setTrusted(false);
+            post.setStatus(PostStatus.PENDING);
 
-        if (sellerPackage == null || sellerPackage.getType() == SellerPackageType.BASIC) {
+        } else {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
-        } else if (sellerPackage.getType() == SellerPackageType.PREMIUM) {
-            post.setStatus(PostStatus.PENDING);
+        }
+
+        // Kiểm tra thời gian tạo post để quyết định có trừ slot hay không
+        Duration durationSinceCreate = Duration.between(post.getPostDate(), LocalDateTime.now());
+        boolean isWithin24h = durationSinceCreate.toHours() < 24;
+
+        if (!isWithin24h) {
+            if (request.isWantsTrustedLabel()) {
+                if (user.getRemainingPremiumPosts() <= 0)
+                    throw new BusinessException("No remaining premium posts. Please upgrade package.", 400);
+                user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() - 1);
+            } else {
+                if (user.getRemainingBasicPosts() <= 0)
+                    throw new BusinessException("No remaining basic posts. Please upgrade package.", 400);
+                user.setRemainingBasicPosts(user.getRemainingBasicPosts() - 1);
+            }
+            userRepository.save(user);
         }
 
         // Xóa ảnh cũ
@@ -218,15 +287,13 @@ public class SellerPostService {
             post.getImages().add(image);
         }
 
-
-        return postRepository.save(post);
+        postRepository.save(post);
+        return postMapper.toPostResponse(post);
     }
 
 
     public void deletePost(Authentication authentication, Long postId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+        User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Post not found", 404));
@@ -235,22 +302,24 @@ public class SellerPostService {
             throw new BusinessException("You do not have permission to delete this post", 403);
         }
 
+        if(post.getStatus() == PostStatus.DELETED) {
+            throw new BusinessException("Post is already deleted", 400);
+        }
+
         post.setStatus(PostStatus.DELETED);
         postRepository.save(post);
     }
 
-    public List<Post> getMyPosts(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+    public List<PostResponse> getMyPosts(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
 
-        return postRepository.findByUserAndStatusNot(user, PostStatus.DELETED);
+        List<Post> results = postRepository.findByUserAndStatusNot(user, PostStatus.DELETED);
+
+        return postMapper.toPostResponseList(results);
     }
 
-    public Post getPostById(Authentication authentication, Long postId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+    public PostResponse getPostById(Authentication authentication, Long postId) {
+        User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Post not found", 404));
@@ -259,16 +328,14 @@ public class SellerPostService {
             throw new BusinessException("You do not have permission to access this post", 403);
         }
 
-        return post;
+        return postMapper.toPostResponse(post);
     }
 
 
-    public List<Post> getMyPostsByStatus(Authentication authentication, PostStatus status) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
-
-        return postRepository.findByUserAndStatus(user, status);
+    public List<PostResponse> getMyPostsByStatus(Authentication authentication, PostStatus status) {
+        User user = validateService.validateCurrentUser(authentication);
+        List<Post> results = postRepository.findByUserAndStatus(user, status);
+        return  postMapper.toPostResponseList(results);
     }
 
 }

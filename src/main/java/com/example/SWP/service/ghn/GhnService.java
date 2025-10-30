@@ -37,6 +37,8 @@ public class GhnService {
     String GHN_TOKEN;
     @Value("${ghn.url}")
     String GHN_URL;
+    @Value(("${ghn.shop-id}"))
+    Integer GHN_SHOP_ID;
 
     public List<ProvinceResponse> getProvinces() {
         HttpHeaders headers = new HttpHeaders();
@@ -196,19 +198,17 @@ public class GhnService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         User seller = post.getUser();
-        if (seller == null || seller.getGhnShopId() == null || seller.getGhnToken() == null) {
-            throw new BusinessException("Người bán chưa có thông tin GHN", 400);
+        if (seller == null) {
+            throw new BusinessException("Người bán không tồn tại", 404);
         }
 
-        String token = seller.getGhnToken();
-        Integer shopId = seller.getGhnShopId();
         Integer fromDistrictId = seller.getDistrictId();
         Integer toDistrictId = buyer.getDistrictId();
         String toWardCode = buyer.getWardCode();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Token", token);
-        headers.set("ShopId", String.valueOf(shopId));
+        headers.set("Token", GHN_TOKEN);
+        headers.set("ShopId", String.valueOf(GHN_SHOP_ID));
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
@@ -255,8 +255,8 @@ public class GhnService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         User seller = post.getUser();
-        if (seller == null || seller.getGhnShopId() == null || seller.getGhnToken() == null) {
-            throw new BusinessException("Người mua chưa có thông tin GHN", 400);
+        if (seller == null) {
+            throw new BusinessException("Không tìm thấy người bán", 400);
         }
 
         User buyer = userRepository.findByEmail(email)
@@ -278,11 +278,11 @@ public class GhnService {
 
         HttpHeaders headers = new HttpHeaders();
 
-        headers.set("Token", seller.getGhnToken());
+        headers.set("Token", GHN_TOKEN);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("shop_id", seller.getGhnShopId());
+        body.put("shop_id", GHN_SHOP_ID);
         body.put("from_district", seller.getDistrictId());
         body.put("to_district", buyer.getDistrictId());
 
@@ -340,54 +340,6 @@ public class GhnService {
         }
     }
 
-
-    public void validateGhnTokenAndShop(String token, Integer shopId) {
-        String url = GHN_URL + "/v2/shop/all";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Token", token);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("offset", 0);
-        body.put("limit", 50);
-        body.put("client_phone", "");
-
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
-
-            if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new BusinessException("Lỗi khi gọi GHN", response.getStatusCodeValue());
-            }
-
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody == null || !responseBody.containsKey("data")) {
-                throw new BusinessException("Không nhận được data từ GHN", 500);
-            }
-
-            Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
-            List<Map<String, Object>> shops = (List<Map<String, Object>>) data.get("shops");
-
-            if (shops == null || shops.isEmpty()) {
-                throw new BusinessException("Token hợp lệ nhưng client chưa có shop nào", 400);
-            }
-
-            boolean match = shops.stream()
-                    .anyMatch(shop -> shopId.equals(((Number) shop.get("_id")).intValue()));
-
-            if (!match) {
-                throw new BusinessException("ShopId không thuộc token này", 400);
-            }
-
-        } catch (HttpClientErrorException.Unauthorized e) {
-            throw new BusinessException("Token GHN không hợp lệ", 401);
-        } catch (Exception e) {
-            throw new BusinessException("Lỗi khi validate token/shopId GHN: " + e.getMessage(), 500);
-        }
-    }
-
     public DeliveryStatus getOrderStatus(String trackingNumber) {
         if (trackingNumber == null || trackingNumber.isEmpty()) {
             throw new BusinessException("Tracking number không được để trống", 400);
@@ -396,7 +348,7 @@ public class GhnService {
         return DeliveryStatus.DELIVERED;
     }
 
-    public void createOrder(OrderDelivery orderDelivery) {
+    public void createGhnOrder(OrderDelivery orderDelivery) {
         if (orderDelivery == null) {
             throw new BusinessException("OrderDelivery không tồn tại", 404);
         }
@@ -404,5 +356,52 @@ public class GhnService {
         orderDelivery.setDeliveryProvider(DeliveryProvider.GHN);
         orderDelivery.setDeliveryTrackingNumber(Utils.generateCode("GHN"));
     }
+
+//    public void validateGhnTokenAndShop(String token, Integer shopId) {
+//        String url = GHN_URL + "/v2/shop/all";
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("Token", token);
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        Map<String, Object> body = new HashMap<>();
+//        body.put("offset", 0);
+//        body.put("limit", 50);
+//        body.put("client_phone", "");
+//
+//        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+//
+//        try {
+//            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
+//
+//            if (!response.getStatusCode().is2xxSuccessful()) {
+//                throw new BusinessException("Lỗi khi gọi GHN", response.getStatusCodeValue());
+//            }
+//
+//            Map<String, Object> responseBody = response.getBody();
+//            if (responseBody == null || !responseBody.containsKey("data")) {
+//                throw new BusinessException("Không nhận được data từ GHN", 500);
+//            }
+//
+//            Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
+//            List<Map<String, Object>> shops = (List<Map<String, Object>>) data.get("shops");
+//
+//            if (shops == null || shops.isEmpty()) {
+//                throw new BusinessException("Token hợp lệ nhưng client chưa có shop nào", 400);
+//            }
+//
+//            boolean match = shops.stream()
+//                    .anyMatch(shop -> shopId.equals(((Number) shop.get("_id")).intValue()));
+//
+//            if (!match) {
+//                throw new BusinessException("ShopId không thuộc token này", 400);
+//            }
+//
+//        } catch (HttpClientErrorException.Unauthorized e) {
+//            throw new BusinessException("Token GHN không hợp lệ", 401);
+//        } catch (Exception e) {
+//            throw new BusinessException("Lỗi khi validate token/shopId GHN: " + e.getMessage(), 500);
+//        }
+//    }
 
 }

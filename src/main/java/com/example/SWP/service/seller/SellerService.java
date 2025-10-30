@@ -46,16 +46,11 @@ public class SellerService {
             throw new BusinessException("Please update your address before upgrading to seller", 400);
         }
 
-
-        ghnService.validateGhnTokenAndShop(request.getGhnToken(), request.getGhnShopId());
-
         user.setRole(Role.SELLER);
         user.setStoreName(request.getShopName());
         user.setStoreDescription(request.getShopDescription());
         user.setSocialMedia(request.getSocialMedia());
-        user.setGhnToken(request.getGhnToken());
-        user.setGhnShopId(request.getGhnShopId());
-        user.setRemainingPosts(3);
+        user.setRemainingBasicPosts(3);
         userRepository.save(user);
     }
 

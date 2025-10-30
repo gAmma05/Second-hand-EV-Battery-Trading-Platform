@@ -45,10 +45,9 @@ public class User {
     String storeName;
     String storeDescription;
     String socialMedia;
-    int remainingPosts;
 
-    String ghnToken;
-    Integer ghnShopId;
+    int remainingBasicPosts;
+    int remainingPremiumPosts;
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
@@ -56,8 +55,6 @@ public class User {
     AuthProvider provider;
     @Enumerated(EnumType.STRING)
     Role role;
-    Long sellerPackageId;
-    LocalDateTime planExpiry;
 
     boolean status;
 

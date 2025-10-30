@@ -12,11 +12,13 @@ import com.example.SWP.repository.UserRepository;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
 import com.example.SWP.service.payment.VnPayService;
+import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +39,7 @@ public class WalletService {
     WalletTransactionRepository walletTransactionRepository;
     UserRepository userRepository;
     VnPayService vnPayService;
+    ValidateService validateService;
 
     @NonFinal
     @Value("${vnpay.returnUrl.walletDeposit}")
@@ -99,6 +102,7 @@ public class WalletService {
     }
 
 
+    //Xu li rut tien
     public WalletTransaction withdraw(String email, BigDecimal amount, String bankAccount) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User not found", 404));
@@ -130,6 +134,7 @@ public class WalletService {
         return walletTransactionRepository.save(transaction);
     }
 
+    //Xem so du vi
     public BigDecimal getBalance(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User not found", 404));
@@ -152,6 +157,17 @@ public class WalletService {
         return transactionsPage.getContent();
     }
 
+    //Loc lich su giao dich theo loai giao dich
+    public List<WalletTransaction>  getTransactionsByType(String email, TransactionType type, int page, int size) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User not found", 404));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<WalletTransaction> transactionsPage = walletTransactionRepository.findByWalletAndType(user.getWallet(), type, pageable);
+
+        return transactionsPage.getContent();
+    }
+
     //Xem chi tiet 1 giao dich trong lich su wallet
     public WalletTransaction getTransactionDetail(String email, Long transactionId) {
         User user = userRepository.findByEmail(email)
@@ -168,6 +184,7 @@ public class WalletService {
         return transaction;
     }
 
+    //Thanh toan bang vi
     public void payWithWallet(
             User user, BigDecimal amount, String orderId,
             String description, TransactionType transactionType) {
