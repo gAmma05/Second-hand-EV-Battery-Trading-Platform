@@ -15,6 +15,7 @@ import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.validator.seller.CreateOrderRequestValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -39,6 +40,7 @@ public class BuyerOrderService {
     NotificationService notificationService;
 
     CreateOrderRequestValidator createOrderRequestValidator;
+    private final ValidateService validateService;
 
 
     public BuyerOrderResponse getOrderDetail(Long orderId) {
@@ -64,11 +66,7 @@ public class BuyerOrderService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        if (user.getDistrictId() == null || user.getWardCode() == null || user.getWardCode().isEmpty()
-        ) {
-            throw new BusinessException("You must fill in your address information before creating an order", 400);
-        }
-
+        validateService.validateAddressInfo(user);
 
         Post post = postRepository.findById(request.getPostId()).orElseThrow(
                 () -> new BusinessException("Post does not exist", 404));

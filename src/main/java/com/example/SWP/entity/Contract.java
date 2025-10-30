@@ -30,14 +30,10 @@ public class Contract {
     @Column(unique = true, nullable = false)
     String contractCode;
 
-    String title;
-
     @Column(columnDefinition = "TEXT")
     String content;
 
     BigDecimal price;
-
-    String currency;
 
     boolean sellerSigned;
 

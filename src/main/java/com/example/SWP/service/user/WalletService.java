@@ -1,14 +1,11 @@
 package com.example.SWP.service.user;
 
-import com.example.SWP.entity.PriorityPackage;
 import com.example.SWP.entity.User;
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.entity.wallet.WalletTransaction;
 import com.example.SWP.enums.PaymentStatus;
 import com.example.SWP.enums.TransactionType;
 import com.example.SWP.exception.BusinessException;
-import com.example.SWP.repository.PriorityPackageRepository;
-import com.example.SWP.repository.UserRepository;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
 import com.example.SWP.service.payment.VnPayService;
@@ -18,12 +15,12 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -37,7 +34,6 @@ public class WalletService {
 
     WalletRepository walletRepository;
     WalletTransactionRepository walletTransactionRepository;
-    UserRepository userRepository;
     VnPayService vnPayService;
     ValidateService validateService;
 
@@ -46,9 +42,8 @@ public class WalletService {
     String walletReturnUrl;
 
     //Xu ly nap tien vao vi
-    public String deposit(String email, BigDecimal amount) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+    public String deposit(Authentication authentication, BigDecimal amount) {
+        User user = validateService.validateCurrentUser(authentication);
 
         Wallet wallet = walletRepository.findByUser(user)
                 .orElseGet(() -> walletRepository.save(
@@ -58,8 +53,8 @@ public class WalletService {
                                 .build()
                 ));
 
-        String orderId = Utils.generateCode("DEP");
-        String description = "Deposit to wallet";
+        String orderId = Utils.generateCode("DEPOSIT");
+        String description = Utils.generatePaymentDescription(TransactionType.DEPOSIT, orderId);
 
         WalletTransaction transaction = WalletTransaction.builder()
                 .wallet(wallet)
@@ -103,9 +98,8 @@ public class WalletService {
 
 
     //Xu li rut tien
-    public WalletTransaction withdraw(String email, BigDecimal amount, String bankAccount) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+    public WalletTransaction withdraw(Authentication authentication, BigDecimal amount, String bankAccount) {
+        User user = validateService.validateCurrentUser(authentication);
 
         Wallet wallet = user.getWallet();
         BigDecimal balanceBefore = wallet.getBalance();
@@ -119,12 +113,17 @@ public class WalletService {
         wallet.setBalance(balanceAfter);
         walletRepository.save(wallet);
 
+        String orderId = Utils.generateCode("WITHDRAW");
+        String description = Utils.generatePaymentDescription(TransactionType.WITHDRAW, orderId);
+
         // Tạo giao dịch rút tiền
         WalletTransaction transaction = WalletTransaction.builder()
                 .wallet(wallet)
                 .amount(amount)
                 .type(TransactionType.WITHDRAW)
                 .status(PaymentStatus.SUCCESS)
+                .orderId(orderId)
+                .description(description)
                 .bankCode(bankAccount)
                 .balanceBefore(balanceBefore)
                 .balanceAfter(balanceAfter)
@@ -135,43 +134,49 @@ public class WalletService {
     }
 
     //Xem so du vi
-    public BigDecimal getBalance(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+    public BigDecimal getBalance(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
 
         Wallet wallet = user.getWallet();
+
         if (wallet == null) {
             return BigDecimal.ZERO;
         }
+
         return wallet.getBalance();
     }
 
     //Lich su giao dich cua wallet
-    public List<WalletTransaction> getTransactions(String email, int page, int size) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+    public List<WalletTransaction> getTransactions(
+            Authentication authentication, int page, int size
+    ) {
+        User user = validateService.validateCurrentUser(authentication);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
         Page<WalletTransaction> transactionsPage = walletTransactionRepository.findByWallet(user.getWallet(), pageable);
 
         return transactionsPage.getContent();
     }
 
     //Loc lich su giao dich theo loai giao dich
-    public List<WalletTransaction>  getTransactionsByType(String email, TransactionType type, int page, int size) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+    public List<WalletTransaction>  getTransactionsByType(
+            Authentication authentication, TransactionType type, int page, int size
+    ) {
+        User user = validateService.validateCurrentUser(authentication);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
         Page<WalletTransaction> transactionsPage = walletTransactionRepository.findByWalletAndType(user.getWallet(), type, pageable);
 
         return transactionsPage.getContent();
     }
 
     //Xem chi tiet 1 giao dich trong lich su wallet
-    public WalletTransaction getTransactionDetail(String email, Long transactionId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+    public WalletTransaction getTransactionDetail(
+            Authentication authentication, Long transactionId
+    ) {
+        User user = validateService.validateCurrentUser(authentication);
 
         WalletTransaction transaction = walletTransactionRepository.findById(transactionId)
                 .orElseThrow(() -> new BusinessException("Transaction not found", 404));
@@ -186,8 +191,8 @@ public class WalletService {
 
     //Thanh toan bang vi
     public void payWithWallet(
-            User user, BigDecimal amount, String orderId,
-            String description, TransactionType transactionType) {
+            User user, BigDecimal amount, String orderId, String description, TransactionType transactionType
+    ) {
         Wallet wallet = walletRepository.findByUser(user)
                 .orElseThrow(() -> new BusinessException("Wallet has no balance", 404));
 
@@ -216,4 +221,17 @@ public class WalletService {
         walletTransactionRepository.save(transaction);
     }
 
+    public List<WalletTransaction> getTransactionsByStatus(
+            Authentication authentication,
+            PaymentStatus status,
+            int page, int size)
+    {
+        User user = validateService.validateCurrentUser(authentication);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<WalletTransaction> transactionsPage = walletTransactionRepository.findByWalletAndStatus(user.getWallet(), status, pageable);
+
+        return transactionsPage.getContent();
+    }
 }

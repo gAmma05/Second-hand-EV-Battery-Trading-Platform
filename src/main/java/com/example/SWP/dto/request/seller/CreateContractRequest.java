@@ -1,7 +1,5 @@
 package com.example.SWP.dto.request.seller;
 
-import com.example.SWP.enums.PaymentMethod;
-import com.example.SWP.enums.PaymentType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;

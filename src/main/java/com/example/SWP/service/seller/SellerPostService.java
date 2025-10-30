@@ -35,7 +35,6 @@ public class SellerPostService {
 
     PostRepository postRepository;
     UserRepository userRepository;
-    SellerPackageRepository sellerPackageRepository;
     ValidateService validateService;
     SellerPaymentService sellerPaymentService;
     PriorityPackagePaymentRepository priorityPackagePaymentRepository;

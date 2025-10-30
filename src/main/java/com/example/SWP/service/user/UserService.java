@@ -12,6 +12,8 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.UserMapper;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.ghn.GhnService;
+import com.example.SWP.service.validate.ValidateService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
     GhnService ghnService;
+    ValidateService validateService;
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
@@ -47,25 +50,12 @@ public class UserService {
     }
 
     public UserResponse getUserProfile(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BusinessException("User is not authenticated", 401);
-        }
-
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) {
-            throw new BusinessException("User is not found", 404);
-        }
-
+        User user = validateService.validateCurrentUser(authentication);
         return userMapper.toUserResponse(user);
     }
 
     public UserResponse updateUserProfile(Authentication authentication, UpdateUserRequest request) {
-        String email = authentication.getName();
-        User user = findByEmail(email);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
+        User user = validateService.validateCurrentUser(authentication);
 
         if (request.getFullName() != null) {
             user.setFullName(request.getFullName());
@@ -112,25 +102,17 @@ public class UserService {
 
 
     public UserResponse updateAvatar(Authentication authentication, String avatarUrl) {
-        String email = authentication.getName();
-        User user = findByEmail(email);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
+        User user = validateService.validateCurrentUser(authentication);
 
-        if (avatarUrl != null && !avatarUrl.isEmpty()) {
-            user.setAvatar(avatarUrl);
-            userRepository.save(user);
-        }
+        user.setAvatar(avatarUrl);
+        userRepository.save(user);
 
         return userMapper.toUserResponse(user);
     }
 
 
     public void changePassword(Authentication authentication, ChangePasswordRequest request) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+        User user = validateService.validateCurrentUser(authentication);
 
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new BusinessException("New password and confirm password do not match", 400);

@@ -25,44 +25,59 @@ public class ValidateService {
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
     }
 
+    // Validate post data khi tạo hoặc cập nhật bài đăng
     public void validatePost(
             ProductType productType, String vehicleBrand, String model, Integer yearOfManufacture,
             String color, Integer mileage, String batteryType, String batteryBrand,
             Integer capacity, String voltage
 
     ) {
-        if(productType == ProductType.VEHICLE) {
-            if(vehicleBrand == null || vehicleBrand.isBlank()) {
+        if (productType == ProductType.VEHICLE) {
+            if (vehicleBrand == null || vehicleBrand.isBlank()) {
                 throw new BusinessException("Vehicle brand is required for vehicle posts", 400);
             }
-            if(model == null || model.isBlank()) {
+            if (model == null || model.isBlank()) {
                 throw new BusinessException("Model is required for vehicle posts", 400);
             }
-            if(yearOfManufacture == null || yearOfManufacture <= 0
+            if (yearOfManufacture == null || yearOfManufacture <= 0
                     || yearOfManufacture > Year.now().getValue()
             ) {
                 throw new BusinessException("Year of manufacture is required, must be greater than 0 and cannot be in the future for vehicle posts", 400);
             }
-            if(color == null || color.isBlank()) {
+            if (color == null || color.isBlank()) {
                 throw new BusinessException("Color is required for vehicle posts", 400);
             }
-            if(mileage == null || mileage < 0) {
+            if (mileage == null || mileage < 0) {
                 throw new BusinessException("Mileage is required and must be non-negative for vehicle posts", 400);
             }
-        } else if(productType == ProductType.BATTERY) {
-            if(batteryType == null || batteryType.isBlank()) {
+        } else if (productType == ProductType.BATTERY) {
+            if (batteryType == null || batteryType.isBlank()) {
                 throw new BusinessException("Battery type is required for battery posts", 400);
             }
-            if(batteryBrand == null || batteryBrand.isBlank()) {
+            if (batteryBrand == null || batteryBrand.isBlank()) {
                 throw new BusinessException("Battery brand is required for battery posts", 400);
             }
-            if(capacity == null || capacity <= 0) {
+            if (capacity == null || capacity <= 0) {
                 throw new BusinessException("Capacity is required and must be greater than 0 for battery posts", 400);
             }
-            if(voltage == null || voltage.isBlank()) {
+            if (voltage == null || voltage.isBlank()) {
                 throw new BusinessException("Voltage is required for battery posts", 400);
             }
         }
     }
+
+    public void validateAddressInfo(User user) {
+        if(user == null) {
+            throw new BusinessException("User does not exist", 404);
+        }
+
+        if(user.getDistrictId() == null || user.getProvinceId() == null ||
+           user.getWardCode() == null || user.getWardCode().isBlank() ||
+           user.getStreetAddress() == null || user.getStreetAddress().isBlank()
+        ) {
+            throw new BusinessException("User address information is incomplete. Please update your address before proceeding.", 400);
+        }
+    }
+
 }
 

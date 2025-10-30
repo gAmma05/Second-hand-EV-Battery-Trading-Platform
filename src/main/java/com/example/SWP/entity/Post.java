@@ -34,7 +34,6 @@ public class Post {
     String description;
 
     BigDecimal price;
-    double suggestPrice;
 
     LocalDateTime postDate;
     LocalDateTime updateDate;

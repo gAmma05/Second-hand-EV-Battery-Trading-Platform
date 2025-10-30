@@ -3,6 +3,7 @@ package com.example.SWP.controller.seller;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
 import com.example.SWP.dto.request.seller.SignContractRequest;
 import com.example.SWP.dto.response.ApiResponse;
+import com.example.SWP.dto.response.seller.ContractTemplateResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.service.seller.SellerContractService;
 import jakarta.validation.Valid;
@@ -21,6 +22,20 @@ import java.util.List;
 public class SellerContractController {
 
     SellerContractService sellerContractService;
+
+    @GetMapping("/template/{orderId}")
+    public ResponseEntity<?> generateContractTemplateByOrder(@PathVariable Long orderId, Authentication authentication) {
+        ContractTemplateResponse response = sellerContractService.generateContractTemplate(authentication, orderId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<ContractTemplateResponse>builder()
+                        .success(true)
+                        .message("Fetched contract preview successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
 
     @PostMapping("/create")
     public ResponseEntity<?> createContract(Authentication authentication, @Valid @RequestBody CreateContractRequest request) {

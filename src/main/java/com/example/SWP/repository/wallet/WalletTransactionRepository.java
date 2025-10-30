@@ -2,6 +2,7 @@ package com.example.SWP.repository.wallet;
 
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.entity.wallet.WalletTransaction;
+import com.example.SWP.enums.PaymentStatus;
 import com.example.SWP.enums.TransactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,4 +16,6 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     Page<WalletTransaction> findByWallet(Wallet wallet, Pageable pageable);
 
     Page<WalletTransaction> findByWalletAndType(Wallet wallet, TransactionType type, Pageable pageable);
+
+    Page<WalletTransaction> findByWalletAndStatus(Wallet wallet, PaymentStatus status, Pageable pageable);
 }

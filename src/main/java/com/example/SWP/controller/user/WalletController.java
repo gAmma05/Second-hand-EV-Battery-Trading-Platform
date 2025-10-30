@@ -34,7 +34,7 @@ public class WalletController {
             @Valid @RequestBody DepositRequest request) {
 
         // Gọi service để tạo URL thanh toán
-        String paymentUrl = walletService.deposit(authentication.getName(), request.getAmount());
+        String paymentUrl = walletService.deposit(authentication, request.getAmount());
 
         // Trả về ApiResponse có chứa paymentUrl
         ApiResponse<String> response = ApiResponse.<String>builder()
@@ -82,7 +82,7 @@ public class WalletController {
 
         try {
             WalletTransaction transaction = walletService.withdraw(
-                    authentication.getName(),
+                    authentication,
                     request.getAmount(),
                     request.getBankAccount()
             );
@@ -108,7 +108,7 @@ public class WalletController {
 
     @GetMapping("/balance")
     public ResponseEntity<ApiResponse<BigDecimal>> getBalance(Authentication authentication) {
-        BigDecimal balance = walletService.getBalance(authentication.getName());
+        BigDecimal balance = walletService.getBalance(authentication);
         ApiResponse<BigDecimal> response = ApiResponse.<BigDecimal>builder()
                 .success(true)
                 .message("Current balance fetched successfully")
@@ -123,7 +123,7 @@ public class WalletController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        List<WalletTransaction> transactions = walletService.getTransactions(authentication.getName(), page, size);
+        List<WalletTransaction> transactions = walletService.getTransactions(authentication, page, size);
 
         ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
                 .success(true)
@@ -140,7 +140,7 @@ public class WalletController {
             @PathVariable Long id) {
 
         try {
-            WalletTransaction transaction = walletService.getTransactionDetail(authentication.getName(), id);
+            WalletTransaction transaction = walletService.getTransactionDetail(authentication, id);
 
             ApiResponse<WalletTransaction> response = ApiResponse.<WalletTransaction>builder()
                     .success(true)
@@ -166,7 +166,22 @@ public class WalletController {
             @RequestParam TransactionType type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        List<WalletTransaction> transactions = walletService.getTransactionsByType(authentication.getName(), type, page, size);
+        List<WalletTransaction> transactions = walletService.getTransactionsByType(authentication, type, page, size);
+        ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
+                .success(true)
+                .message("Filtered transaction history fetched successfully")
+                .data(transactions)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/transactions/status")
+    public ResponseEntity<ApiResponse<List<WalletTransaction>>> getTransactionsByStatus(
+            Authentication authentication,
+            @RequestParam PaymentStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<WalletTransaction> transactions = walletService.getTransactionsByStatus(authentication, status, page, size);
         ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
                 .success(true)
                 .message("Filtered transaction history fetched successfully")
