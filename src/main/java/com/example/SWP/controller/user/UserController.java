@@ -23,14 +23,9 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getMyProfile(Authentication authentication) {
+
         UserResponse profile = userService.getUserProfile(authentication);
-        if (profile == null) {
-            return ResponseEntity.status(404)
-                    .body(ApiResponse.<UserResponse>builder()
-                            .success(false)
-                            .message("User not found")
-                            .build());
-        }
+
         return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
                 .success(true)
                 .message("Profile fetched successfully")
@@ -55,7 +50,7 @@ public class UserController {
     @PatchMapping("/avatar")
     public ResponseEntity<ApiResponse<UserResponse>> updateAvatar(
             Authentication authentication,
-            @RequestBody UpdateAvatarRequest request
+            @Valid @RequestBody UpdateAvatarRequest request
     ) {
         UserResponse updated = userService.updateAvatar(authentication, request.getAvatar());
         return ResponseEntity.ok(ApiResponse.<UserResponse>builder()

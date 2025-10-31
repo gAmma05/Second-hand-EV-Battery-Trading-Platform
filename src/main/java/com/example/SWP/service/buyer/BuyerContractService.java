@@ -1,15 +1,19 @@
 package com.example.SWP.service.buyer;
 
+import com.example.SWP.dto.request.user.VerifyContractSignatureRequest;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
 import com.example.SWP.enums.OrderStatus;
+import com.example.SWP.enums.OtpType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
+import com.example.SWP.service.mail.MailService;
+import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
@@ -27,64 +31,83 @@ import java.util.List;
 public class BuyerContractService {
 
     ContractRepository contractRepository;
-
     NotificationService notificationService;
-
     OrderRepository orderRepository;
-
     ValidateService validateService;
-
     BuyerInvoiceService buyerInvoiceService;
-
     ContractMapper contractMapper;
+    OtpService otpService;
+    MailService mailService;
 
-    public void signContract(Authentication authentication, Long contractId) {
+    public void sendContractSignOtp(Authentication authentication, Long contractId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Contract contract = contractRepository.findById(contractId).orElseThrow(
-                () -> new BusinessException("Contract does not exist, it could be system issue. Try again", 404)
-        );
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
 
-        if(!contract.getOrder().getBuyer().getId().equals(user.getId())){
-            throw new BusinessException("This contract is not belong to you, you can't sign it", 400);
+        // Buyer phải là người của contract
+        if (!contract.getOrder().getBuyer().getId().equals(user.getId())) {
+            throw new BusinessException("You are not allowed to sign this contract", 403);
         }
 
-        ContractStatus status = contract.getStatus();
-
-        if (status == ContractStatus.SIGNED) {
-            throw new BusinessException(
-                    "This contract is already signed, you cannot sign it again",
-                    400
-            );
+        // Seller phải ký trước
+        if (!contract.isSellerSigned()) {
+            throw new BusinessException("Seller has not signed the contract yet", 400);
         }
 
-        if (status == ContractStatus.CANCELLED) {
-            throw new BusinessException(
-                    "This contract has been cancelled, you cannot sign it",
-                    400
-            );
+        // Nếu contract đã ký hoặc hủy thì không cần gửi OTP nữa
+        if (contract.getStatus() == ContractStatus.SIGNED) {
+            throw new BusinessException("This contract is already signed", 400);
+        }
+        if (contract.getStatus() == ContractStatus.CANCELLED) {
+            throw new BusinessException("This contract has been cancelled", 400);
         }
 
-        if(!contract.isSellerSigned()){
-            throw new BusinessException("This contract is not signed by seller yet", 400);
+        // Sinh và gửi OTP
+        String otp = otpService.generateAndStoreOtp(user.getEmail(), OtpType.CONTRACT_SIGN);
+        mailService.sendOtpEmail(user.getEmail(), otp, OtpType.CONTRACT_SIGN);
+    }
+
+    // Buyer xác minh OTP và ký contract
+    public void verifyContractSignOtp(
+            Authentication authentication, VerifyContractSignatureRequest request) {
+
+        User user = validateService.validateCurrentUser(authentication);
+
+        Contract contract = contractRepository.findById(request.getContractId())
+                .orElseThrow(() -> new BusinessException("Contract not found", 404));
+
+        if (!contract.getOrder().getBuyer().getId().equals(user.getId())) {
+            throw new BusinessException("You are not allowed to sign this contract", 403);
         }
 
-        if(contract.isBuyerSigned()){
-            throw new BusinessException("This contract is already signed by buyer", 400);
+        if (!contract.isSellerSigned()) {
+            throw new BusinessException("Seller has not signed the contract yet", 400);
         }
 
+        if (contract.isBuyerSigned()) {
+            throw new BusinessException("You have already signed this contract", 400);
+        }
+
+        otpService.verifyOtp(user.getEmail(), request.getOtp(), OtpType.CONTRACT_SIGN);
+
+        // Cập nhật thông tin hợp đồng
         contract.setBuyerSigned(true);
-        contract.setStatus(ContractStatus.SIGNED);
         contract.setBuyerSignedAt(LocalDateTime.now());
+        contract.setStatus(ContractStatus.SIGNED);
 
-        buyerInvoiceService.createInvoice(contractId);
-
-        String sellerEmail = contract.getOrder().getSeller().getEmail();
-        String sellerTitle = "Contract Signed by Buyer";
-        String sellerContent = "Your contract has just been signed by the buyer. Please review the invoice and proceed accordingly.";
-        notificationService.sendNotificationToOneUser(sellerEmail, sellerTitle, sellerContent);
+        // Tạo hóa đơn sau khi buyer ký
+        buyerInvoiceService.createInvoice(contract.getId());
 
         contractRepository.save(contract);
+
+        // Gửi thông báo cho seller
+        String sellerEmail = contract.getOrder().getSeller().getEmail();
+        notificationService.sendNotificationToOneUser(
+                sellerEmail,
+                "Contract Signed by Buyer",
+                "The buyer has signed the contract. Please review the invoice and proceed accordingly."
+        );
     }
 
     public void cancelContract(Authentication authentication, Long contractId) {

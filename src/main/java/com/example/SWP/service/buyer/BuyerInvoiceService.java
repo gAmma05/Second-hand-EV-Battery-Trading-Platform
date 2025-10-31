@@ -34,20 +34,12 @@ import java.util.List;
 public class BuyerInvoiceService {
 
     UserRepository userRepository;
-
     ContractRepository contractRepository;
-
     InvoiceRepository invoiceRepository;
-
-
     WalletService walletService;
-
     NotificationService notificationService;
-
     SellerOrderDeliveryService sellerOrderDeliveryService;
-
     InvoiceMapper invoiceMapper;
-
     ValidateService validateService;
 
     @NonFinal
@@ -74,7 +66,6 @@ public class BuyerInvoiceService {
                 .contract(contract)
                 .invoiceNumber(Utils.generateCode("IN"))
                 .totalPrice(firstInvoiceAmount)
-                .currency(contract.getCurrency())
                 .createdAt(LocalDateTime.now())
                 .dueDate(LocalDateTime.now().plusDays(7))
                 .status(InvoiceStatus.ACTIVE)
@@ -89,7 +80,6 @@ public class BuyerInvoiceService {
                     .contract(contract)
                     .invoiceNumber(Utils.generateCode("IN"))
                     .totalPrice(finalAmount)
-                    .currency(contract.getCurrency())
                     .createdAt(LocalDateTime.now())
                     .dueDate(null)
                     .status(InvoiceStatus.INACTIVE)

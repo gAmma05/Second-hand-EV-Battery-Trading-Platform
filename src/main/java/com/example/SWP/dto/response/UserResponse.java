@@ -4,7 +4,6 @@ import com.example.SWP.enums.Role;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -21,10 +20,9 @@ public class UserResponse {
     private String storeName;
     private String storeDescription;
     private String socialMedia;
-    private int remainingPosts;
+    private int remainingBasicPosts;
+    private int remainingPremiumPosts;
     private Role role;
     private boolean status;
-    private Long sellerPackageId;
-    private LocalDateTime planExpiry;
 }
 

@@ -4,7 +4,6 @@ import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.seller.PostResponse;
-import com.example.SWP.entity.Post;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.service.seller.SellerPostService;
 import jakarta.validation.Valid;
@@ -44,7 +43,7 @@ public class SellerPostController {
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(
             Authentication authentication,
             @PathVariable Long postId,
-            @RequestBody UpdatePostRequest request
+            @Valid @RequestBody UpdatePostRequest request
     ) {
         PostResponse updatedPost = postService.updatePost(authentication, postId, request);
         return ResponseEntity.ok(
@@ -82,7 +81,6 @@ public class SellerPostController {
                         .build()
         );
     }
-
 
     @GetMapping("/posts/status/{status}")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getPostsByStatus(
