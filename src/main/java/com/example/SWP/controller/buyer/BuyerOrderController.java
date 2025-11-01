@@ -5,6 +5,7 @@ import com.example.SWP.dto.request.buyer.CancelOrderRequest;
 import com.example.SWP.dto.request.buyer.CreateOrderRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.user.OrderResponse;
+import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.service.buyer.BuyerOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,34 +23,6 @@ import java.util.List;
 public class BuyerOrderController {
 
     BuyerOrderService buyerOrderService;
-
-    @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
-        OrderResponse response = buyerOrderService.getOrderDetail(authentication, orderId);
-        return ResponseEntity.ok(
-                ApiResponse.<OrderResponse>builder()
-                        .success(true)
-                        .message("Order detail fetched successfully")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    @GetMapping()
-    public ResponseEntity<?> getMyOrders(
-            Authentication authentication,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        List<OrderResponse> response = buyerOrderService.getMyOrders(authentication, page, size);
-        return ResponseEntity.ok(
-                ApiResponse.<List<OrderResponse>>builder()
-                        .success(true)
-                        .message("Order detail fetched successfully")
-                        .data(response)
-                        .build()
-        );
-    }
 
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<Void>> createOrder(Authentication authentication, CreateOrderRequest request) {
@@ -69,6 +42,46 @@ public class BuyerOrderController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Order cancelled successfully")
+                        .build()
+        );
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<?> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
+        OrderResponse response = buyerOrderService.getOrderDetail(authentication, orderId);
+        return ResponseEntity.ok(
+                ApiResponse.<OrderResponse>builder()
+                        .success(true)
+                        .message("Order detail fetched successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @GetMapping()
+    public ResponseEntity<?> getMyOrders(Authentication authentication) {
+        List<OrderResponse> response = buyerOrderService.getMyOrders(authentication);
+        return ResponseEntity.ok(
+                ApiResponse.<List<OrderResponse>>builder()
+                        .success(true)
+                        .message("Order detail fetched successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<?> getOrdersByStatus(
+            Authentication authentication,
+            @RequestParam("status") OrderStatus status
+    ) {
+        List<OrderResponse> response = buyerOrderService.getOrdersByStatus(authentication, status);
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<OrderResponse>>builder()
+                        .success(true)
+                        .message("Order detail fetched successfully")
+                        .data(response)
                         .build()
         );
     }

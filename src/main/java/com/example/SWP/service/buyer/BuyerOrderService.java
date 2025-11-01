@@ -164,20 +164,12 @@ public class BuyerOrderService {
         );
     }
 
-    public List<OrderResponse> getMyOrders(Authentication authentication, int page, int size) {
+    public List<OrderResponse> getMyOrders(Authentication authentication) {
         User buyer = validateService.validateCurrentUser(authentication);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Order> results = orderRepository.findOrderByBuyer(buyer);
 
-        Page<Order> ordersPage = orderRepository.findOrderByBuyer(buyer, pageable);
-
-        if (ordersPage.isEmpty()) {
-            throw new BusinessException("Bạn chưa có đơn hàng nào.", 404);
-        }
-
-        return ordersPage.getContent().stream()
-                .map(orderMapper::toOrderResponse)
-                .toList();
+        return orderMapper.toOrderResponseList(results);
     }
 
     public OrderResponse getOrderDetail(Authentication authentication, Long orderId) {
@@ -193,6 +185,13 @@ public class BuyerOrderService {
         return orderMapper.toOrderResponse(order);
     }
 
+    public List<OrderResponse> getOrdersByStatus(Authentication authentication, OrderStatus status) {
+        User buyer = validateService.validateCurrentUser(authentication);
+
+        List<Order> results = orderRepository.findOrderByBuyerAndStatus(buyer, status);
+
+        return orderMapper.toOrderResponseList(results);
+    }
 
 
     private BigDecimal calculateDepositAmount(BigDecimal totalFee, BigDecimal shippingFee) {

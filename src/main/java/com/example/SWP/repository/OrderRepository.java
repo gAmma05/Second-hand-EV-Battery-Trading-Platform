@@ -16,6 +16,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findOrderBySeller_IdAndStatus(Long sellerId, OrderStatus status);
     List<Order> findOrderByPost_IdAndStatus(Long postId, OrderStatus status);
     List<Order> findOrderByPaymentType(PaymentType paymentType);
-    Page<Order> findOrderByBuyer(User buyer, Pageable pageable);
+    List<Order> findOrderByBuyer(User buyer);
     boolean existsByBuyerAndPostAndStatusNotIn(User buyer, Post post, List<OrderStatus> status);
+    List<Order> findOrderByBuyerAndStatus(User buyer, OrderStatus status);
 }
