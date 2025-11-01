@@ -35,14 +35,14 @@ public class BuyerFeedbackService {
 
     public void addFeedback(Authentication authentication, FeedbackRequest request) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
-                () -> new BusinessException("User not found", 404)
+                () -> new BusinessException("Không tìm thấy thông tin user", 404)
         );
 
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(
-                () -> new BusinessException("Order not found", 404)
+                () -> new BusinessException("Không tìm thấy order", 404)
         );
 
-        if (order.getBuyer().getId() != user.getId()) {
+        if (!Objects.equals(order.getBuyer().getId(), user.getId())) {
             throw new BusinessException("Order này không phải của bạn", 400);
         }
 
