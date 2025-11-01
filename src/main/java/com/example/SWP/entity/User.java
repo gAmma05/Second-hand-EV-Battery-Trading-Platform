@@ -32,18 +32,33 @@ public class User {
     @Column(unique = true)
     String googleId;
     String password;
+
+    @Column(columnDefinition = "NVARCHAR(255)")
     String fullName;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     String streetAddress;
     Integer provinceId;
     Integer districtId;
+
+    @Column(columnDefinition = "VARCHAR(255)")
     String wardCode;
+    @Column(columnDefinition = "NVARCHAR(255)")
     String address;
 
+    @Column(columnDefinition = "VARCHAR(50)")
     String phone;
+
+    @Column(columnDefinition = "VARCHAR(500)")
     String avatar;
+
+    @Column(columnDefinition = "NVARCHAR(255)")
     String storeName;
+
+    @Column(columnDefinition = "NVARCHAR(255)")
     String storeDescription;
+
+    @Column(columnDefinition = "VARCHAR(255)")
     String socialMedia;
 
     int remainingBasicPosts;
@@ -51,13 +66,16 @@ public class User {
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     AuthProvider provider;
+
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     Role role;
 
     boolean status;
-
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<UserNotification> userNotifications;

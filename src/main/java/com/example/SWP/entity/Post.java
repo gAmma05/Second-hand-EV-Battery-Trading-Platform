@@ -29,8 +29,14 @@ public class Post {
     @JoinColumn(name = "seller_id", nullable = false)
     User user;
 
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     ProductType productType;
+
+    @Column(columnDefinition = "VARCHAR(50)")
     String title;
+
+    @Column(columnDefinition = "VARCHAR(4000)")
     String description;
 
     BigDecimal price;
@@ -60,6 +66,7 @@ public class Post {
     LocalDateTime priorityExpire;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     PostStatus status;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -68,15 +75,21 @@ public class Post {
 
     boolean wantsTrustedLabel;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     String vehicleBrand;
+    @Column(columnDefinition = "NVARCHAR(255)")
     String model;
     Integer yearOfManufacture;
+    @Column(columnDefinition = "NVARCHAR(50)")
     String color;
     Integer mileage;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     String batteryType;
     Integer capacity;
+    @Column(columnDefinition = "NVARCHAR(50)")
     String voltage;
+    @Column(columnDefinition = "NVARCHAR(255)")
     String batteryBrand;
 
     Integer weight;

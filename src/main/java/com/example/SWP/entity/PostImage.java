@@ -23,5 +23,8 @@ public class PostImage {
     @JsonIgnore
     Post post;
 
+    @Column(columnDefinition = "TEXT")
     String imageUrl;
+
+    int imageOrder;
 }
