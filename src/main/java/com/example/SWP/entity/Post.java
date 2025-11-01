@@ -66,6 +66,8 @@ public class Post {
     @OrderColumn(name = "image_order")
     List<PostImage> images = new ArrayList<>();
 
+    boolean wantsTrustedLabel;
+
     String vehicleBrand;
     String model;
     Integer yearOfManufacture;

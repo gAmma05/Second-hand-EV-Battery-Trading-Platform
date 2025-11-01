@@ -2,14 +2,19 @@ package com.example.SWP.service.publics;
 
 import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.Post;
+import com.example.SWP.entity.PostView;
+import com.example.SWP.entity.User;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.PostMapper;
 import com.example.SWP.repository.PostRepository;
+import com.example.SWP.repository.PostViewRepository;
+import com.example.SWP.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,10 +29,31 @@ public class PublicPostService {
 
     PostRepository postRepository;
     PostMapper postMapper;
+    PostViewRepository postViewRepository;
+    UserRepository userRepository;
 
-    public PostResponse getPostById(Long postId) {
+    public PostResponse getPostById(Authentication authentication, Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Post not found", 404));
+
+        if (authentication != null && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName())) {
+            String email = authentication.getName();
+
+            User user = userRepository.findByEmail(email).orElse(null);
+
+            boolean viewed = postViewRepository.existsByBuyerAndPost(user, post);
+
+            if (!viewed) {
+                post.setViewCount(post.getViewCount() + 1);
+                postRepository.save(post);
+
+                PostView postView = new PostView();
+                postView.setBuyer(user);
+                postView.setPost(post);
+                postViewRepository.save(postView);
+            }
+        }
 
         return postMapper.toPostResponse(post);
     }
