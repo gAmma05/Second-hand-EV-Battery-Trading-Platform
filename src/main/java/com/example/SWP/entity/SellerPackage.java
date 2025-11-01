@@ -21,9 +21,14 @@ public class SellerPackage {
     Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     SellerPackageType type;
+
+    @Column(columnDefinition = "NVARCHAR(1000)")
     String description;
+
     BigDecimal price;
+
     int postLimit;
 }
 

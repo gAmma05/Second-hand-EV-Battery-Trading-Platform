@@ -29,6 +29,7 @@ public class Feedback {
 
     Integer rating;
 
+    @Column(columnDefinition = "NVARCHAR(512)")
     String comment;
 
     LocalDateTime createdAt;
