@@ -1,6 +1,8 @@
 package com.example.SWP.controller.buyer;
 
 import com.example.SWP.dto.response.ApiResponse;
+import com.example.SWP.dto.response.buyer.PostFavoriteResponse;
+import com.example.SWP.entity.PostFavorite;
 import com.example.SWP.service.buyer.BuyerPostService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/buyer/posts")
@@ -55,6 +59,42 @@ public class BuyerPostController {
                         .success(true)
                         .message("Comparison result")
                         .data(summary)
+                        .build()
+        );
+    }
+
+    @PostMapping("/{postId}/favorite")
+    public ResponseEntity<ApiResponse<Void>> addToFavorites(Authentication authentication,
+                                                            @PathVariable Long postId) {
+        buyerPostService.addToFavorites(authentication, postId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Added to favorites successfully")
+                        .build()
+        );
+    }
+
+    @DeleteMapping("/{postId}/favorite")
+    public ResponseEntity<ApiResponse<Void>> removeFromFavorites(Authentication authentication,
+                                                                 @PathVariable Long postId) {
+        buyerPostService.removeFromFavorites(authentication, postId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Removed from favorites successfully")
+                        .build()
+        );
+    }
+
+    @GetMapping("/favorites")
+    public ResponseEntity<ApiResponse<?>> getMyFavorites(Authentication authentication) {
+        List<PostFavoriteResponse> favorites = buyerPostService.getMyFavorites(authentication);
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .success(true)
+                        .message("Favorite posts retrieved successfully")
+                        .data(favorites)
                         .build()
         );
     }

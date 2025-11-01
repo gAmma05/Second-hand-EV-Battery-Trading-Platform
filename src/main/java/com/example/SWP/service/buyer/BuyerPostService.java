@@ -1,11 +1,15 @@
 package com.example.SWP.service.buyer;
 
 import com.example.SWP.dto.request.user.ai.AiProductRequest;
+import com.example.SWP.dto.response.buyer.PostFavoriteResponse;
 import com.example.SWP.entity.Post;
+import com.example.SWP.entity.PostFavorite;
 import com.example.SWP.entity.PostLike;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.mapper.PostFavoriteMapper;
+import com.example.SWP.repository.PostFavoriteRepository;
 import com.example.SWP.repository.PostLikeRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.service.ai.AiService;
@@ -14,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +30,8 @@ public class BuyerPostService {
     PostRepository postRepository;
     PostLikeRepository postLikeRepository;
     AiService  aiService;
+    PostFavoriteRepository postFavoriteRepository;
+    PostFavoriteMapper postFavoriteMapper;
 
     public void likePost(Authentication authentication, Long postId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -126,5 +134,39 @@ public class BuyerPostService {
         return aiService.compareProduct(req1, req2);
     }
 
+    public void addToFavorites(Authentication authentication, Long postId) {
+        User user = validateService.validateCurrentUser(authentication);
 
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("Post not found", 404));
+
+        if (postFavoriteRepository.existsByBuyerAndPost(user, post)) {
+            throw new BusinessException("Already in favorites!", 400);
+        }
+
+        PostFavorite favorite = PostFavorite.builder()
+                .buyer(user)
+                .post(post)
+                .build();
+
+        postFavoriteRepository.save(favorite);
+    }
+
+    public void removeFromFavorites(Authentication authentication, Long postId) {
+        User user = validateService.validateCurrentUser(authentication);
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("Post not found", 404));
+
+        PostFavorite favorite = postFavoriteRepository.findByBuyerAndPost(user, post)
+                .orElseThrow(() -> new BusinessException("Not in favorites!", 400));
+
+        postFavoriteRepository.delete(favorite);
+    }
+
+    public List<PostFavoriteResponse> getMyFavorites(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
+        List<PostFavorite> results = postFavoriteRepository.findAllByBuyer(user);
+        return postFavoriteMapper.toPostFavoriteResponseList(results);
+    }
 }
