@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -74,8 +75,8 @@ public class PublicPostController {
     }
 
     @GetMapping("/post-detail")
-    public ResponseEntity<ApiResponse<PostResponse>> getPostDetail(@RequestParam Long postId){
-        PostResponse response = publicPostService.getPostById(postId);
+    public ResponseEntity<ApiResponse<PostResponse>> getPostDetail(@RequestParam Long postId, Authentication authentication){
+        PostResponse response = publicPostService.getPostById(authentication, postId);
         return ResponseEntity.ok(
                 ApiResponse.<PostResponse>builder()
                         .success(true)

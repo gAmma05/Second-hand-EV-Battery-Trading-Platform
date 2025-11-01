@@ -109,6 +109,7 @@ public class SellerPostService {
                 .expiryDate(LocalDateTime.now().plusDays(expireDays))
                 .viewCount(0)
                 .likeCount(0)
+                .wantsTrustedLabel(request.isWantsTrustedLabel())
                 .weight(request.getWeight());
 
         // Gán thông số kỹ thuật theo type
@@ -232,6 +233,7 @@ public class SellerPostService {
         post.setPaymentTypes(request.getPaymentTypes());
         post.setUpdateDate(LocalDateTime.now());
         post.setWeight(request.getWeight());
+        post.setWantsTrustedLabel(request.isWantsTrustedLabel());
 
 
         if (request.getProductType() == ProductType.VEHICLE) {
