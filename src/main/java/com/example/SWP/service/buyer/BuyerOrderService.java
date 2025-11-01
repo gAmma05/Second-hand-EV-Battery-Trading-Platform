@@ -18,6 +18,7 @@ import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.service.ghn.GhnService;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.user.FeeService;
 import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
@@ -47,12 +48,8 @@ public class BuyerOrderService {
     NotificationService notificationService;
     WalletService walletService;
     ValidateService validateService;
-    GhnService ghnService;
     OrderMapper orderMapper;
-
-    @NonFinal
-    @Value("${deposit-percentage}")
-    BigDecimal depositPercentage;
+    FeeService feeService;
 
     public void createOrder(Authentication authentication, CreateOrderRequest request) {
         User buyer = validateService.validateCurrentUser(authentication);
@@ -96,12 +93,12 @@ public class BuyerOrderService {
                 .createdAt(LocalDateTime.now())
                 .status(OrderStatus.PENDING);
 
-        BigDecimal shippingFee = calculateShippingFee(post, request.getDeliveryMethod(), request.getServiceTypeId(), buyer);
+        BigDecimal shippingFee = feeService.calculateShippingFee(post, request.getDeliveryMethod(), request.getServiceTypeId(), buyer);
 
         Order order = orderBuilder.shippingFee(shippingFee).build();
 
         if (request.getWantDeposit()) {
-            BigDecimal depositAmount = calculateDepositAmount(post.getPrice(), shippingFee);
+            BigDecimal depositAmount = feeService.calculateDepositAmount(post.getPrice(), shippingFee);
 
             String orderId = Utils.generateCode("DEPOSIT");
             String description = Utils.generatePaymentDescription(TransactionType.DEPOSIT, orderId);
@@ -149,7 +146,7 @@ public class BuyerOrderService {
         }
 
         if (order.getStatus() == OrderStatus.DEPOSITED) {
-            BigDecimal refundAmount = calculateDepositAmount(order.getPost().getPrice(), order.getShippingFee());
+            BigDecimal refundAmount = feeService.calculateDepositAmount(order.getPost().getPrice(), order.getShippingFee());
             walletService.refundToWallet(user, refundAmount);
         }
 
@@ -191,29 +188,6 @@ public class BuyerOrderService {
         List<Order> results = orderRepository.findOrderByBuyerAndStatus(buyer, status);
 
         return orderMapper.toOrderResponseList(results);
-    }
-
-
-    private BigDecimal calculateDepositAmount(BigDecimal totalFee, BigDecimal shippingFee) {
-        return totalFee.add(shippingFee)
-                .multiply(depositPercentage)
-                .setScale(0, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculateShippingFee(Post post, DeliveryMethod deliveryMethod, Integer serviceTypeId, User buyer) {
-        BigDecimal shippingFee = BigDecimal.ZERO;
-
-        if (deliveryMethod == DeliveryMethod.GHN) {
-            FeeRequest feeRequest = FeeRequest.builder()
-                    .serviceTypeId(serviceTypeId)
-                    .postId(post.getId())
-                    .build();
-
-            FeeResponse feeResponse = ghnService.calculateShippingFee(feeRequest, buyer);
-            shippingFee = BigDecimal.valueOf(feeResponse.getTotal());
-        }
-
-        return shippingFee;
     }
 
     private boolean isOrderAvailable(Long postId, OrderStatus status) {
