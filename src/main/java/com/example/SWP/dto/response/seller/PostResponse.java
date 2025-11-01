@@ -50,6 +50,8 @@ public class PostResponse {
 
     Integer weight;
 
+    boolean wantsTrustedLabel;
+
     String vehicleBrand;
     String model;
     Integer yearOfManufacture;
