@@ -20,8 +20,8 @@ public class Feedback {
     Long id;
 
     @OneToOne
-    @JoinColumn(name = "post_id", nullable = false)
-    Post post;
+    @JoinColumn(name = "order_id", nullable = false)
+    Order order;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

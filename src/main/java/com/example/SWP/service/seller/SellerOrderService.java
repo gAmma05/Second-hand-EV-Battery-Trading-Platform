@@ -62,7 +62,7 @@ public class SellerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
-        if(!Objects.equals(order.getSeller().getId(), user.getId())){
+        if (!Objects.equals(order.getSeller().getId(), user.getId())) {
             throw new BusinessException("You are not the seller of this order", 400);
         }
 
@@ -91,7 +91,7 @@ public class SellerOrderService {
         Order order = orderRepository.findById(response.getOrderId())
                 .orElseThrow(() -> new BusinessException("Order does not exist", 404));
 
-        if(!Objects.equals(order.getSeller().getId(), user.getId())){
+        if (!Objects.equals(order.getSeller().getId(), user.getId())) {
             throw new BusinessException("You are not the seller of this order", 400);
         }
 
