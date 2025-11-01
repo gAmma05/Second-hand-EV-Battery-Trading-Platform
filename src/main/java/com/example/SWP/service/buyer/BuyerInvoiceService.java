@@ -53,11 +53,9 @@ public class BuyerInvoiceService {
         BigDecimal firstInvoiceAmount;
 
         if (contract.getOrder().getPaymentType() == PaymentType.FULL) {
-            firstInvoiceAmount = contract.getOrder().getPost().getPrice();
+            firstInvoiceAmount = contract.getPrice();
         } else if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
-            firstInvoiceAmount = contract.getPrice()
-                    .multiply(depositPercentage)
-                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
+            firstInvoiceAmount = contract.getPrice().multiply(depositPercentage);
         } else {
             throw new BusinessException("Unknown payment type", 400);
         }

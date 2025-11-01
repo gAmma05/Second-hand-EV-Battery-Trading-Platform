@@ -7,12 +7,10 @@ import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.*;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
-import com.example.SWP.enums.SellerPackageType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.PostMapper;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.PriorityPackagePaymentRepository;
-import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.ai.AiService;
 import com.example.SWP.service.validate.ValidateService;
@@ -39,7 +37,7 @@ public class SellerPostService {
     SellerPaymentService sellerPaymentService;
     PriorityPackagePaymentRepository priorityPackagePaymentRepository;
     AiService aiService;
-    private final PostMapper postMapper;
+    PostMapper postMapper;
 
     @NonFinal
     @Value("${post.expire.days}")
@@ -61,6 +59,8 @@ public class SellerPostService {
                     400
             );
         }
+
+        validateService.validateAddressInfo(user);
 
         // Validate theo productType
         validateService.validatePost(
@@ -176,6 +176,8 @@ public class SellerPostService {
     public PostResponse updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
         // Xác thực user
         User user = validateService.validateCurrentUser(authentication);
+
+        validateService.validateAddressInfo(user);
 
         // Lấy post cần update
         Post post = postRepository.findById(postId)

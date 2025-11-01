@@ -142,6 +142,7 @@ public class SellerContractService {
                     .build();
 
             FeeResponse feeResponse = ghnService.calculateShippingFee(feeRequest, buyer);
+
             contract.setPrice(post.getPrice().add(BigDecimal.valueOf(feeResponse.getTotal())));
         } else {
             contract.setPrice(post.getPrice());

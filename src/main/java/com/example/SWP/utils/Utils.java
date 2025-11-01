@@ -15,6 +15,6 @@ public class Utils {
     }
 
     public static String generatePaymentDescription(TransactionType transactionType, String code) {
-        return "Payment for " + transactionType.name() + " #" + code;
+        return "Thanh toán cho " + transactionType.name() + " #" + code;
     }
 }

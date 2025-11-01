@@ -4,5 +4,6 @@ public enum TransactionType {
     DEPOSIT,
     WITHDRAW,
     PACKAGE,
-    INVOICE
+    INVOICE,
+    REFUND
 }

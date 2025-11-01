@@ -2,7 +2,6 @@ package com.example.SWP.controller.buyer;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.PostFavoriteResponse;
-import com.example.SWP.entity.PostFavorite;
 import com.example.SWP.service.buyer.BuyerPostService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

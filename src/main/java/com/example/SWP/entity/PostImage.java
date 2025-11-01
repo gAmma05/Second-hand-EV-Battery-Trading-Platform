@@ -24,4 +24,6 @@ public class PostImage {
     Post post;
 
     String imageUrl;
+
+    
 }
