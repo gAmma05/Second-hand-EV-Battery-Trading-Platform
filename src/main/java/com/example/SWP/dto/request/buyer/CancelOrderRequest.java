@@ -1,5 +1,6 @@
 package com.example.SWP.dto.request.buyer;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,9 +14,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CancelOrderRequest {
 
-    @NotNull(message = "orderId is required")
+    @NotNull(message = "Vui lòng cung cấp ID của đơn hàng cần hủy")
     Long orderId;
 
-    @NotNull(message = "If you want to cancel it without reason, please write 'None'")
+    @NotBlank(message = "Vui lòng nhập lý do hủy đơn hàng")
     String reason;
 }

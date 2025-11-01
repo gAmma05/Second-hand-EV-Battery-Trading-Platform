@@ -49,7 +49,6 @@ public class SellerOrderService {
         response.setStatus(order.getStatus());
         response.setDeliveryMethod(order.getDeliveryMethod());
         response.setCreatedAt(order.getCreatedAt());
-        response.setUpdatedAt(order.getUpdatedAt());
 
         return response;
     }

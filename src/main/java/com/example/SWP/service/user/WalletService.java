@@ -133,6 +133,35 @@ public class WalletService {
         return walletTransactionRepository.save(transaction);
     }
 
+    public void refundToWallet(User user, BigDecimal amount) {
+        Wallet wallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy ví của người dùng.", 404));
+
+        BigDecimal balanceBefore = wallet.getBalance();
+        BigDecimal balanceAfter = balanceBefore.add(amount);
+
+        wallet.setBalance(balanceAfter);
+        walletRepository.save(wallet);
+
+        String orderId = Utils.generateCode("REFUND");
+        String description = Utils.generatePaymentDescription(TransactionType.REFUND, orderId);
+
+        WalletTransaction transaction = WalletTransaction.builder()
+                .wallet(wallet)
+                .orderId(orderId)
+                .amount(amount)
+                .type(TransactionType.REFUND)
+                .status(PaymentStatus.SUCCESS)
+                .description(description)
+                .balanceBefore(balanceBefore)
+                .balanceAfter(balanceAfter)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        walletTransactionRepository.save(transaction);
+    }
+
+
     //Xem so du vi
     public BigDecimal getBalance(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
