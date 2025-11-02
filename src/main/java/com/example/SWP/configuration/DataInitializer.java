@@ -33,17 +33,12 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${seller-package.basic.price}")
     BigDecimal basicPrice_sellerPackage;
 
-    @Value("${seller-package.basic.durationDays}")
-    int basicDurationDays_sellerPackage;
 
     @Value("${seller-package.basic.maxPosts}")
     int basicMaxPosts_sellerPackage;
 
     @Value("${seller-package.premium.price}")
     BigDecimal premiumPrice_sellerPackage;
-
-    @Value("${seller-package.premium.durationDays}")
-    int premiumDurationDays_sellerPackage;
 
     @Value("${seller-package.premium.maxPosts}")
     int premiumMaxPosts_sellerPackage;
