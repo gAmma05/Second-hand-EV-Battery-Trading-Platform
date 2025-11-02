@@ -28,7 +28,6 @@ public class SellerOrderDeliveryService {
 
     OrderDeliveryRepository orderDeliveryRepository;
     GhnService ghnService;
-    OrderRepository orderRepository;
     OrderDeliveryMapper orderDeliveryMapper;
     ValidateService validateService;
 
@@ -58,31 +57,26 @@ public class SellerOrderDeliveryService {
         orderDeliveryRepository.save(orderDelivery);
     }
 
-    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderId) {
+    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order không tồn tại", 404));
+        OrderDelivery delivery = orderDeliveryRepository.findById(orderDeliveryId)
+                .orElseThrow(() -> new BusinessException("Thông tin giao hàng không tồn tại", 404));
+
+        Order order = delivery.getOrder();
 
         if (!order.getSeller().getId().equals(user.getId())) {
             throw new BusinessException("Bạn không có quyền xem đơn hàng này", 403);
         }
 
-        OrderDelivery delivery = orderDeliveryRepository.findByOrderId(orderId);
-        if (delivery == null) {
-            throw new BusinessException("Đơn hàng chưa có thông tin vận chuyển", 404);
-        }
-
         return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
     }
+
 
     public List<OrderDeliveryResponse> getMyDeliveries(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
         List<OrderDelivery> deliveries = orderDeliveryRepository.findAllByOrder_Seller_Id(user.getId());
-        if (deliveries == null || deliveries.isEmpty()) {
-            return List.of();
-        }
 
         return orderDeliveryMapper.toOrderDeliveryResponseList(deliveries);
     }
@@ -109,8 +103,8 @@ public class SellerOrderDeliveryService {
     }
 
 
-    public OrderDeliveryResponse updateGhnDeliveryStatus(Long id) {
-        OrderDelivery orderDelivery = orderDeliveryRepository.findById(id).orElseThrow(
+    public OrderDeliveryResponse updateGhnDeliveryStatus(Long orderDeliveryId) {
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(orderDeliveryId).orElseThrow(
                 () -> new BusinessException("Đơn hàng không tồn tại", 404)
         );
 

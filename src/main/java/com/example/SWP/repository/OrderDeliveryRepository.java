@@ -1,12 +1,16 @@
 package com.example.SWP.repository;
 
+import com.example.SWP.entity.Order;
 import com.example.SWP.entity.OrderDelivery;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderDeliveryRepository extends JpaRepository<OrderDelivery, Long> {
     OrderDelivery findByOrderId(Long id);
+
+    Optional<OrderDelivery> findByOrder(Order order);
 
     List<OrderDelivery> findAllByOrder_Buyer_Id(Long id);
 

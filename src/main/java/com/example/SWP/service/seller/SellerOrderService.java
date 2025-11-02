@@ -1,21 +1,27 @@
 package com.example.SWP.service.seller;
 
-import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.request.seller.RejectOrderRequest;
+import com.example.SWP.dto.response.user.OrderResponse;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.mapper.OrderMapper;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.user.FeeService;
+import com.example.SWP.service.user.WalletService;
+import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,156 +33,117 @@ public class SellerOrderService {
 
     OrderRepository orderRepository;
     NotificationService notificationService;
-    UserRepository userRepository;
+    ValidateService validateService;
+    OrderMapper orderMapper;
+    WalletService walletService;
+    FeeService feeService;
 
-    public SellerOrderResponse getOrderDetail(Authentication authentication, Long orderId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
+    public OrderResponse getOrderDetail(Authentication authentication, Long orderId) {
+        User seller = validateService.validateCurrentUser(authentication);
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
+                .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
 
+        if (!order.getSeller().equals(seller)) {
+            throw new BusinessException("Bạn không có quyền xem chi tiết đơn hàng này.", 403);
+        }
 
-        SellerOrderResponse response = new SellerOrderResponse();
-        response.setOrderId(orderId);
-        response.setPostId(order.getPost().getId());
-        response.setBuyerName(order.getBuyer().getFullName());
-        response.setPaymentType(order.getPaymentType());
-        response.setStatus(order.getStatus());
-        response.setDeliveryMethod(order.getDeliveryMethod());
-        response.setCreatedAt(order.getCreatedAt());
-        response.setUpdatedAt(order.getUpdatedAt());
-
-        return response;
+        return orderMapper.toOrderResponse(order);
     }
 
     public void approveOrder(Authentication authentication, Long orderId) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+        User seller = validateService.validateCurrentUser(authentication);
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
+                .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
 
-        if(!Objects.equals(order.getSeller().getId(), user.getId())){
-            throw new BusinessException("You are not the seller of this order", 400);
+        if (!order.getSeller().equals(seller)) {
+            throw new BusinessException("Bạn không có quyền duyệt đơn hàng này", 403);
         }
 
-        if (order.getStatus().equals(OrderStatus.APPROVED)) {
-            throw new BusinessException("Order is already approved", 400);
-        } else if (order.getStatus().equals(OrderStatus.REJECTED)) {
-            throw new BusinessException("You can't approve this order because it's already rejected", 400);
-        } else if (order.getStatus().equals(OrderStatus.PENDING)) {
-            order.setStatus(OrderStatus.APPROVED);
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.DEPOSITED) {
+            throw new BusinessException("Chỉ có thể duyệt đơn hàng đang chờ duyệt hoặc đã đặt cọc", 400);
         }
 
-        String buyerEmail = order.getBuyer().getEmail();
-        if (buyerEmail == null) {
-            throw new BusinessException("Buyer email is not found", 404);
+        if (orderRepository.existsByPostAndStatus(order.getPost(), OrderStatus.APPROVED)) {
+            throw new BusinessException("Bài đăng này đã có đơn hàng được duyệt", 400);
         }
 
-        sendNotification(buyerEmail, "Order Approved", "Your order has been approved");
+        order.setStatus(OrderStatus.APPROVED);
         orderRepository.save(order);
+
+        Order depositedOrder = orderRepository.findByPostAndStatus(order.getPost(), OrderStatus.DEPOSITED).orElse(null);
+        if(depositedOrder != null) {
+            BigDecimal refundAmount = feeService.calculateDepositAmount(depositedOrder.getPost().getPrice(), depositedOrder.getShippingFee());
+            walletService.refundToWallet(depositedOrder.getBuyer(), refundAmount);
+
+            depositedOrder.setStatus(OrderStatus.REJECTED);
+            orderRepository.save(depositedOrder);
+
+            notificationService.sendNotificationToOneUser(
+                    depositedOrder.getBuyer().getEmail(),
+                    "Đơn hàng của bạn đã bị hủy",
+                    "Đơn hàng #" + depositedOrder.getId() + " đã bị hủy do bài đăng này đã được duyệt cho người khác. Tiền đặt cọc đã được hoàn lại."
+            );
+        }
+
+        notificationService.sendNotificationToOneUser(
+                order.getBuyer().getEmail(),
+                "Đơn hàng của bạn đã được duyệt",
+                "Người bán đã duyệt đơn hàng #" + order.getId() + ". Vui lòng chờ người bán gửi hợp đồng để ký xác nhận."
+        );
+
+        notificationService.sendNotificationToOneUser(
+                order.getSeller().getEmail(),
+                "Bạn cần tạo hợp đồng cho đơn hàng #" + order.getId(),
+                "Đơn hàng #" + order.getId() + " đã được duyệt. Hãy tạo hợp đồng và gửi cho người mua ký xác nhận."
+        );
     }
 
-    public void rejectOrder(Authentication authentication, RejectOrderRequest response) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+    public void rejectOrder(Authentication authentication, RejectOrderRequest request) {
+        User seller = validateService.validateCurrentUser(authentication);
 
-        Order order = orderRepository.findById(response.getOrderId())
-                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
 
-        if(!Objects.equals(order.getSeller().getId(), user.getId())){
-            throw new BusinessException("You are not the seller of this order", 400);
+        if (!order.getSeller().equals(seller)) {
+            throw new BusinessException("Bạn không có quyền từ chối đơn hàng này", 403);
         }
 
-        if (order.getStatus().equals(OrderStatus.REJECTED)) {
-            throw new BusinessException("Order is already rejected", 400);
-        } else if (order.getStatus().equals(OrderStatus.APPROVED)) {
-            throw new BusinessException("You can't reject this order because it's already approved", 400);
-        } else if (order.getStatus().equals(OrderStatus.PENDING)) {
-            order.setStatus(OrderStatus.REJECTED);
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.DEPOSITED) {
+            throw new BusinessException("Chỉ có thể từ chối đơn hàng đang chờ duyệt hoặc đã đặt cọc", 400);
         }
 
-        String buyerEmail = order.getBuyer().getEmail();
-        if (buyerEmail == null) {
-            throw new BusinessException("Buyer email is not found", 404);
+        if (order.getStatus() == OrderStatus.DEPOSITED) {
+            BigDecimal shippingFee = order.getShippingFee();
+            BigDecimal refundAmount = feeService.calculateDepositAmount(order.getPost().getPrice(), shippingFee);
+            walletService.refundToWallet(order.getBuyer(), refundAmount);
         }
 
-        sendNotification(buyerEmail, "Order Rejected", "Your order has been rejected with reason: " + response.getReason());
+        order.setStatus(OrderStatus.REJECTED);
         orderRepository.save(order);
+
+        notificationService.sendNotificationToOneUser(
+                order.getBuyer().getEmail(),
+                "Đơn hàng của bạn đã bị từ chối",
+                "Người bán đã từ chối đơn hàng #" + order.getId() +
+                        ". Lý do: " + request.getReason()
+        );
     }
 
-    private void sendNotification(String email, String title, String content) {
-        notificationService.sendNotificationToOneUser(email, title, content);
+    public List<OrderResponse> getMyOrders(Authentication authentication) {
+        User seller = validateService.validateCurrentUser(authentication);
+
+        List<Order> results = orderRepository.findOrderBySeller(seller);
+
+        return orderMapper.toOrderResponseList(results);
     }
 
-    public List<SellerOrderResponse> getAllOrders(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User does not exist"));
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
-        List<Order> orderList = orderRepository.findOrderBySeller_Id(user.getId());
-        return createList(orderList);
+    public List<OrderResponse> getOrdersByStatus(Authentication authentication, OrderStatus status) {
+        User seller = validateService.validateCurrentUser(authentication);
+
+        List<Order> results = orderRepository.findOrderBySellerAndStatus(seller, status);
+
+        return orderMapper.toOrderResponseList(results);
     }
-
-    public List<SellerOrderResponse> getPendingOrder(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User does not exist"));
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
-
-        List<Order> orderList = orderRepository.findOrderBySeller_IdAndStatus(user.getId(), OrderStatus.PENDING);
-        return createList(orderList);
-    }
-
-    public List<SellerOrderResponse> getRejectedOrder(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User does not exist"));
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
-        List<Order> orderList = orderRepository.findOrderBySeller_IdAndStatus(user.getId(), OrderStatus.REJECTED);
-        return createList(orderList);
-    }
-
-    public List<SellerOrderResponse> getApprovedOrder(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User does not exist"));
-        if (user.getRole() != Role.SELLER) {
-            throw new BusinessException("User is not a seller", 400);
-        }
-        List<Order> orderList = orderRepository.findOrderBySeller_IdAndStatus(user.getId(), OrderStatus.APPROVED);
-        return createList(orderList);
-    }
-
-    private List<SellerOrderResponse> createList(List<Order> orderList) {
-
-        List<SellerOrderResponse> responseList = new ArrayList<>();
-        for (Order order : orderList) {
-            SellerOrderResponse response = new SellerOrderResponse();
-            response.setOrderId(order.getId());
-            response.setPostId(order.getPost().getId());
-            response.setBuyerName(order.getBuyer().getFullName());
-            response.setPaymentType(order.getPaymentType());
-            response.setDeliveryMethod(order.getDeliveryMethod());
-            response.setStatus(order.getStatus());
-            response.setCreatedAt(order.getCreatedAt());
-            responseList.add(response);
-        }
-        return responseList;
-    }
-
-
 }

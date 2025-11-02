@@ -1,8 +1,10 @@
 package com.example.SWP.controller.seller;
 
 import com.example.SWP.dto.response.ApiResponse;
-import com.example.SWP.dto.response.seller.SellerOrderResponse;
 import com.example.SWP.dto.request.seller.RejectOrderRequest;
+import com.example.SWP.dto.response.user.OrderResponse;
+import com.example.SWP.entity.Order;
+import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.service.seller.SellerOrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ public class SellerOrderController {
     SellerOrderService sellerOrderService;
 
     @GetMapping("/approve")
-    public ResponseEntity<ApiResponse<Void>> approveOrder(Authentication authentication, @RequestParam Long orderId) {
+    public ResponseEntity<?> approveOrder(Authentication authentication, @RequestParam Long orderId) {
         sellerOrderService.approveOrder(authentication, orderId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
@@ -34,7 +36,7 @@ public class SellerOrderController {
     }
 
     @PostMapping("/reject")
-    public ResponseEntity<ApiResponse<Void>> rejectOrder(Authentication authentication, RejectOrderRequest rejectOrderRequest) {
+    public ResponseEntity<?> rejectOrder(Authentication authentication, RejectOrderRequest rejectOrderRequest) {
         sellerOrderService.rejectOrder(authentication, rejectOrderRequest);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
@@ -44,19 +46,12 @@ public class SellerOrderController {
         );
     }
 
-    @PostMapping("/detail")
-    public ResponseEntity<ApiResponse<SellerOrderResponse>> getOrderDetail(Authentication authentication, @RequestParam Long orderId) {
-        SellerOrderResponse response = sellerOrderService.getOrderDetail(authentication, orderId);
-        if(response == null){
-            return ResponseEntity.ok(
-                    ApiResponse.<SellerOrderResponse>builder()
-                            .success(false)
-                            .message("Order detail not found")
-                            .build()
-            );
-        }
+    @PostMapping("/{orderId}")
+    public ResponseEntity<ApiResponse<?>> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
+        OrderResponse response = sellerOrderService.getOrderDetail(authentication, orderId);
+
         return ResponseEntity.ok(
-                ApiResponse.<SellerOrderResponse>builder()
+                ApiResponse.<OrderResponse>builder()
                         .success(true)
                         .message("Order detail fetched successfully")
                         .data(response)
@@ -65,88 +60,33 @@ public class SellerOrderController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getMyOrders(Authentication authentication) {
-        List<SellerOrderResponse> orderList = sellerOrderService.getAllOrders(authentication);
-        if(orderList == null || orderList.isEmpty()){
-            return ResponseEntity.ok(
-                    ApiResponse.<List<SellerOrderResponse>>builder()
-                            .success(true)
-                            .message("No orders")
-                            .data(new ArrayList<>())
-                            .build()
-            );
-        }
+    public ResponseEntity<?> getMyOrders(Authentication authentication) {
+
+        List<OrderResponse> response = sellerOrderService.getMyOrders(authentication);
+
         return ResponseEntity.ok(
-                ApiResponse.<List<SellerOrderResponse>>builder()
+                ApiResponse.<List<OrderResponse>>builder()
                         .success(true)
-                        .message("All orders fetched successfully")
-                        .data(orderList)
+                        .message("Order detail fetched successfully")
+                        .data(response)
                         .build()
         );
     }
 
-    @GetMapping("/pending-list")
-    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getPendingOrders(Authentication authentication) {
-        List<SellerOrderResponse> pendingList = sellerOrderService.getPendingOrder(authentication);
-        if(pendingList == null || pendingList.isEmpty()){
-            return ResponseEntity.ok(
-                    ApiResponse.<List<SellerOrderResponse>>builder()
-                            .success(true)
-                            .message("No pending orders")
-                            .data(new ArrayList<>())
-                            .build()
-            );
-        }
+    @GetMapping("/status")
+    public ResponseEntity<?> getOrdersByStatus(
+            Authentication authentication,
+            @RequestParam("status") OrderStatus status
+    ) {
+        List<OrderResponse> response = sellerOrderService.getOrdersByStatus(authentication, status);
+
         return ResponseEntity.ok(
-                ApiResponse.<List<SellerOrderResponse>>builder()
+                ApiResponse.<List<OrderResponse>>builder()
                         .success(true)
-                        .message("Pending orders fetched successfully")
-                        .data(pendingList)
+                        .message("Order detail fetched successfully")
+                        .data(response)
                         .build()
         );
     }
-
-    @GetMapping("/approved-list")
-    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getApprovedOrders(Authentication authentication) {
-        List<SellerOrderResponse> approvedList = sellerOrderService.getApprovedOrder(authentication);
-        if(approvedList == null || approvedList.isEmpty()){
-            return ResponseEntity.ok(
-                    ApiResponse.<List<SellerOrderResponse>>builder()
-                            .success(true)
-                            .message("No approved orders")
-                            .data(new ArrayList<>())
-                            .build()
-            );
-        }
-        return ResponseEntity.ok(
-                ApiResponse.<List<SellerOrderResponse>>builder()
-                        .success(true)
-                        .message("Approved orders fetched successfully")
-                        .data(approvedList)
-                        .build()
-        );
-    }
-
-    @GetMapping("/rejected-list")
-    public ResponseEntity<ApiResponse<List<SellerOrderResponse>>> getRejectedOrders(Authentication authentication){
-        List<SellerOrderResponse> rejectedList = sellerOrderService.getRejectedOrder(authentication);
-        if(rejectedList == null || rejectedList.isEmpty()){
-            return ResponseEntity.ok(
-                    ApiResponse.<List<SellerOrderResponse>>builder()
-                            .success(true)
-                            .message("No rejected orders")
-                            .data(new ArrayList<>())
-                            .build()
-            );
-        }
-        return ResponseEntity.ok(
-                ApiResponse.<List<SellerOrderResponse>>builder()
-                        .success(true)
-                        .message("Rejected orders fetched successfully")
-                        .data(rejectedList)
-                        .build()
-        );
-    }
-
 
 }

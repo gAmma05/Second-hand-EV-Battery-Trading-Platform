@@ -31,8 +31,6 @@ public class Invoice {
 
     BigDecimal totalPrice;
 
-    String currency;
-
     LocalDateTime createdAt;
 
     LocalDateTime dueDate;

@@ -21,7 +21,6 @@ public class InvoiceResponse {
     Long contractId;
     String invoiceNumber;
     BigDecimal totalPrice;
-    String currency;
     LocalDateTime createdAt;
     LocalDateTime dueDate;
     LocalDateTime paidAt;

@@ -33,7 +33,7 @@ public class Contract {
     @Column(columnDefinition = "TEXT")
     String content;
 
-    BigDecimal price;
+    BigDecimal totalFee;
 
     boolean sellerSigned;
 

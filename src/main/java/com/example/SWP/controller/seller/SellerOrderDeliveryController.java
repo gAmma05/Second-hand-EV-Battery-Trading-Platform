@@ -20,44 +20,52 @@ public class SellerOrderDeliveryController {
     SellerOrderDeliveryService sellerOrderDeliveryService;
 
     @GetMapping
-    public ResponseEntity<List<OrderDeliveryResponse>> getMyDeliveries(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<OrderDeliveryResponse>>> getMyDeliveries(Authentication authentication) {
         List<OrderDeliveryResponse> responses = sellerOrderDeliveryService.getMyDeliveries(authentication);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(ApiResponse.<List<OrderDeliveryResponse>>builder()
+                .success(true)
+                .message("Danh sách đơn hàng giao của bạn")
+                .data(responses)
+                .build());
     }
 
-    @GetMapping("/{orderId}")
-    public ResponseEntity<OrderDeliveryResponse> getDeliveryDetail(
+    @GetMapping("/{orderDeliveryId}")
+    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryDetail(
             Authentication authentication,
-            @PathVariable Long orderId
+            @PathVariable Long orderDeliveryId
     ) {
-        OrderDeliveryResponse response = sellerOrderDeliveryService.getDeliveryDetail(authentication, orderId);
-        return ResponseEntity.ok(response);
+        OrderDeliveryResponse response = sellerOrderDeliveryService.getDeliveryDetail(authentication, orderDeliveryId);
+        return ResponseEntity.ok(ApiResponse.<OrderDeliveryResponse>builder()
+                .success(true)
+                .message("Chi tiết đơn hàng giao")
+                .data(response)
+                .build());
     }
 
-    @PutMapping("/{orderId}/manual")
+    @PutMapping("/{orderDeliveryId}/manual")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateManualStatus(
-            @PathVariable Long orderId,
+            @PathVariable Long orderDeliveryId,
             @RequestParam DeliveryStatus deliveryStatus
     ) {
-        OrderDeliveryResponse response = sellerOrderDeliveryService.updateManualDeliveryStatus(orderId, deliveryStatus);
+        OrderDeliveryResponse response = sellerOrderDeliveryService.updateManualDeliveryStatus(orderDeliveryId, deliveryStatus);
         return ResponseEntity.ok(
                 ApiResponse.<OrderDeliveryResponse>builder()
                         .success(true)
-                        .message("Manual delivery status updated successfully")
+                        .message("Cập nhật trạng thái giao hàng thủ công thành công")
                         .data(response)
                         .build()
         );
     }
 
-    @PutMapping("/{orderId}/ghn")
+    @PutMapping("/{orderDeliveryId}/ghn")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateGhnStatus(
-            @PathVariable Long orderId
+            @PathVariable Long orderDeliveryId
     ) {
-        OrderDeliveryResponse response = sellerOrderDeliveryService.updateGhnDeliveryStatus(orderId);
+        OrderDeliveryResponse response = sellerOrderDeliveryService.updateGhnDeliveryStatus(orderDeliveryId);
         return ResponseEntity.ok(
                 ApiResponse.<OrderDeliveryResponse>builder()
                         .success(true)
-                        .message("GHN delivery status synced successfully")
+                        .message("Đồng bộ trạng thái giao hàng GHN thành công")
                         .data(response)
                         .build()
         );

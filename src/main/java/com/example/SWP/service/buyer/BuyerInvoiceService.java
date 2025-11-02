@@ -6,11 +6,10 @@ import com.example.SWP.entity.*;
 import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.InvoiceMapper;
-import com.example.SWP.repository.ContractRepository;
-import com.example.SWP.repository.InvoiceRepository;
-import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.*;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.seller.SellerOrderDeliveryService;
+import com.example.SWP.service.user.FeeService;
 import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
@@ -33,7 +32,6 @@ import java.util.List;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerInvoiceService {
 
-    UserRepository userRepository;
     ContractRepository contractRepository;
     InvoiceRepository invoiceRepository;
     WalletService walletService;
@@ -41,30 +39,38 @@ public class BuyerInvoiceService {
     SellerOrderDeliveryService sellerOrderDeliveryService;
     InvoiceMapper invoiceMapper;
     ValidateService validateService;
-
-    @NonFinal
-    @Value("${deposit-percentage}")
-    BigDecimal depositPercentage;
+    FeeService feeService;
+    OrderRepository orderRepository;
+    PostRepository postRepository;
+    OrderDeliveryRepository orderDeliveryRepository;
 
     public void createInvoice(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
 
+        Order order = contract.getOrder();
+
         BigDecimal firstInvoiceAmount;
 
-        if (contract.getOrder().getPaymentType() == PaymentType.FULL) {
-            firstInvoiceAmount = contract.getOrder().getPost().getPrice();
+        if (order.getPaymentType() == PaymentType.FULL) {
+            if(order.isDepositPaid()) {
+                firstInvoiceAmount = feeService.calculateRemainingAmount(contract.getTotalFee());
+            } else {
+                firstInvoiceAmount = contract.getTotalFee();
+            }
         } else if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
-            firstInvoiceAmount = contract.getPrice()
-                    .multiply(depositPercentage)
-                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
+            if(order.isDepositPaid()) {
+                firstInvoiceAmount = BigDecimal.ZERO;
+            } else {
+                firstInvoiceAmount = feeService.calculateDepositAmount(contract.getTotalFee());
+            }
         } else {
-            throw new BusinessException("Unknown payment type", 400);
+            throw new BusinessException("Loại hình thanh toán không hợp lệ", 400);
         }
 
         Invoice depositInvoice = Invoice.builder()
                 .contract(contract)
-                .invoiceNumber(Utils.generateCode("IN"))
+                .invoiceNumber(Utils.generateCode("INVOICE"))
                 .totalPrice(firstInvoiceAmount)
                 .createdAt(LocalDateTime.now())
                 .dueDate(LocalDateTime.now().plusDays(7))
@@ -74,11 +80,11 @@ public class BuyerInvoiceService {
         invoiceRepository.save(depositInvoice);
 
         if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
-            BigDecimal finalAmount = contract.getPrice().subtract(firstInvoiceAmount);
+            BigDecimal finalAmount = feeService.calculateRemainingAmount(contract.getTotalFee());
 
             Invoice finalInvoice = Invoice.builder()
                     .contract(contract)
-                    .invoiceNumber(Utils.generateCode("IN"))
+                    .invoiceNumber(Utils.generateCode("INVOICE"))
                     .totalPrice(finalAmount)
                     .createdAt(LocalDateTime.now())
                     .dueDate(null)
@@ -88,26 +94,20 @@ public class BuyerInvoiceService {
             invoiceRepository.save(finalInvoice);
         }
 
-        String buyerEmail = contract.getOrder().getBuyer().getEmail();
         notificationService.sendNotificationToOneUser(
-                buyerEmail,
-                "Invoice Created",
-                "Dear " + contract.getOrder().getBuyer().getFullName() + ",\n\n" +
-                        "Your invoice has been created successfully.\n" +
-                        "Contract ID: " + contract.getId() + "\n" +
-                        "Payment Type: " + contract.getOrder().getPaymentType() + "\n\n" +
-                        "Thank you!"
+                contract.getOrder().getBuyer().getEmail(),
+                "Hóa đơn đã được tạo",
+                "Hóa đơn hợp đồng #" + contract.getId() + " đã được tạo. Vui lòng kiểm tra trong hệ thống."
         );
+
     }
 
     public InvoiceResponse getInvoiceDetail(Authentication authentication, Long invoiceId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Invoice invoice = invoiceRepository.getInvoiceByIdAndContract_Order_Buyer_Id(invoiceId, user.getId());
-
-        if (invoice == null) {
-            throw new BusinessException("Invoice does not exist, it could be system issue. Try again", 404);
-        }
+        Invoice invoice = invoiceRepository.getInvoiceByIdAndContract_Order_Buyer_Id(invoiceId, user.getId()).orElseThrow(
+                () -> new BusinessException("Hóa đơn không tồn tại", 404)
+        );
 
         return invoiceMapper.toInvoiceResponse(invoice);
     }
@@ -123,31 +123,28 @@ public class BuyerInvoiceService {
     public List<InvoiceResponse> getInvoicesByStatus(Authentication authentication, InvoiceStatus status) {
         User user = validateService.validateCurrentUser(authentication);
 
-        List<Invoice> list = invoiceRepository
-                .getInvoiceByContract_Order_Buyer_IdAndStatus(user.getId(), status);
+        List<Invoice> list = invoiceRepository.getInvoiceByContract_Order_Buyer_IdAndStatus(user.getId(), status);
 
         return invoiceMapper.toInvoiceResponseList(list);
     }
 
     public void payInvoice(Authentication authentication, PayInvoiceRequest request) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+        User user = validateService.validateCurrentUser(authentication);
 
-        Invoice invoice = invoiceRepository.getInvoiceByIdAndContract_Order_Buyer_Id(request.getInvoiceId(), user.getId());
-        if (invoice == null) {
-            throw new BusinessException("Invoice not found or not belong to you", 404);
-        }
+        Invoice invoice = invoiceRepository
+                .getInvoiceByIdAndContract_Order_Buyer_Id(request.getInvoiceId(), user.getId())
+                .orElseThrow(() -> new BusinessException("Hóa đơn không tồn tại hoặc có sự cố hệ thống", 404));
 
         if (invoice.getStatus() == InvoiceStatus.INACTIVE) {
-            throw new BusinessException("Invoice is not active", 400);
+            throw new BusinessException("Hóa đơn chưa kích hoạt", 400);
         }
 
         if (invoice.getStatus() == InvoiceStatus.EXPIRED) {
-            throw new BusinessException("Invoice has expired", 400);
+            throw new BusinessException("Hóa đơn đã hết hạn", 400);
         }
+
         if (invoice.getStatus() == InvoiceStatus.PAID) {
-            throw new BusinessException("Invoice already paid", 400);
+            throw new BusinessException("Hóa đơn đã được thanh toán", 400);
         }
 
         if (request.getPaymentMethod() == PaymentMethod.WALLET) {
@@ -159,7 +156,7 @@ public class BuyerInvoiceService {
                     TransactionType.INVOICE
             );
         } else {
-            throw new BusinessException("Unsupported payment method", 400);
+            throw new BusinessException("Phương thức thanh toán không được hỗ trợ", 400);
         }
 
         invoice.setPaidAt(LocalDateTime.now());
@@ -169,12 +166,24 @@ public class BuyerInvoiceService {
         User seller = invoice.getContract().getOrder().getSeller();
         notificationService.sendNotificationToOneUser(
                 seller.getEmail(),
-                "Invoice Paid",
-                "Invoice #" + invoice.getInvoiceNumber() + " has been paid by the buyer."
+                "Hóa đơn đã được thanh toán",
+                "Hóa đơn #" + invoice.getInvoiceNumber() + " đã được người mua thanh toán."
         );
 
-        sellerOrderDeliveryService.createDeliveryStatus(invoice.getContract().getOrder());
+        Order order = invoice.getContract().getOrder();
+
+        sellerOrderDeliveryService.createDeliveryStatus(order);
+
+        OrderDelivery orderDelivery = orderDeliveryRepository.findByOrder(order).orElse(null);
+
+        if(orderDelivery != null && orderDelivery.getStatus() == DeliveryStatus.RECEIVED) {
+            order.setStatus(OrderStatus.DONE);
+            order.getPost().setStatus(PostStatus.SOLD);
+            orderRepository.save(order);
+            postRepository.save(order.getPost());
+        }
     }
+
 
     public List<InvoiceResponse> getAllInvoicesByOrderId(Authentication authentication, Long orderId) {
         User user = validateService.validateCurrentUser(authentication);

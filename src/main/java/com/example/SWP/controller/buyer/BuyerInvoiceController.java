@@ -22,17 +22,6 @@ public class BuyerInvoiceController {
 
     BuyerInvoiceService buyerInvoiceService;
 
-    @PostMapping
-    public ResponseEntity<?> createInvoice(@RequestParam Long contractId) {
-        buyerInvoiceService.createInvoice(contractId);
-        return ResponseEntity.ok(
-                ApiResponse.<InvoiceResponse>builder()
-                        .success(true)
-                        .message("Created invoice successfully")
-                        .build()
-        );
-    }
-
     @GetMapping("/{invoiceId}")
     public ResponseEntity<?> getInvoiceDetail(Authentication authentication, @PathVariable Long invoiceId) {
         InvoiceResponse response = buyerInvoiceService.getInvoiceDetail(authentication, invoiceId);
