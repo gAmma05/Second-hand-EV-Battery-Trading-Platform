@@ -75,7 +75,7 @@ public class WalletService {
     //Xu ly khi VNPay callback goi ve
     public WalletTransaction handleDepositVNPayReturn(String orderId, String responseCode, String bankCode) {
         WalletTransaction transaction = walletTransactionRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new BusinessException("Transaction not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy giao dịch", 404));
 
         Wallet wallet = transaction.getWallet();
 
@@ -105,7 +105,7 @@ public class WalletService {
         BigDecimal balanceBefore = wallet.getBalance();
 
         if (balanceBefore.compareTo(amount) < 0) {
-            throw new BusinessException("Insufficient balance for withdrawal", 400);
+            throw new BusinessException("Không đủ tiền để rút theo yêu cầu", 400);
         }
 
         // Trừ tiền khỏi ví
@@ -208,11 +208,11 @@ public class WalletService {
         User user = validateService.validateCurrentUser(authentication);
 
         WalletTransaction transaction = walletTransactionRepository.findById(transactionId)
-                .orElseThrow(() -> new BusinessException("Transaction not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy giao dịch", 404));
 
         // Kiểm tra giao dịch có thuộc ví của user không
         if (!transaction.getWallet().getId().equals(user.getWallet().getId())) {
-            throw new BusinessException("You are not authorized to view this transaction", 403);
+            throw new BusinessException("Bạn không có quyền xem ví nào ngoài của mình", 403);
         }
 
         return transaction;
@@ -223,12 +223,12 @@ public class WalletService {
             User user, BigDecimal amount, String orderId, String description, TransactionType transactionType
     ) {
         Wallet wallet = walletRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException("Wallet has no balance", 404));
+                .orElseThrow(() -> new BusinessException("Ví không có số dư", 404));
 
         BigDecimal balanceBefore = wallet.getBalance();
 
         if (balanceBefore.compareTo(amount) < 0) {
-            throw new BusinessException("Insufficient balance in wallet", 400);
+            throw new BusinessException("Ví không đủ số dư", 400);
         }
 
         BigDecimal balanceAfter = balanceBefore.subtract(amount);

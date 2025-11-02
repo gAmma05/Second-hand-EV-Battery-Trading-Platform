@@ -46,21 +46,21 @@ public class BuyerComplaintService {
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("No user found", 404)
+                () -> new BusinessException("Không tìm thấy người dùng", 404)
         );
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
 
         if (ChronoUnit.DAYS.between(LocalDateTime.now(), orderDelivery.getCreatedAt()) >= DUE_DATE) {
-            throw new BusinessException("You cannot create complaint after " + DUE_DATE + " days", 400);
+            throw new BusinessException("Bạn không thể tạo khiếu nại sau " + DUE_DATE + " ngày kể từ khi giao hàng", 400);
         }
 
         if (!Objects.equals(orderDelivery.getOrder().getBuyer().getId(), user.getId())) {
-            throw new BusinessException("This order is not your", 400);
+            throw new BusinessException("Đơn hàng này không thuộc về bạn", 400);
         }
 
         if (!Objects.equals(orderDelivery.getStatus(), DeliveryStatus.RECEIVED)) {
-            throw new BusinessException("Failed to create complaint, could be not yet deliver or receive", 400);
+            throw new BusinessException("Không thể tạo khiếu nại. Đơn hàng có thể chưa được giao hoặc chưa được xác nhận nhận hàng", 400);
         }
 
         Complaint complaint = complaintMapper.toComplaint(request);
@@ -69,51 +69,64 @@ public class BuyerComplaintService {
 
         complaintRepository.save(complaint);
 
-        notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(), "About your product", "Look like someone has complained about your product, please check it out in the app");
+        notificationService.sendNotificationToOneUser(
+                orderDelivery.getOrder().getSeller().getEmail(),
+                "Về sản phẩm của bạn",
+                "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng."
+        );
     }
 
     public void acceptComplaint(Authentication authentication, Long complaintId) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("No user found", 404)
+                () -> new BusinessException("Không tìm thấy người dùng", 404)
         );
 
         Complaint complaint = complaintRepository.findById(complaintId)
-                .orElseThrow(() -> new BusinessException("Complaint not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy khiếu nại", 404));
 
         if (!Objects.equals(complaint.getOrder().getBuyer().getId(), user.getId())) {
-            throw new BusinessException("This complaint is not your", 400);
+            throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
         complaint.setStatus(ComplaintStatus.RESOLVED);
         complaintRepository.save(complaint);
 
-        notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "About your product", "Your resolution has been accepted by the buyer");
+        notificationService.sendNotificationToOneUser(
+                complaint.getOrder().getSeller().getEmail(),
+                "Về sản phẩm của bạn",
+                "Người mua đã chấp nhận hướng giải quyết của bạn."
+        );
     }
 
     public void rejectComplaint(Authentication authentication, RejectComplaintRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("No user found", 404)
+                () -> new BusinessException("Không tìm thấy người dùng", 404)
         );
+
         Complaint complaint = complaintRepository.findById(request.getComplaintId())
-                .orElseThrow(() -> new BusinessException("Complaint not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy khiếu nại", 404));
 
         if (!Objects.equals(complaint.getOrder().getBuyer().getId(), user.getId())) {
-            throw new BusinessException("This complaint is not your", 400);
+            throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
         complaint.setStatus(ComplaintStatus.REJECTED);
         complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
 
-        notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "About your product", "Your resolution has been rejected by the buyer. Reason: " + request.getReason() + ".");
+        notificationService.sendNotificationToOneUser(
+                complaint.getOrder().getSeller().getEmail(),
+                "Về sản phẩm của bạn",
+                "Người mua đã từ chối hướng giải quyết của bạn. Lý do: " + request.getReason() + "."
+        );
     }
 
     public List<ComplaintResponse> getMyComplaints(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("No user found", 404)
+                () -> new BusinessException("Không tìm thấy người dùng", 404)
         );
 
         List<Complaint> list = complaintRepository.findByOrder_Buyer_Id(user.getId());

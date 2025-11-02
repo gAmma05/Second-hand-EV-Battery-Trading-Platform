@@ -30,20 +30,20 @@ public class SellerService {
     public void upgradeToSeller(Authentication authentication, UpgradeToSellerRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User does not exist", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         if (user.getRole() == Role.SELLER) {
-            throw new BusinessException("User is already a seller", 400);
+            throw new BusinessException("Người dùng đã là seller", 400);
         }
 
         if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
-            throw new BusinessException("Please update your full name before upgrading to seller", 400);
+            throw new BusinessException("Vui lòng cập nhật họ tên đầy đủ (full name) trước khi đăng ký trở thành seller", 400);
         }
         if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
-            throw new BusinessException("Please update your phone number before upgrading to seller", 400);
+            throw new BusinessException("Vui lòng cập nhật số điện thoại (phone number) trước khi đăng ký trở thành seller", 400);
         }
         if (user.getAddress() == null) {
-            throw new BusinessException("Please update your address before upgrading to seller", 400);
+            throw new BusinessException("Vui lòng cập nhật địa chỉ (address) trước khi đăng ký trở thành seller", 400);
         }
 
         user.setRole(Role.SELLER);

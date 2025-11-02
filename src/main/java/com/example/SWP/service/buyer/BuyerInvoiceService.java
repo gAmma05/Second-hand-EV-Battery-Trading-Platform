@@ -46,7 +46,7 @@ public class BuyerInvoiceService {
 
     public void createInvoice(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy contract", 404));
 
         Order order = contract.getOrder();
 

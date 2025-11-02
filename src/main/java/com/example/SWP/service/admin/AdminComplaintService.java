@@ -32,13 +32,13 @@ public class AdminComplaintService {
     public void handleComplaint(HandleComplaintRequest request) {
         Optional<Complaint> complaintOptional = complaintRepository.findById(request.getComplaintId());
         if (complaintOptional.isEmpty()) {
-            throw new BusinessException("Complaint not found", 404);
+            throw new BusinessException("Không tìm thấy bản khiếu nại", 404);
         }
 
         Complaint complaint = complaintOptional.get();
 
         if (!Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_SOLVING)) {
-            throw new BusinessException("You cannot solve this complaint yet since they are under other status", 400);
+            throw new BusinessException("Bạn chưa thể giải quyết bản khiếu nại này vì nó đang ở trạng thái mà chưa cần bạn (Admin) giải can thiệp", 400);
         }
 
         complaint.setResolutionNotes(request.getResolution());

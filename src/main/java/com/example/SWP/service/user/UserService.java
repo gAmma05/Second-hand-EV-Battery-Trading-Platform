@@ -115,11 +115,11 @@ public class UserService {
         User user = validateService.validateCurrentUser(authentication);
 
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new BusinessException("New password and confirm password do not match", 400);
+            throw new BusinessException("Password mới và xác nhận password mới không trùng khớp", 400);
         }
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new BusinessException("Current password is incorrect", 400);
+            throw new BusinessException("Password cũ sai", 400);
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

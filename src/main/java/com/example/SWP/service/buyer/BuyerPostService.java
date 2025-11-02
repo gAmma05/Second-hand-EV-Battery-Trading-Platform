@@ -37,15 +37,15 @@ public class BuyerPostService {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId).orElseThrow(
-                () -> new BusinessException("Post not found", 404)
+                () -> new BusinessException("Không tìm thấy bài đăng", 404)
         );
 
         if(post.getStatus() != PostStatus.POSTED) {
-            throw new BusinessException("Post not posted", 404);
+            throw new BusinessException("Bài đăng chưa được đăng lên, không thể like bài đăng này", 404);
         }
 
         if (postLikeRepository.existsByBuyerAndPost(user, post)) {
-            throw new BusinessException("You already liked this post!", 400);
+            throw new BusinessException("Bạn đã thích bài viết này trước đó", 400);
         }
 
         PostLike postLike = PostLike.builder()
@@ -62,15 +62,15 @@ public class BuyerPostService {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId).orElseThrow(
-                () -> new BusinessException("Post not found", 404)
+                () -> new BusinessException("Không tìm thấy bài đăng", 404)
         );
 
         if(post.getStatus() != PostStatus.POSTED) {
-            throw new BusinessException("Post not posted", 404);
+            throw new BusinessException("Bài đăng chưa được đăng lên, không thể bỏ thích bài đăng này", 404);
         }
 
         PostLike postLike = postLikeRepository.findByBuyerAndPost(user, post)
-                .orElseThrow(() -> new BusinessException("You haven't liked this post yet", 400));
+                .orElseThrow(() -> new BusinessException("Bạn chưa thích bài đăng này trước đó", 400));
 
         postLikeRepository.delete(postLike);
 
@@ -84,23 +84,23 @@ public class BuyerPostService {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post1 = postRepository.findById(postId1).orElseThrow(
-                () -> new BusinessException("Post not found", 404)
+                () -> new BusinessException("Không tìm thấy bài đăng 1", 404)
         );
 
         Post post2 = postRepository.findById(postId2).orElseThrow(
-                () -> new BusinessException("Post not found", 404)
+                () -> new BusinessException("Không tìm thấy bài đăng 2", 404)
         );
 
         if(post1.getId().equals(post2.getId())) {
-            throw new BusinessException("Can not compare the same post", 400);
+            throw new BusinessException("Không thể so sánh 2 bài đăng giống nhau", 400);
         }
 
         if(post1.getProductType() != post2.getProductType()) {
-            throw new BusinessException("Posts must be of the same product type to compare", 400);
+            throw new BusinessException("Cả hai bài đăng phải cùng loại hình/sản phẩm thì mới có thể so sánh", 400);
         }
 
         if (post1.getStatus() != PostStatus.POSTED || post2.getStatus() != PostStatus.POSTED) {
-            throw new BusinessException("Both posts must be in POSTED status to compare", 400);
+            throw new BusinessException("Cả hai bài đăng đều phải được đăng lên hệ thống thì mới được so sánh", 400);
         }
 
         AiProductRequest req1 = AiProductRequest.builder()
@@ -138,10 +138,10 @@ public class BuyerPostService {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("Post not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         if (postFavoriteRepository.existsByBuyerAndPost(user, post)) {
-            throw new BusinessException("Already in favorites!", 400);
+            throw new BusinessException("Đã có sẵn trong danh sách yêu thích của bạn", 400);
         }
 
         PostFavorite favorite = PostFavorite.builder()
@@ -156,10 +156,10 @@ public class BuyerPostService {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("Post not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         PostFavorite favorite = postFavoriteRepository.findByBuyerAndPost(user, post)
-                .orElseThrow(() -> new BusinessException("Not in favorites!", 400));
+                .orElseThrow(() -> new BusinessException("Bài đăng này chưa có sẵn trong danh sách yêu thích của bạn", 400));
 
         postFavoriteRepository.delete(favorite);
     }
