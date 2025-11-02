@@ -6,9 +6,7 @@ import com.example.SWP.entity.*;
 import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.InvoiceMapper;
-import com.example.SWP.repository.ContractRepository;
-import com.example.SWP.repository.InvoiceRepository;
-import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.*;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.seller.SellerOrderDeliveryService;
 import com.example.SWP.service.user.FeeService;
@@ -34,7 +32,6 @@ import java.util.List;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BuyerInvoiceService {
 
-    UserRepository userRepository;
     ContractRepository contractRepository;
     InvoiceRepository invoiceRepository;
     WalletService walletService;
@@ -43,6 +40,9 @@ public class BuyerInvoiceService {
     InvoiceMapper invoiceMapper;
     ValidateService validateService;
     FeeService feeService;
+    OrderRepository orderRepository;
+    PostRepository postRepository;
+    OrderDeliveryRepository orderDeliveryRepository;
 
     public void createInvoice(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
@@ -170,7 +170,18 @@ public class BuyerInvoiceService {
                 "Hóa đơn #" + invoice.getInvoiceNumber() + " đã được người mua thanh toán."
         );
 
-        sellerOrderDeliveryService.createDeliveryStatus(invoice.getContract().getOrder());
+        Order order = invoice.getContract().getOrder();
+
+        sellerOrderDeliveryService.createDeliveryStatus(order);
+
+        OrderDelivery orderDelivery = orderDeliveryRepository.findByOrder(order).orElse(null);
+
+        if(orderDelivery != null && orderDelivery.getStatus() == DeliveryStatus.RECEIVED) {
+            order.setStatus(OrderStatus.DONE);
+            order.getPost().setStatus(PostStatus.SOLD);
+            orderRepository.save(order);
+            postRepository.save(order.getPost());
+        }
     }
 
 

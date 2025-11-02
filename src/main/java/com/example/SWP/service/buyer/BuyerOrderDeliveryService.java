@@ -30,39 +30,36 @@ import java.util.List;
 public class BuyerOrderDeliveryService {
 
     ValidateService validateService;
-    OrderRepository orderRepository;
     OrderDeliveryRepository orderDeliveryRepository;
     InvoiceRepository invoiceRepository;
     ContractRepository contractRepository;
     OrderDeliveryMapper orderDeliveryMapper;
 
-    public void confirmReceived(Authentication authentication, Long orderId) {
+    public void confirmReceived(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order not found", 404));
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(orderDeliveryId).orElseThrow(
+                () -> new BusinessException("Đơn hàng vận chuyển không tồn tại", 404)
+        );
+
+        Order order = orderDelivery.getOrder();
 
         if (!order.getBuyer().getId().equals(user.getId())) {
-            throw new BusinessException("You don't have permission to confirm this order", 403);
-        }
-
-        OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(orderId);
-        if (orderDelivery == null) {
-            throw new BusinessException("Order does not have delivery status yet", 404);
+            throw new BusinessException("Bạn không có quyền xác nhận đơn hàng này", 403);
         }
 
         if (orderDelivery.getStatus() != DeliveryStatus.DELIVERED) {
-            throw new BusinessException("Order has not delivered yet", 400);
+            throw new BusinessException("Đơn hàng chưa được giao", 400);
         }
 
         orderDelivery.setStatus(DeliveryStatus.RECEIVED);
         orderDelivery.setUpdatedAt(LocalDateTime.now());
         orderDeliveryRepository.save(orderDelivery);
 
-        Contract contract = contractRepository.findByOrder_Id(orderId)
-                .orElseThrow(() -> new BusinessException("Contract not found", 404));
-
         if(order.getPaymentType() == PaymentType.DEPOSIT) {
+            Contract contract = contractRepository.findByOrder_Id(order.getId())
+                    .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
+
             invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
                     .ifPresent(invoice -> {
                         invoice.setStatus(InvoiceStatus.ACTIVE);
@@ -72,31 +69,26 @@ public class BuyerOrderDeliveryService {
         }
     }
 
-    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderId) {
+    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order not found", 404));
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(orderDeliveryId)
+                .orElseThrow(() -> new BusinessException("Trạng thái giao hàng không tồn tại", 404));
+
+        Order order = orderDelivery.getOrder();
 
         if (!order.getBuyer().getId().equals(user.getId())) {
-            throw new BusinessException("You don't have permission to view this order", 403);
+            throw new BusinessException("Bạn không có quyền xem thông tin giao hàng này", 403);
         }
 
-        OrderDelivery delivery = orderDeliveryRepository.findByOrderId(orderId);
-        if (delivery == null) {
-            throw new BusinessException("This order does not have delivery information yet", 404);
-        }
-
-        return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
+        return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
     }
+
 
     public List<OrderDeliveryResponse> getMyDeliveries(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
         List<OrderDelivery> deliveries = orderDeliveryRepository.findAllByOrder_Buyer_Id(user.getId());
-        if (deliveries == null || deliveries.isEmpty()) {
-            return List.of();
-        }
 
         return orderDeliveryMapper.toOrderDeliveryResponseList(deliveries);
     }
