@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 public class ContractTemplateResponse {
     Long orderId;
 
-    //thong tin nguoi mua va ban
     String buyerName;
     String buyerAddress;
     String buyerPhone;
@@ -24,7 +23,6 @@ public class ContractTemplateResponse {
     String sellerAddress;
     String sellerPhone;
 
-    //thong so ky thuat
     ProductType productType;
 
     String vehicleBrand;
@@ -44,5 +42,7 @@ public class ContractTemplateResponse {
     PaymentType paymentType;
 
     BigDecimal price;
+    BigDecimal shippingFee;
+
     BigDecimal depositPercentage;
 }

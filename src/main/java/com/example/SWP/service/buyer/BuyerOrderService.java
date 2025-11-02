@@ -11,6 +11,7 @@ import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
+import com.example.SWP.enums.PaymentType;
 import com.example.SWP.enums.TransactionType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderMapper;
@@ -50,6 +51,10 @@ public class BuyerOrderService {
     ValidateService validateService;
     OrderMapper orderMapper;
     FeeService feeService;
+
+    @NonFinal
+    @Value("${deposit-percentage}")
+    BigDecimal depositPercentage;
 
     public void createOrder(Authentication authentication, CreateOrderRequest request) {
         User buyer = validateService.validateCurrentUser(authentication);
@@ -95,6 +100,10 @@ public class BuyerOrderService {
 
         BigDecimal shippingFee = feeService.calculateShippingFee(post, request.getDeliveryMethod(), request.getServiceTypeId(), buyer);
 
+        if(request.getPaymentType() == PaymentType.DEPOSIT) {
+            orderBuilder.depositPercentage(depositPercentage);
+        }
+
         Order order = orderBuilder.shippingFee(shippingFee).build();
 
         if (request.getWantDeposit()) {
@@ -105,6 +114,7 @@ public class BuyerOrderService {
 
             walletService.payWithWallet(buyer, depositAmount, orderId, description, TransactionType.DEPOSIT);
 
+            order.setDepositPaid(true);
             order.setStatus(OrderStatus.DEPOSITED);
         }
 

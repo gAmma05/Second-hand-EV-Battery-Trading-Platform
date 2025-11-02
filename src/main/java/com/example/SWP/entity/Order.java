@@ -47,6 +47,10 @@ public class Order {
 
     BigDecimal shippingFee;
 
+    BigDecimal depositPercentage;
+
+    boolean depositPaid;
+
     @Enumerated(EnumType.STRING)
     OrderStatus status;
 

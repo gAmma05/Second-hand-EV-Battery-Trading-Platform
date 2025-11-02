@@ -32,6 +32,9 @@ public class OrderResponse {
 
     BigDecimal price;
     BigDecimal shippingFee;
+    BigDecimal depositPercentage;
+
+    boolean depositPaid;
 
     OrderStatus status;
 

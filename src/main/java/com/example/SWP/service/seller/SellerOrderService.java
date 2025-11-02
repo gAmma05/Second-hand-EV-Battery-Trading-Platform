@@ -72,6 +72,21 @@ public class SellerOrderService {
         order.setStatus(OrderStatus.APPROVED);
         orderRepository.save(order);
 
+        Order depositedOrder = orderRepository.findByPostAndStatus(order.getPost(), OrderStatus.DEPOSITED).orElse(null);
+        if(depositedOrder != null) {
+            BigDecimal refundAmount = feeService.calculateDepositAmount(depositedOrder.getPost().getPrice(), depositedOrder.getShippingFee());
+            walletService.refundToWallet(depositedOrder.getBuyer(), refundAmount);
+
+            depositedOrder.setStatus(OrderStatus.REJECTED);
+            orderRepository.save(depositedOrder);
+
+            notificationService.sendNotificationToOneUser(
+                    depositedOrder.getBuyer().getEmail(),
+                    "Đơn hàng của bạn đã bị hủy",
+                    "Đơn hàng #" + depositedOrder.getId() + " đã bị hủy do bài đăng này đã được duyệt cho người khác. Tiền đặt cọc đã được hoàn lại."
+            );
+        }
+
         notificationService.sendNotificationToOneUser(
                 order.getBuyer().getEmail(),
                 "Đơn hàng của bạn đã được duyệt",

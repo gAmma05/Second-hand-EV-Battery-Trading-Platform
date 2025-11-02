@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findOrderByPost_IdAndStatus(Long postId, OrderStatus status);
@@ -20,4 +21,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByPostAndStatus(Post post, OrderStatus orderStatus);
     List<Order> findOrderBySeller(User seller);
     List<Order> findOrderBySellerAndStatus(User seller, OrderStatus orderStatus);
+    Optional<Order> findByPostAndStatus(Post post, OrderStatus orderStatus);
 }
