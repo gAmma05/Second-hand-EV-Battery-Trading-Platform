@@ -1,29 +1,27 @@
 package com.example.SWP.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Entity
-@Table(name = "post_images")
 @Data
-@NoArgsConstructor
+@Entity
+@Table(name = "post_favorites")
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PostImage {
-
+public class PostFavorite {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "buyer_id")
+    User buyer;
+
+    @ManyToOne
+    @JoinColumn(name = "post_id")
     Post post;
 
-    String imageUrl;
-
-    
 }

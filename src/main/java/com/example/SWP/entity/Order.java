@@ -5,12 +5,10 @@ import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.PaymentMethod;
 import com.example.SWP.enums.PaymentType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 
 public class Order {
     @Id
@@ -48,10 +47,15 @@ public class Order {
 
     Integer serviceTypeId;
 
+    BigDecimal shippingFee;
+
+    BigDecimal depositPercentage;
+
+    boolean depositPaid;
+
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(50)")
     OrderStatus status;
 
     LocalDateTime createdAt;
-    LocalDateTime updatedAt;
 }

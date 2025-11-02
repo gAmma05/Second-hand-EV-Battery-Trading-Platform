@@ -1,9 +1,7 @@
 package com.example.SWP.service.seller;
 
-import com.example.SWP.dto.request.ghn.FeeRequest;
 import com.example.SWP.dto.request.seller.CreateContractRequest;
 import com.example.SWP.dto.request.user.VerifyContractSignatureRequest;
-import com.example.SWP.dto.response.ghn.FeeResponse;
 import com.example.SWP.dto.response.seller.ContractTemplateResponse;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
@@ -15,7 +13,6 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
-import com.example.SWP.service.ghn.GhnService;
 import com.example.SWP.service.mail.MailService;
 import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.notification.NotificationService;
@@ -23,12 +20,9 @@ import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -41,27 +35,22 @@ public class SellerContractService {
     ContractRepository contractRepository;
     NotificationService notificationService;
     ContractMapper contractMapper;
-    GhnService ghnService;
     ValidateService validateService;
     MailService mailService;
     OtpService otpService;
-
-    @NonFinal
-    @Value("${deposit-percentage}")
-    BigDecimal depositPercentage;
 
     public ContractTemplateResponse generateContractTemplate(Authentication authentication, Long orderId) {
         User user = validateService.validateCurrentUser(authentication);
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
+                .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
 
         if (order.getStatus() != OrderStatus.APPROVED) {
-            throw new BusinessException("Order is not approved", 404);
+            throw new BusinessException("Đơn hàng chưa được duyệt", 400);
         }
 
         if (!order.getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("You are not allowed to create a contract for this order", 403);
+            throw new BusinessException("Bạn không có quyền tạo hợp đồng cho đơn hàng này", 403);
         }
 
         User buyer = order.getBuyer();
@@ -79,13 +68,11 @@ public class SellerContractService {
                 .weight(post.getWeight())
                 .deliveryMethod(order.getDeliveryMethod())
                 .paymentType(order.getPaymentType())
-                .price(post.getPrice());
+                .price(post.getPrice())
+                .shippingFee(order.getShippingFee())
+                .depositPercentage(order.getDepositPercentage());
 
-        if(order.getPaymentType() == PaymentType.DEPOSIT) {
-            contractTemplateResponse.depositPercentage(depositPercentage);
-        }
-
-        if(post.getProductType() == ProductType.VEHICLE) {
+        if (post.getProductType() == ProductType.VEHICLE) {
             contractTemplateResponse.vehicleBrand(post.getVehicleBrand())
                     .model(post.getModel())
                     .yearOfManufacture(post.getYearOfManufacture())
@@ -101,63 +88,65 @@ public class SellerContractService {
     }
 
     public void createContract(Authentication authentication, CreateContractRequest request) {
-        Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new BusinessException("Order does not exist", 404));
-
         User user = validateService.validateCurrentUser(authentication);
+
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
+
+        if(contractRepository.existsByOrderAndStatusIn(order, List.of(ContractStatus.PENDING, ContractStatus.SIGNED))) {
+            throw new BusinessException("Đơn hàng này đã có hợp đồng, không thể tạo hợp đồng mới", 400);
+        }
 
         User seller = order.getSeller();
         User buyer = order.getBuyer();
 
         if (seller.getId().equals(buyer.getId())) {
-            throw new BusinessException("You can't create contract on your own order", 400);
+            throw new BusinessException("Bạn không thể tạo hợp đồng cho đơn hàng của chính mình", 400);
         }
 
         if (!user.getId().equals(seller.getId())) {
-            throw new BusinessException("You are not the seller of this order", 400);
+            throw new BusinessException("Bạn không phải người bán của đơn hàng này", 403);
         }
 
-        if (order.getStatus().equals(OrderStatus.PENDING)) {
-            throw new BusinessException("You can't create contract until the order is approved", 400);
-        } else if (order.getStatus().equals(OrderStatus.REJECTED)) {
-            throw new BusinessException("This order is already rejected, you can no longer create contract on this order", 400);
-        } else if(order.getStatus().equals(OrderStatus.DONE)) {
-            throw new BusinessException("This order is already done, you can no longer create contract on this order", 400);
+        if (order.getStatus() != OrderStatus.APPROVED) {
+            throw new BusinessException("Chỉ đơn hàng đã được duyệt mới có thể tạo hợp đồng", 400);
         }
-
-        Contract contract = Contract.builder()
-                .order(order)
-                .contractCode(Utils.generateCode("CT"))
-                .sellerSignedAt(LocalDateTime.now())
-                .status(ContractStatus.PENDING)
-                .build();
 
         Post post = order.getPost();
 
-        if (order.getDeliveryMethod() == DeliveryMethod.GHN) {
-
-            FeeRequest feeRequest = FeeRequest.builder()
-                    .postId(post.getId())
-                    .serviceTypeId(order.getServiceTypeId())
-                    .build();
-
-            FeeResponse feeResponse = ghnService.calculateShippingFee(feeRequest, buyer);
-            contract.setPrice(post.getPrice().add(BigDecimal.valueOf(feeResponse.getTotal())));
-        } else {
-            contract.setPrice(post.getPrice());
-        }
+        Contract contract = Contract.builder()
+                .order(order)
+                .contractCode(Utils.generateCode("CONTRACT"))
+                .content(request.getContent())
+                .status(ContractStatus.PENDING)
+                .totalFee(post.getPrice().add(order.getShippingFee()))
+                .build();
 
         contractRepository.save(contract);
-        notificationService.sendNotificationToOneUser(order.getBuyer().getEmail(), "About your order", "Hey, look like your order's seller has sent the contract, you should check it out.");
+
+        notificationService.sendNotificationToOneUser(
+                order.getBuyer().getEmail(),
+                "Hợp đồng đơn hàng của bạn",
+                "Người bán đã gửi hợp đồng cho đơn hàng #" + order.getId() + ". Vui lòng kiểm tra chi tiết trong hệ thống."
+        );
     }
 
     public void sendContractSignOtp(Authentication authentication, Long contractId) {
         User user = validateService.validateCurrentUser(authentication);
+
         Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new BusinessException("Contract not found", 404));
+                .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
         if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("You are not allowed to sign this contract", 403);
+            throw new BusinessException("Bạn không có quyền ký hợp đồng này", 403);
+        }
+
+        if (contract.getStatus() != ContractStatus.PENDING) {
+            throw new BusinessException("Chỉ hợp đồng đang chờ ký mới được ký", 400);
+        }
+
+        if (contract.isSellerSigned()) {
+            throw new BusinessException("Bạn đã ký hợp đồng này rồi", 400);
         }
 
         String otp = otpService.generateAndStoreOtp(user.getEmail(), OtpType.CONTRACT_SIGN);
@@ -169,10 +158,18 @@ public class SellerContractService {
         User user = validateService.validateCurrentUser(authentication);
 
         Contract contract = contractRepository.findById(request.getContractId())
-                .orElseThrow(() -> new BusinessException("Contract not found", 404));
+                .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
         if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("You are not allowed to sign this contract", 403);
+            throw new BusinessException("Bạn không có quyền ký hợp đồng này", 403);
+        }
+
+        if (contract.getStatus() != ContractStatus.PENDING) {
+            throw new BusinessException("Chỉ hợp đồng đang chờ ký mới được ký", 400);
+        }
+
+        if (contract.isSellerSigned()) {
+            throw new BusinessException("Bạn đã ký hợp đồng này rồi", 400);
         }
 
         otpService.verifyOtp(user.getEmail(), request.getOtp(), OtpType.CONTRACT_SIGN);
@@ -183,8 +180,8 @@ public class SellerContractService {
 
         notificationService.sendNotificationToOneUser(
                 contract.getOrder().getBuyer().getEmail(),
-                "Contract Signed",
-                "The seller has signed the contract. Please check your order."
+                "Hợp đồng đã được ký",
+                "Người bán đã ký hợp đồng cho đơn hàng #" + contract.getOrder().getId() + ". Vui lòng kiểm tra chi tiết trong hệ thống."
         );
     }
 
@@ -192,20 +189,19 @@ public class SellerContractService {
         User user = validateService.validateCurrentUser(authentication);
 
         Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new BusinessException("Contract does not exist", 404));
+                .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
         if (!contract.getOrder().getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("This contract does not belong to you", 400);
+            throw new BusinessException("Bạn không có quyền xem hợp đồng này", 400);
         }
 
         return contractMapper.toContractResponse(contract);
-
     }
 
     public List<ContractResponse> getAllContracts(Authentication authentication) {
-        User user = validateService.validateCurrentUser(authentication);
-        List<Contract> list = contractRepository
-                .findByOrder_Seller_Id(user.getId());
+        User seller = validateService.validateCurrentUser(authentication);
+
+        List<Contract> list = contractRepository.findByOrder_Seller(seller);
 
         return contractMapper.toContractResponses(list);
     }

@@ -5,15 +5,10 @@ import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.OrderDelivery;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.DeliveryStatus;
-import com.example.SWP.enums.InvoiceStatus;
-import com.example.SWP.enums.PaymentType;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderDeliveryMapper;
-import com.example.SWP.repository.ContractRepository;
-import com.example.SWP.repository.InvoiceRepository;
-import com.example.SWP.repository.OrderDeliveryRepository;
-import com.example.SWP.repository.OrderRepository;
+import com.example.SWP.repository.*;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -30,73 +25,66 @@ import java.util.List;
 public class BuyerOrderDeliveryService {
 
     ValidateService validateService;
-    OrderRepository orderRepository;
     OrderDeliveryRepository orderDeliveryRepository;
     InvoiceRepository invoiceRepository;
-    ContractRepository contractRepository;
     OrderDeliveryMapper orderDeliveryMapper;
+    private final OrderRepository orderRepository;
+    private final PostRepository postRepository;
 
-    public void confirmReceived(Authentication authentication, Long orderId) {
+    public void confirmReceived(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order not found", 404));
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(orderDeliveryId).orElseThrow(
+                () -> new BusinessException("Đơn hàng vận chuyển không tồn tại", 404)
+        );
+
+        Order order = orderDelivery.getOrder();
 
         if (!order.getBuyer().getId().equals(user.getId())) {
-            throw new BusinessException("You don't have permission to confirm this order", 403);
-        }
-
-        OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(orderId);
-        if (orderDelivery == null) {
-            throw new BusinessException("Order does not have delivery status yet", 404);
+            throw new BusinessException("Bạn không có quyền xác nhận đơn hàng này", 403);
         }
 
         if (orderDelivery.getStatus() != DeliveryStatus.DELIVERED) {
-            throw new BusinessException("Order has not delivered yet", 400);
+            throw new BusinessException("Đơn hàng chưa được giao", 400);
+        }
+
+        boolean hasActiveInvoice = invoiceRepository.existsByContract_OrderAndStatus(order, InvoiceStatus.ACTIVE);
+        if (hasActiveInvoice) {
+            throw new BusinessException("Bạn phải thanh toán hóa đơn trước khi xác nhận nhận hàng", 400);
         }
 
         orderDelivery.setStatus(DeliveryStatus.RECEIVED);
         orderDelivery.setUpdatedAt(LocalDateTime.now());
         orderDeliveryRepository.save(orderDelivery);
 
-        Contract contract = contractRepository.findByOrder_Id(orderId)
-                .orElseThrow(() -> new BusinessException("Contract not found", 404));
+        order.setStatus(OrderStatus.DONE);
+        orderRepository.save(order);
 
-        if(order.getPaymentType() == PaymentType.DEPOSIT) {
-            invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
-                    .ifPresent(invoice -> {
-                        invoice.setStatus(InvoiceStatus.ACTIVE);
-                        invoice.setDueDate(LocalDateTime.now().plusDays(7));
-                        invoiceRepository.save(invoice);
-                    });
-        }
+        order.getPost().setStatus(PostStatus.SOLD);
+        postRepository.save(order.getPost());
+
     }
 
-    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderId) {
+    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order not found", 404));
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(orderDeliveryId)
+                .orElseThrow(() -> new BusinessException("Trạng thái giao hàng không tồn tại", 404));
+
+        Order order = orderDelivery.getOrder();
 
         if (!order.getBuyer().getId().equals(user.getId())) {
-            throw new BusinessException("You don't have permission to view this order", 403);
+            throw new BusinessException("Bạn không có quyền xem thông tin giao hàng này", 403);
         }
 
-        OrderDelivery delivery = orderDeliveryRepository.findByOrderId(orderId);
-        if (delivery == null) {
-            throw new BusinessException("This order does not have delivery information yet", 404);
-        }
-
-        return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
+        return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
     }
+
 
     public List<OrderDeliveryResponse> getMyDeliveries(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
         List<OrderDelivery> deliveries = orderDeliveryRepository.findAllByOrder_Buyer_Id(user.getId());
-        if (deliveries == null || deliveries.isEmpty()) {
-            return List.of();
-        }
 
         return orderDeliveryMapper.toOrderDeliveryResponseList(deliveries);
     }

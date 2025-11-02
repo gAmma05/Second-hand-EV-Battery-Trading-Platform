@@ -1,14 +1,15 @@
 package com.example.SWP.service.seller;
 
 import com.example.SWP.dto.response.OrderDeliveryResponse;
+import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.OrderDelivery;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.DeliveryMethod;
-import com.example.SWP.enums.DeliveryProvider;
-import com.example.SWP.enums.DeliveryStatus;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderDeliveryMapper;
+import com.example.SWP.repository.ContractRepository;
+import com.example.SWP.repository.InvoiceRepository;
 import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.service.ghn.GhnService;
@@ -28,9 +29,10 @@ public class SellerOrderDeliveryService {
 
     OrderDeliveryRepository orderDeliveryRepository;
     GhnService ghnService;
-    OrderRepository orderRepository;
     OrderDeliveryMapper orderDeliveryMapper;
     ValidateService validateService;
+    InvoiceRepository invoiceRepository;
+    ContractRepository contractRepository;
 
     public void createDeliveryStatus(Order order) {
         if (order == null) {
@@ -47,7 +49,7 @@ public class SellerOrderDeliveryService {
         orderDelivery.setOrder(order);
         orderDelivery.setStatus(DeliveryStatus.PREPARING);
 
-        if(order.getDeliveryMethod() == DeliveryMethod.GHN) {
+        if (order.getDeliveryMethod() == DeliveryMethod.GHN) {
             ghnService.createGhnOrder(orderDelivery);
         }
 
@@ -58,31 +60,26 @@ public class SellerOrderDeliveryService {
         orderDeliveryRepository.save(orderDelivery);
     }
 
-    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderId) {
+    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException("Order không tồn tại", 404));
+        OrderDelivery delivery = orderDeliveryRepository.findById(orderDeliveryId)
+                .orElseThrow(() -> new BusinessException("Thông tin giao hàng không tồn tại", 404));
+
+        Order order = delivery.getOrder();
 
         if (!order.getSeller().getId().equals(user.getId())) {
             throw new BusinessException("Bạn không có quyền xem đơn hàng này", 403);
         }
 
-        OrderDelivery delivery = orderDeliveryRepository.findByOrderId(orderId);
-        if (delivery == null) {
-            throw new BusinessException("Đơn hàng chưa có thông tin vận chuyển", 404);
-        }
-
         return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
     }
+
 
     public List<OrderDeliveryResponse> getMyDeliveries(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
         List<OrderDelivery> deliveries = orderDeliveryRepository.findAllByOrder_Seller_Id(user.getId());
-        if (deliveries == null || deliveries.isEmpty()) {
-            return List.of();
-        }
 
         return orderDeliveryMapper.toOrderDeliveryResponseList(deliveries);
     }
@@ -103,14 +100,30 @@ public class SellerOrderDeliveryService {
         orderDelivery.setStatus(newStatus);
         orderDelivery.setUpdatedAt(LocalDateTime.now());
 
+        if (newStatus == DeliveryStatus.DELIVERED) {
+            Order order = orderDelivery.getOrder();
+
+            if (order.getPaymentType() == PaymentType.DEPOSIT) {
+                Contract contract = contractRepository.findByOrder_Id(order.getId())
+                        .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
+
+                invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
+                        .ifPresent(invoice -> {
+                            invoice.setStatus(InvoiceStatus.ACTIVE);
+                            invoice.setDueDate(LocalDateTime.now().plusDays(7));
+                            invoiceRepository.save(invoice);
+                        });
+            }
+        }
+
         orderDeliveryRepository.save(orderDelivery);
 
         return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
     }
 
 
-    public OrderDeliveryResponse updateGhnDeliveryStatus(Long id) {
-        OrderDelivery orderDelivery = orderDeliveryRepository.findById(id).orElseThrow(
+    public OrderDeliveryResponse updateGhnDeliveryStatus(Long orderDeliveryId) {
+        OrderDelivery orderDelivery = orderDeliveryRepository.findById(orderDeliveryId).orElseThrow(
                 () -> new BusinessException("Đơn hàng không tồn tại", 404)
         );
 
@@ -123,6 +136,22 @@ public class SellerOrderDeliveryService {
 
         orderDelivery.setUpdatedAt(LocalDateTime.now());
         orderDeliveryRepository.save(orderDelivery);
+
+        if (ghnStatus == DeliveryStatus.DELIVERED) {
+            Order order = orderDelivery.getOrder();
+
+            if (order.getPaymentType() == PaymentType.DEPOSIT) {
+                Contract contract = contractRepository.findByOrder_Id(order.getId())
+                        .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
+
+                invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
+                        .ifPresent(invoice -> {
+                            invoice.setStatus(InvoiceStatus.ACTIVE);
+                            invoice.setDueDate(LocalDateTime.now().plusDays(7));
+                            invoiceRepository.save(invoice);
+                        });
+            }
+        }
 
         return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
     }

@@ -14,15 +14,18 @@ import lombok.NoArgsConstructor;
 
 public class CreateOrderRequest {
 
-    @NotNull(message = "postId is required")
+    @NotNull(message = "ID của bài đăng là bắt buộc")
     Long postId;
 
-    @NotNull(message = "deliveryMethod is required")
+    @NotNull(message = "Phương thức giao hàng là bắt buộc")
     DeliveryMethod deliveryMethod;
 
 
-    @NotNull(message = "paymentType is required")
+    @NotNull(message = "Loại thanh toán là bắt buộc")
     PaymentType paymentType;
 
     Integer serviceTypeId;
+
+    @NotNull(message = "Vui lòng chọn bạn có muốn đặt cọc hay không")
+    Boolean wantDeposit;
 }
