@@ -1,5 +1,6 @@
 package com.example.SWP.dto.response.seller;
 
+import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.PaymentType;
 import com.example.SWP.enums.PostStatus;
@@ -24,8 +25,9 @@ public class PostResponse {
     String title;
     String description;
 
+    UserResponse user;
+
     BigDecimal price;
-    double suggestPrice;
 
     LocalDateTime postDate;
     LocalDateTime updateDate;
