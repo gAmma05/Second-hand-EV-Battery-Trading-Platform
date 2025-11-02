@@ -48,21 +48,21 @@ public class SellerPostService {
 
         if (request.isWantsTrustedLabel() && user.getRemainingPremiumPosts() <= 0) {
             throw new BusinessException(
-                    "You have no remaining premium post slots for trusted label. Please upgrade your plan.",
+                    "Bạn không còn lượt đăng bài Premium nào cho nhãn tin cậy. Vui lòng nâng cấp gói của bạn.",
                     400
             );
         }
 
-        if(!request.isWantsTrustedLabel() && user.getRemainingBasicPosts() <= 0) {
+        if (!request.isWantsTrustedLabel() && user.getRemainingBasicPosts() <= 0) {
             throw new BusinessException(
-                    "You have no remaining basic post slots. Please upgrade your plan or wait for reset.",
+                    "Bạn không còn lượt đăng bài cơ bản nào. Vui lòng nâng cấp gói hoặc chờ hệ thống đặt lại.",
                     400
             );
         }
 
         validateService.validateAddressInfo(user);
 
-        // Validate theo productType
+        // Validate theo loại sản phẩm
         validateService.validatePost(
                 request.getProductType(),
                 request.getVehicleBrand(),
@@ -76,7 +76,7 @@ public class SellerPostService {
                 request.getVoltage()
         );
 
-        // Validate với AI
+        // Kiểm tra thông tin bằng AI
         AiProductRequest aiProductRequest = AiProductRequest.builder()
                 .productType(request.getProductType())
                 .vehicleBrand(request.getVehicleBrand())
@@ -93,10 +93,10 @@ public class SellerPostService {
         boolean isValid = aiService.validateProduct(aiProductRequest);
 
         if (!isValid) {
-            throw new BusinessException("Product information appears to be incorrect or unrelated. Please verify the details and try again.", 400);
+            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
         }
 
-        // Build post
+        // Tạo bài đăng
         Post.PostBuilder postBuilder = Post.builder()
                 .user(user)
                 .productType(request.getProductType())
@@ -112,7 +112,7 @@ public class SellerPostService {
                 .wantsTrustedLabel(request.isWantsTrustedLabel())
                 .weight(request.getWeight());
 
-        // Gán thông số kỹ thuật theo type
+        // Gán thông số kỹ thuật theo loại sản phẩm
         if (request.getProductType() == ProductType.VEHICLE) {
             postBuilder
                     .vehicleBrand(request.getVehicleBrand())
@@ -130,15 +130,15 @@ public class SellerPostService {
 
         Post post = postBuilder.build();
 
-        // Set status và trusted theo gói
+        // Gán trạng thái và nhãn tin cậy
         if (request.isWantsTrustedLabel()) {
             post.setStatus(PostStatus.PENDING);
-
         } else {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
         }
 
+        // Thêm ảnh
         List<PostImage> postImages = new ArrayList<>();
         for (String url : request.getImages()) {
             PostImage image = PostImage.builder()
@@ -149,51 +149,47 @@ public class SellerPostService {
         }
         post.setImages(postImages);
 
-        // Xử lý priority package nếu có
+        // Xử lý gói ưu tiên nếu có
         if (request.getPriorityPackageId() != null) {
             PriorityPackagePayment payment = sellerPaymentService.priorityPackagePayment(user, request.getPriorityPackageId());
             post.setPriorityPackageId(request.getPriorityPackageId());
             LocalDateTime expireDate = LocalDateTime.now().plusDays(payment.getPriorityPackage().getDurationDays());
             post.setPriorityExpire(expireDate);
-            post = postRepository.save(post); // save trước khi gán payment
+            post = postRepository.save(post); // lưu trước khi gán payment
             payment.setPost(post);
             priorityPackagePaymentRepository.save(payment);
         }
 
-        // Lưu post
+        // Lưu bài đăng
         post = postRepository.save(post);
 
-        // Cập nhật số lượng post còn lại của user
-        if(request.isWantsTrustedLabel()) {
+        // Cập nhật lượt đăng còn lại của người dùng
+        if (request.isWantsTrustedLabel()) {
             user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() - 1);
         } else {
             user.setRemainingBasicPosts(user.getRemainingBasicPosts() - 1);
         }
         userRepository.save(user);
+
         return postMapper.toPostResponse(post);
     }
 
     public PostResponse updatePost(Authentication authentication, Long postId, UpdatePostRequest request) {
-        // Xác thực user
         User user = validateService.validateCurrentUser(authentication);
 
         validateService.validateAddressInfo(user);
 
-        // Lấy post cần update
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("Post not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
-        // Chỉ cho phép update post có trạng thái POSTED
-        if(post.getStatus() != PostStatus.POSTED) {
-            throw new BusinessException("Only posts with status POSTED can be updated", 400);
+        if (post.getStatus() != PostStatus.POSTED) {
+            throw new BusinessException("Chỉ có thể cập nhật bài đăng đang ở trạng thái ĐANG HIỂN THỊ", 400);
         }
 
-        // Kiểm tra quyền sở hữu post
         if (!post.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("You do not have permission to update this post", 403);
+            throw new BusinessException("Bạn không có quyền cập nhật bài đăng này", 403);
         }
 
-        // Validate theo productType
         validateService.validatePost(
                 request.getProductType(),
                 request.getVehicleBrand(),
@@ -207,7 +203,6 @@ public class SellerPostService {
                 request.getVoltage()
         );
 
-        // Validate với AI
         AiProductRequest aiProductRequest = AiProductRequest.builder()
                 .productType(request.getProductType())
                 .vehicleBrand(request.getVehicleBrand())
@@ -224,7 +219,7 @@ public class SellerPostService {
         boolean isValid = aiService.validateProduct(aiProductRequest);
 
         if (!isValid) {
-            throw new BusinessException("Product information appears to be incorrect or unrelated. Please verify the details and try again.", 400);
+            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
         }
 
         post.setProductType(request.getProductType());
@@ -236,7 +231,6 @@ public class SellerPostService {
         post.setUpdateDate(LocalDateTime.now());
         post.setWeight(request.getWeight());
         post.setWantsTrustedLabel(request.isWantsTrustedLabel());
-
 
         if (request.getProductType() == ProductType.VEHICLE) {
             post.setVehicleBrand(request.getVehicleBrand());
@@ -251,37 +245,32 @@ public class SellerPostService {
             post.setBatteryBrand(request.getBatteryBrand());
         }
 
-        // Set status và trusted theo gói
         if (request.isWantsTrustedLabel()) {
             post.setTrusted(false);
             post.setStatus(PostStatus.PENDING);
-
         } else {
             post.setStatus(PostStatus.POSTED);
             post.setTrusted(false);
         }
 
-        // Kiểm tra thời gian tạo post để quyết định có trừ slot hay không
         Duration durationSinceCreate = Duration.between(post.getPostDate(), LocalDateTime.now());
         boolean isWithin24h = durationSinceCreate.toHours() < 24;
 
         if (!isWithin24h) {
             if (request.isWantsTrustedLabel()) {
                 if (user.getRemainingPremiumPosts() <= 0)
-                    throw new BusinessException("No remaining premium posts. Please upgrade package.", 400);
+                    throw new BusinessException("Bạn không còn lượt đăng bài Premium nào. Vui lòng nâng cấp gói.", 400);
                 user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() - 1);
             } else {
                 if (user.getRemainingBasicPosts() <= 0)
-                    throw new BusinessException("No remaining basic posts. Please upgrade package.", 400);
+                    throw new BusinessException("Bạn không còn lượt đăng bài cơ bản nào. Vui lòng nâng cấp gói.", 400);
                 user.setRemainingBasicPosts(user.getRemainingBasicPosts() - 1);
             }
             userRepository.save(user);
         }
 
-        // Xóa ảnh cũ
         post.getImages().clear();
 
-        // Thêm ảnh mới
         for (String url : request.getImages()) {
             PostImage image = PostImage.builder()
                     .post(post)
@@ -294,19 +283,18 @@ public class SellerPostService {
         return postMapper.toPostResponse(post);
     }
 
-
     public void deletePost(Authentication authentication, Long postId) {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("Post not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         if (!post.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("You do not have permission to delete this post", 403);
+            throw new BusinessException("Bạn không có quyền xóa bài đăng này", 403);
         }
 
-        if(post.getStatus() == PostStatus.DELETED) {
-            throw new BusinessException("Post is already deleted", 400);
+        if (post.getStatus() == PostStatus.DELETED) {
+            throw new BusinessException("Bài đăng này đã được xóa trước đó", 400);
         }
 
         post.setStatus(PostStatus.DELETED);
@@ -315,9 +303,7 @@ public class SellerPostService {
 
     public List<PostResponse> getMyPosts(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
-
         List<Post> results = postRepository.findByUserAndStatusNot(user, PostStatus.DELETED);
-
         return postMapper.toPostResponseList(results);
     }
 
@@ -325,20 +311,19 @@ public class SellerPostService {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("Post not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         if (!post.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("You do not have permission to access this post", 403);
+            throw new BusinessException("Bạn không có quyền truy cập bài đăng này", 403);
         }
 
         return postMapper.toPostResponse(post);
     }
 
-
     public List<PostResponse> getMyPostsByStatus(Authentication authentication, PostStatus status) {
         User user = validateService.validateCurrentUser(authentication);
         List<Post> results = postRepository.findByUserAndStatus(user, status);
-        return  postMapper.toPostResponseList(results);
+        return postMapper.toPostResponseList(results);
     }
 
 }

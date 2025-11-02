@@ -29,7 +29,7 @@ public class ComplaintService {
 
     public ComplaintResponse getComplaintDetail(Authentication authentication, Long complaintId) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
-                () -> new BusinessException("No user found", 404)
+                () -> new BusinessException("Không tìm thấy người dùng", 404)
         );
 
         Complaint complaint = null;
@@ -40,7 +40,7 @@ public class ComplaintService {
             complaint = complaintRepository.findByIdAndOrder_Buyer_Id(complaintId, user.getId());
         } else if (Objects.equals(user.getRole(), Role.ADMIN)) {
             complaint = complaintRepository.findById(complaintId).orElseThrow(
-                    () -> new BusinessException("Complaint not found", 404)
+                    () -> new BusinessException("Không tìm thấy bản hợp đồng", 404)
             );
         }
 

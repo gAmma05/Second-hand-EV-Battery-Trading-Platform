@@ -37,10 +37,10 @@ public class SellerPaymentService {
     @Transactional
     public void sellerPackagePayment(String email, Long packageId) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         SellerPackage pkg = packageRepository.findById(packageId)
-                .orElseThrow(() -> new BusinessException("Package not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy package", 404));
 
         BigDecimal amount = pkg.getPrice();
 
@@ -75,7 +75,7 @@ public class SellerPaymentService {
     public PriorityPackagePayment priorityPackagePayment(User user, Long priorityPackageId) {
         // Lấy gói ưu tiên
         PriorityPackage priorityPackage = priorityPackageRepository.findById(priorityPackageId)
-                .orElseThrow(() -> new BusinessException("Priority package not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy package ưu tiên", 404));
 
         BigDecimal amount = priorityPackage.getPrice();
         String code = Utils.generateCode("PPP");

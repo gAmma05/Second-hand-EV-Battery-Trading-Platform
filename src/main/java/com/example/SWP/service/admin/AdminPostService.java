@@ -22,10 +22,10 @@ public class AdminPostService {
 
     public void approvePost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("Post not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         if (post.getStatus() != PostStatus.PENDING) {
-            throw new BusinessException("Post is not pending approval", 400);
+            throw new BusinessException("Bài đăng không ở trạng thái pending", 400);
         }
 
         post.setStatus(PostStatus.POSTED);
@@ -38,10 +38,10 @@ public class AdminPostService {
 
     public void rejectPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("Post not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
         if (post.getStatus() != PostStatus.PENDING) {
-            throw new BusinessException("Post is not pending approval", 400);
+            throw new BusinessException("Bài đăng không ở trạng thái pending", 400);
         }
 
         post.setStatus(PostStatus.POSTED);

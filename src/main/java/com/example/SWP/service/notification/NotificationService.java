@@ -32,10 +32,10 @@ public class NotificationService {
 
     public void sendNotificationToOneUser(String email, String title, String content) {
         if (title == null || content == null) return;
-        if (email == null) throw new BusinessException("Email is null", 400);
+        if (email == null) throw new BusinessException("Email đang bị bỏ trống, vui lòng thử lại", 400);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("User not found", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         Notification notification = new Notification();
         notification.setTitle(title);
