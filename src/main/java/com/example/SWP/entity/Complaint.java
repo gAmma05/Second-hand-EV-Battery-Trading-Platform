@@ -27,19 +27,22 @@ public class Complaint {
     Order order;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     ComplaintType type;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(1000)")
     String description;
 
     String evidenceUrls;
 
+    @Column(columnDefinition = "NVARCHAR(1000)")
     String resolutionNotes;
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     ComplaintStatus status;
 
 }

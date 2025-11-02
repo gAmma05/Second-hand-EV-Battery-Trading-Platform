@@ -27,10 +27,10 @@ public class Contract {
     @JoinColumn(name = "order_id", nullable = false)
     Order order;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, columnDefinition = "VARCHAR(255)")
     String contractCode;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(1000)")
     String content;
 
     BigDecimal totalFee;
@@ -44,5 +44,6 @@ public class Contract {
     LocalDateTime buyerSignedAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     ContractStatus status;
 }

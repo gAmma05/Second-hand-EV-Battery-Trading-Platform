@@ -38,9 +38,11 @@ public class Order {
     User buyer;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     DeliveryMethod deliveryMethod;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     PaymentType paymentType;
 
     Integer serviceTypeId;
@@ -52,6 +54,7 @@ public class Order {
     boolean depositPaid;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     OrderStatus status;
 
     LocalDateTime createdAt;

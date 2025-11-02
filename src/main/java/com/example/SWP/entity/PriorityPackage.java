@@ -21,8 +21,13 @@ public class PriorityPackage {
     Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(255)")
     PriorityPackageType type;
+
     BigDecimal price;
+
     int durationDays;
+
+    @Column(columnDefinition = "NVARCHAR(1000)")
     String description;
 }

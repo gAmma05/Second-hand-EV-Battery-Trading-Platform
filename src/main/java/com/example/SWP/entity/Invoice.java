@@ -26,7 +26,7 @@ public class Invoice {
     @JoinColumn(name = "contract_id", nullable = false)
     Contract contract;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(255)")
     String invoiceNumber;
 
     BigDecimal totalPrice;
@@ -38,5 +38,6 @@ public class Invoice {
     LocalDateTime paidAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     InvoiceStatus status;
 }
