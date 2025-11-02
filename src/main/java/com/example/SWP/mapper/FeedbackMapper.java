@@ -8,12 +8,11 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface FeedbackMapper {
-    @Mapping(target = "orderId", source = "order.id")
+    @Mapping(source = "orderId", target = "order.id")
     Feedback toFeedback(FeedbackRequest request);
 
-    @Mapping(target = "order.id", source = "orderId")
-    @Mapping(target = "user.id", source = "userId")
-    @Mapping(target = "id", source = "feedbackId")
+    @Mapping(source = "order.id", target = "orderId")
+    @Mapping(source = "id", target = "feedbackId")
     FeedbackResponse toFeedbackResponse(Feedback feedback);
 
 }
