@@ -172,15 +172,10 @@ public class BuyerInvoiceService {
 
         Order order = invoice.getContract().getOrder();
 
-        sellerOrderDeliveryService.createDeliveryStatus(order);
-
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrder(order).orElse(null);
 
-        if(orderDelivery != null && orderDelivery.getStatus() == DeliveryStatus.RECEIVED) {
-            order.setStatus(OrderStatus.DONE);
-            order.getPost().setStatus(PostStatus.SOLD);
-            orderRepository.save(order);
-            postRepository.save(order.getPost());
+        if(orderDelivery == null) {
+            sellerOrderDeliveryService.createDeliveryStatus(order);
         }
     }
 

@@ -15,5 +15,5 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     Optional<Invoice> getInvoiceByIdAndContract_Order_Buyer_Id(Long invoiceId, Long buyerId);
     Optional<Invoice> findByContractIdAndStatus(Long contractId, InvoiceStatus status);
     List<Invoice> getInvoiceByContract_Order_IdAndContract_Order_Buyer_Id(Long orderId, Long id);
-    List<Invoice> findByContract_Order(Order order);
+    boolean existsByContract_OrderAndStatus(Order order, InvoiceStatus invoiceStatus);
 }

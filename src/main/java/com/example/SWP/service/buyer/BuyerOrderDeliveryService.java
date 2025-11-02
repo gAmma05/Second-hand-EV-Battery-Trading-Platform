@@ -5,15 +5,10 @@ import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.OrderDelivery;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.DeliveryStatus;
-import com.example.SWP.enums.InvoiceStatus;
-import com.example.SWP.enums.PaymentType;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderDeliveryMapper;
-import com.example.SWP.repository.ContractRepository;
-import com.example.SWP.repository.InvoiceRepository;
-import com.example.SWP.repository.OrderDeliveryRepository;
-import com.example.SWP.repository.OrderRepository;
+import com.example.SWP.repository.*;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +27,9 @@ public class BuyerOrderDeliveryService {
     ValidateService validateService;
     OrderDeliveryRepository orderDeliveryRepository;
     InvoiceRepository invoiceRepository;
-    ContractRepository contractRepository;
     OrderDeliveryMapper orderDeliveryMapper;
+    private final OrderRepository orderRepository;
+    private final PostRepository postRepository;
 
     public void confirmReceived(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -52,21 +48,21 @@ public class BuyerOrderDeliveryService {
             throw new BusinessException("Đơn hàng chưa được giao", 400);
         }
 
+        boolean hasActiveInvoice = invoiceRepository.existsByContract_OrderAndStatus(order, InvoiceStatus.ACTIVE);
+        if (hasActiveInvoice) {
+            throw new BusinessException("Bạn phải thanh toán hóa đơn trước khi xác nhận nhận hàng", 400);
+        }
+
         orderDelivery.setStatus(DeliveryStatus.RECEIVED);
         orderDelivery.setUpdatedAt(LocalDateTime.now());
         orderDeliveryRepository.save(orderDelivery);
 
-        if(order.getPaymentType() == PaymentType.DEPOSIT) {
-            Contract contract = contractRepository.findByOrder_Id(order.getId())
-                    .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
+        order.setStatus(OrderStatus.DONE);
+        orderRepository.save(order);
 
-            invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
-                    .ifPresent(invoice -> {
-                        invoice.setStatus(InvoiceStatus.ACTIVE);
-                        invoice.setDueDate(LocalDateTime.now().plusDays(7));
-                        invoiceRepository.save(invoice);
-                    });
-        }
+        order.getPost().setStatus(PostStatus.SOLD);
+        postRepository.save(order.getPost());
+
     }
 
     public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
