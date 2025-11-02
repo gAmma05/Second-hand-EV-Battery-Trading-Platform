@@ -33,10 +33,10 @@ public class Post {
     @Column(columnDefinition = "VARCHAR(50)")
     ProductType productType;
 
-    @Column(columnDefinition = "VARCHAR(50)")
+    @Column(columnDefinition = "NVARCHAR(50)")
     String title;
 
-    @Column(columnDefinition = "VARCHAR(4000)")
+    @Column(columnDefinition = "NVARCHAR(4000)")
     String description;
 
     BigDecimal price;
