@@ -20,8 +20,8 @@ public class FeedbackService {
 
     FeedbackMapper feedbackMapper;
 
-    public FeedbackResponse getFeedback(Long postId) {
-        Feedback feedback = feedbackRepository.findByPost_Id(postId);
+    public FeedbackResponse getFeedback(Long orderId) {
+        Feedback feedback = feedbackRepository.findByOrder_Id(orderId);
 
         if (feedback == null) {
             return null;
