@@ -19,4 +19,6 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     Complaint findByIdAndOrder_Seller_Id(Long complaintId, Long sellerId);
 
     Optional<Complaint> findByOrder_Id(Long orderId);
+
+    int countComplaintByStatus(ComplaintStatus status);
 }

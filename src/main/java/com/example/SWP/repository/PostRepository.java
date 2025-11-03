@@ -24,4 +24,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByPriorityPackageIdNotNullAndStatusAndExpiryDateAfterOrderByPostDateDesc(PostStatus postStatus, LocalDateTime now);
 
     List<Post> findByIsTrustedTrueAndStatusAndExpiryDateAfterOrderByPostDateDesc(PostStatus postStatus, LocalDateTime now);
+
+    int countPostByStatus(PostStatus status);
 }
