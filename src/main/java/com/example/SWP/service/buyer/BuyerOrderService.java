@@ -143,10 +143,6 @@ public class BuyerOrderService {
             throw new BusinessException("Đơn hàng này không thuộc về bạn.", 400);
         }
 
-        if (order.getStatus() == OrderStatus.APPROVED) {
-            throw new BusinessException("Đơn hàng đã được người bán chấp thuận.", 400);
-        }
-
         if (order.getStatus() == OrderStatus.DONE) {
             throw new BusinessException("Đơn hàng này đã hoàn tất.", 400);
         }
