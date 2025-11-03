@@ -26,7 +26,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             {
               "status": 401,
               "error": "Unauthorized",
-              "message": "You must log in or provide a valid JWT token to access this resource"
+              "message": "Bạn hãy đăng nhập trước khi sử dụng các tính năng này"
             }
         """);
     }
