@@ -53,7 +53,7 @@ public class BuyerComplaintService {
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
 
         if (ChronoUnit.DAYS.between(LocalDateTime.now(), orderDelivery.getCreatedAt()) >= DUE_DATE) {
-            throw new BusinessException("Bạn không thể tạo khiếu nại sau " + DUE_DATE + " ngày kể từ khi giao hàng", 400);
+            throw new BusinessException("Bạn không thể tạo khiếu nại sau " + DUE_DATE + " ngày kể từ khi nhận hàng", 400);
         }
 
         if (!Objects.equals(orderDelivery.getOrder().getBuyer().getId(), user.getId())) {
