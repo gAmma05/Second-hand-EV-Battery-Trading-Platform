@@ -5,6 +5,7 @@ import com.example.SWP.dto.request.auth.*;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.service.auth.AuthService;
+import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.validator.auth.CreateUserRequestValidator;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -28,6 +29,8 @@ import java.util.Map;
 public class AuthController {
 
     AuthService authService;
+
+    ValidateService validateService;
 
     @PostMapping("/google")
     private ResponseEntity googleLogin(@RequestBody GoogleLoginRequest glr) {
@@ -64,6 +67,8 @@ public class AuthController {
     //Dang ky tai khoan va nhan ma OTP ve mail
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody CreateUserRequest request) {
+
+        validateService.validatePassword(request.getPassword(), request.getConfirmPassword());
 
         String message = authService.register(request);
 
