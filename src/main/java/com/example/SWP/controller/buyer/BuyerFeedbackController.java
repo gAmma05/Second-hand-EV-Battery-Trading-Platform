@@ -45,4 +45,15 @@ public class BuyerFeedbackController {
         );
     }
 
+    @DeleteMapping("/")
+    public ResponseEntity<?> deleteFeedback(Authentication authentication, @RequestParam Long feedbackId) {
+        buyerFeedbackService.deleteFeedback(authentication, feedbackId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Feedback deleted successfully")
+                        .build()
+        );
+    }
+
 }

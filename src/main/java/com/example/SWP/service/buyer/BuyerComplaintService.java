@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -79,8 +80,8 @@ public class BuyerComplaintService {
     }
 
     private void checkCurrentComplaint(Long orderId) {
-        List<Complaint> complaintList = complaintRepository.findByOrder_Id(orderId);
-        if (!complaintList.isEmpty()) {
+        Optional<Complaint> complaintList = complaintRepository.findByOrder_Id(orderId);
+        if (complaintList.isPresent()) {
             throw new BusinessException("Bạn đã gửi khiếu nại cho order này, hãy kiểm tra nó trong danh sách đơn khiếu nại!", 400);
         }
     }

@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -29,11 +30,13 @@ public class FeedbackService {
     public FeedbackResponse getFeedbackFromOrder(Authentication authentication, Long orderId) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new BusinessException("Không tìm thấy user", 404));
 
-        Feedback feedback = feedbackRepository.findByOrder_Id(orderId);
+        Optional<Feedback> feedbackOptional = feedbackRepository.findByOrder_Id(orderId);
 
-        if (feedback == null) {
+        if (feedbackOptional.isEmpty()) {
             return null;
         }
+
+        Feedback feedback = feedbackOptional.get();
 
         if (!Objects.equals(feedback.getOrder().getSeller().getId(), user.getId()) &&
                 !Objects.equals(feedback.getOrder().getBuyer().getId(), user.getId())) {

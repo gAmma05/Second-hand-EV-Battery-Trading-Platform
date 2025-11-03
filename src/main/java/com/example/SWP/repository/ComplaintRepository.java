@@ -5,6 +5,7 @@ import com.example.SWP.enums.ComplaintStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     List<Complaint> findByOrder_Buyer_Id(Long buyerId);
@@ -17,5 +18,5 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
 
     Complaint findByIdAndOrder_Seller_Id(Long complaintId, Long sellerId);
 
-    List<Complaint> findByOrder_Id(Long orderId);
+    Optional<Complaint> findByOrder_Id(Long orderId);
 }
