@@ -16,4 +16,6 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     Complaint findByIdAndOrder_Buyer_Id(Long complaintId, Long buyerId);
 
     Complaint findByIdAndOrder_Seller_Id(Long complaintId, Long sellerId);
+
+    List<Complaint> findByOrder_Id(Long orderId);
 }

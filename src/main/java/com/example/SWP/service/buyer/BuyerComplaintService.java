@@ -63,6 +63,8 @@ public class BuyerComplaintService {
             throw new BusinessException("Không thể tạo khiếu nại. Đơn hàng có thể chưa được giao hoặc chưa được xác nhận nhận hàng", 400);
         }
 
+        checkCurrentComplaint(request.getOrderId());
+
         Complaint complaint = complaintMapper.toComplaint(request);
         complaint.setStatus(ComplaintStatus.PENDING);
         complaint.setCreatedAt(LocalDateTime.now());
@@ -74,6 +76,13 @@ public class BuyerComplaintService {
                 "Về sản phẩm của bạn",
                 "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng."
         );
+    }
+
+    private void checkCurrentComplaint(Long orderId) {
+        List<Complaint> complaintList = complaintRepository.findByOrder_Id(orderId);
+        if (!complaintList.isEmpty()) {
+            throw new BusinessException("Bạn đã gửi khiếu nại cho order này, hãy kiểm tra nó trong danh sách đơn khiếu nại!", 400);
+        }
     }
 
     public void acceptComplaint(Authentication authentication, Long complaintId) {
