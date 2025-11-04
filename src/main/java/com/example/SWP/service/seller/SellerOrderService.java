@@ -73,6 +73,7 @@ public class SellerOrderService {
         orderRepository.save(order);
 
         Order depositedOrder = orderRepository.findByPostAndStatus(order.getPost(), OrderStatus.DEPOSITED).orElse(null);
+
         if(depositedOrder != null) {
             BigDecimal refundAmount = feeService.calculateDepositAmount(depositedOrder.getPost().getPrice(), depositedOrder.getShippingFee());
             walletService.refundToWallet(depositedOrder.getBuyer(), refundAmount);

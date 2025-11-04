@@ -27,6 +27,30 @@ public class WalletController {
 
     WalletService walletService;
 
+    @GetMapping("/exists")
+    public ResponseEntity<ApiResponse<Boolean>> checkUserWallet(Authentication authentication) {
+        boolean exists = walletService.checkUserWaller(authentication);
+
+        ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
+                .success(true)
+                .message(exists ? "Người dùng đã có ví" : "Người dùng chưa có ví")
+                .data(exists)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<Void>> createWallet(Authentication authentication) {
+        walletService.createWallet(authentication);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Ví được tạo thành công")
+                        .build()
+        );
+    }
+
     // Tạo VNPay để nạp tiền
     @PostMapping("/deposit")
     public ResponseEntity<ApiResponse<String>> deposit(
@@ -34,7 +58,7 @@ public class WalletController {
             @Valid @RequestBody DepositRequest request) {
 
         // Gọi service để tạo URL thanh toán
-        String paymentUrl = walletService.deposit(authentication, request.getAmount());
+        String paymentUrl = walletService.toUp(authentication, request.getAmount());
 
         // Trả về ApiResponse có chứa paymentUrl
         ApiResponse<String> response = ApiResponse.<String>builder()

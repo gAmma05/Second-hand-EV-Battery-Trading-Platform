@@ -18,33 +18,33 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreatePostRequest {
 
-    @NotNull(message = "Product type is required")
+    @NotNull(message = "Loại sản phẩm là bắt buộc")
     ProductType productType;
 
-    @NotBlank(message = "Title is required")
-    @Size(max = 200, message = "Title must not exceed 200 characters")
+    @NotBlank(message = "Tiêu đề là bắt buộc")
+    @Size(max = 200, message = "Tiêu đề không được vượt quá 200 ký tự")
     String title;
 
-    @NotBlank(message = "Description is required")
-    @Size(max = 2000, message = "Description must not exceed 2000 characters")
+    @NotBlank(message = "Mô tả là bắt buộc")
+    @Size(max = 2000, message = "Mô tả không được vượt quá 2000 ký tự")
     String description;
 
-    @Positive(message = "Price must be greater than 0")
+    @Positive(message = "Giá phải lớn hơn 0")
     BigDecimal price;
 
     Long priorityPackageId;
 
-    @NotEmpty(message = "At least one delivery method is required")
+    @NotEmpty(message = "Cần chọn ít nhất một phương thức giao hàng")
     Set<DeliveryMethod> deliveryMethods;
 
-    @NotEmpty(message = "At least one payment type is required")
+    @NotEmpty(message = "Cần chọn ít nhất một phương thức thanh toán")
     Set<PaymentType> paymentTypes;
 
-    @NotEmpty(message = "At least one image is required")
-    List<@NotBlank(message = "Image URL cannot be blank") String> images;
+    @NotEmpty(message = "Phải có ít nhất một hình ảnh")
+    List<@NotBlank(message = "Đường dẫn hình ảnh không được để trống") String> images;
 
-    @NotNull(message = "Weight is required")
-    @Positive(message = "Weight must be greater than 0")
+    @NotNull(message = "Khối lượng là bắt buộc")
+    @Positive(message = "Khối lượng phải lớn hơn 0")
     Integer weight;
 
     boolean wantsTrustedLabel;

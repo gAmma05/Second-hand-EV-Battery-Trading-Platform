@@ -2,6 +2,7 @@ package com.example.SWP.controller.buyer;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.PostFavoriteResponse;
+import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.service.buyer.BuyerPostService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,19 @@ public class BuyerPostController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Liked post successfully")
+                        .build()
+        );
+    }
+
+    @GetMapping("/likes")
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getMyLikedPosts(Authentication authentication) {
+        List<PostResponse> likedPosts = buyerPostService.getMyLikedPosts(authentication);
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<PostResponse>>builder()
+                        .success(true)
+                        .message("Liked posts retrieved successfully")
+                        .data(likedPosts)
                         .build()
         );
     }

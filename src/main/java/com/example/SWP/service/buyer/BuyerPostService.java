@@ -1,7 +1,9 @@
 package com.example.SWP.service.buyer;
 
 import com.example.SWP.dto.request.user.ai.AiProductRequest;
+import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.PostFavoriteResponse;
+import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.PostFavorite;
 import com.example.SWP.entity.PostLike;
@@ -9,6 +11,7 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.PostFavoriteMapper;
+import com.example.SWP.mapper.PostMapper;
 import com.example.SWP.repository.PostFavoriteRepository;
 import com.example.SWP.repository.PostLikeRepository;
 import com.example.SWP.repository.PostRepository;
@@ -16,8 +19,10 @@ import com.example.SWP.service.ai.AiService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
@@ -32,6 +37,7 @@ public class BuyerPostService {
     AiService  aiService;
     PostFavoriteRepository postFavoriteRepository;
     PostFavoriteMapper postFavoriteMapper;
+    PostMapper postMapper;
 
     public void likePost(Authentication authentication, Long postId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -57,6 +63,7 @@ public class BuyerPostService {
         post.setLikeCount(post.getLikeCount() + 1);
         postRepository.save(post);
     }
+
 
     public void unlikePost(Authentication authentication, Long postId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -168,5 +175,15 @@ public class BuyerPostService {
         User user = validateService.validateCurrentUser(authentication);
         List<PostFavorite> results = postFavoriteRepository.findAllByBuyer(user);
         return postFavoriteMapper.toPostFavoriteResponseList(results);
+    }
+
+    public List<PostResponse> getMyLikedPosts(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
+
+        List<PostLike> likedPosts = postLikeRepository.findAllByBuyer(user);
+
+        return likedPosts.stream()
+                .map(postLike -> postMapper.toPostResponse(postLike.getPost()))
+                .toList();
     }
 }

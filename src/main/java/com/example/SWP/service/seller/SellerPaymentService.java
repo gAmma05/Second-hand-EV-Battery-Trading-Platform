@@ -40,11 +40,11 @@ public class SellerPaymentService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         SellerPackage pkg = packageRepository.findById(packageId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy package", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy gói người bán", 404));
 
         BigDecimal amount = pkg.getPrice();
 
-        String code = Utils.generateCode("SPP");
+        String code = Utils.generateCode("SELLER_PACKAGE_PAYMENT");
 
         walletService.payWithWallet(
                 user,

@@ -29,6 +29,18 @@ public class SellerOrderDeliveryController {
                 .build());
     }
 
+    @GetMapping("/{orderId}")
+    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryByOrderId(
+            Authentication authentication, @PathVariable Long orderId
+    ) {
+        OrderDeliveryResponse response = sellerOrderDeliveryService.getDeliveryByOrderId(authentication, orderId);
+        return ResponseEntity.ok(ApiResponse.<OrderDeliveryResponse>builder()
+                .success(true)
+                .message("Danh sách đơn hàng giao của bạn")
+                .data(response)
+                .build());
+    }
+
     @GetMapping("/{orderDeliveryId}")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryDetail(
             Authentication authentication,

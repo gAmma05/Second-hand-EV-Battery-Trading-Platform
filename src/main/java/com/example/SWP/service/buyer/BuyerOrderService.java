@@ -106,7 +106,7 @@ public class BuyerOrderService {
 
         Order order = orderBuilder.shippingFee(shippingFee).build();
 
-        if (request.getWantDeposit()) {
+        if (request.getPaymentType() == PaymentType.DEPOSIT) {
             BigDecimal depositAmount = feeService.calculateDepositAmount(post.getPrice(), shippingFee);
 
             String orderId = Utils.generateCode("DEPOSIT");
@@ -114,7 +114,6 @@ public class BuyerOrderService {
 
             walletService.payWithWallet(buyer, depositAmount, orderId, description, TransactionType.DEPOSIT);
 
-            order.setDepositPaid(true);
             order.setStatus(OrderStatus.DEPOSITED);
         }
 

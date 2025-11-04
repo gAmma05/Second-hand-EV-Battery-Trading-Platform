@@ -8,6 +8,7 @@ import com.example.SWP.enums.TransactionType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.wallet.WalletRepository;
 import com.example.SWP.repository.wallet.WalletTransactionRepository;
+import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.payment.VnPayService;
 import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
@@ -36,32 +37,55 @@ public class WalletService {
     WalletTransactionRepository walletTransactionRepository;
     VnPayService vnPayService;
     ValidateService validateService;
+    NotificationService notificationService;
 
     @NonFinal
     @Value("${vnpay.returnUrl.walletDeposit}")
     String walletReturnUrl;
 
+    public boolean checkUserWaller(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
+        return walletRepository.existsByUser(user);
+    }
+
+    public void createWallet(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
+
+        if(walletRepository.existsByUser(user)) {
+            throw new BusinessException("Người dùng đã có ví, không thể tạo thêm", 400);
+        }
+
+        Wallet wallet = Wallet.builder()
+                .user(user)
+                .balance(BigDecimal.ZERO)
+                .build();
+
+        walletRepository.save(wallet);
+
+        notificationService.sendNotificationToOneUser(
+                user.getEmail(),
+                "Tạo ví thành công",
+                "Ví của bạn đã được tạo thành công với số dư ban đầu là 0 VNĐ."
+        );
+    }
+
+
     //Xu ly nap tien vao vi
-    public String deposit(Authentication authentication, BigDecimal amount) {
+    public String toUp(Authentication authentication, BigDecimal amount) {
         User user = validateService.validateCurrentUser(authentication);
 
         Wallet wallet = walletRepository.findByUser(user)
-                .orElseGet(() -> walletRepository.save(
-                        Wallet.builder()
-                                .user(user)
-                                .balance(BigDecimal.ZERO)
-                                .build()
-                ));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy ví của người dùng", 404));
 
-        String orderId = Utils.generateCode("DEPOSIT");
-        String description = Utils.generatePaymentDescription(TransactionType.DEPOSIT, orderId);
+        String orderId = Utils.generateCode("TOUP");
+        String description = Utils.generatePaymentDescription(TransactionType.TOUP, orderId);
 
         WalletTransaction transaction = WalletTransaction.builder()
                 .wallet(wallet)
                 .orderId(orderId)
                 .amount(amount)
                 .description(description)
-                .type(TransactionType.DEPOSIT)
+                .type(TransactionType.TOUP)
                 .status(PaymentStatus.PENDING)
                 .balanceBefore(wallet.getBalance())
                 .createdAt(LocalDateTime.now())
@@ -101,7 +125,9 @@ public class WalletService {
     public WalletTransaction withdraw(Authentication authentication, BigDecimal amount, String bankAccount) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Wallet wallet = user.getWallet();
+        Wallet wallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy ví của người dùng", 404));
+
         BigDecimal balanceBefore = wallet.getBalance();
 
         if (balanceBefore.compareTo(amount) < 0) {
@@ -135,7 +161,7 @@ public class WalletService {
 
     public void refundToWallet(User user, BigDecimal amount) {
         Wallet wallet = walletRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy ví của người dùng.", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy ví của người dùng", 404));
 
         BigDecimal balanceBefore = wallet.getBalance();
         BigDecimal balanceAfter = balanceBefore.add(amount);
@@ -166,11 +192,8 @@ public class WalletService {
     public BigDecimal getBalance(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Wallet wallet = user.getWallet();
-
-        if (wallet == null) {
-            return BigDecimal.ZERO;
-        }
+        Wallet wallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy ví của người dùng", 404));
 
         return wallet.getBalance();
     }

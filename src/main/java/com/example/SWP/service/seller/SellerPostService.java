@@ -46,19 +46,22 @@ public class SellerPostService {
     public PostResponse createPost(Authentication authentication, CreatePostRequest request) {
         User user = validateService.validateCurrentUser(authentication);
 
-        if (request.isWantsTrustedLabel() && user.getRemainingPremiumPosts() <= 0) {
-            throw new BusinessException(
-                    "Bạn không còn lượt đăng bài Premium nào cho nhãn tin cậy. Vui lòng nâng cấp gói của bạn.",
-                    400
-            );
+        if (request.isWantsTrustedLabel()) {
+            if (user.getRemainingPremiumPosts() <= 0) {
+                throw new BusinessException(
+                        "Bạn không còn lượt đăng bài nhãn Tin Cậy. Vui lòng mua thêm lượt để tiếp tục đăng bài.",
+                        400
+                );
+            }
+        } else {
+            if (user.getRemainingBasicPosts() <= 0 && user.getRemainingPremiumPosts() <= 0) {
+                throw new BusinessException(
+                        "Bạn không còn lượt đăng bài nào. Vui lòng mua thêm lượt để tiếp tục đăng bài.",
+                        400
+                );
+            }
         }
 
-        if (!request.isWantsTrustedLabel() && user.getRemainingBasicPosts() <= 0) {
-            throw new BusinessException(
-                    "Bạn không còn lượt đăng bài cơ bản nào. Vui lòng nâng cấp gói hoặc chờ hệ thống đặt lại.",
-                    400
-            );
-        }
 
         validateService.validateAddressInfo(user);
 
@@ -165,12 +168,18 @@ public class SellerPostService {
 
         // Cập nhật lượt đăng còn lại của người dùng
         if (request.isWantsTrustedLabel()) {
+            // Bài đăng có nhãn Tin cậy -> trừ lượt Premium
             user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() - 1);
         } else {
-            user.setRemainingBasicPosts(user.getRemainingBasicPosts() - 1);
+            // Bài đăng thường -> ưu tiên trừ Basic, nếu hết Basic thì trừ Premium
+            if (user.getRemainingBasicPosts() > 0) {
+                user.setRemainingBasicPosts(user.getRemainingBasicPosts() - 1);
+            } else if (user.getRemainingPremiumPosts() > 0) {
+                user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() - 1);
+            }
         }
-        userRepository.save(user);
 
+        userRepository.save(user);
         return postMapper.toPostResponse(post);
     }
 
@@ -182,8 +191,12 @@ public class SellerPostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
-        if (post.getStatus() != PostStatus.POSTED) {
-            throw new BusinessException("Chỉ có thể cập nhật bài đăng đang ở trạng thái ĐANG HIỂN THỊ", 400);
+        if(post.getStatus() == PostStatus.SOLD) {
+            throw new BusinessException("Bài đăng hiện đang ở trạng thái đã bán", 400);
+        }
+
+        if(post.getStatus() == PostStatus.DELETED) {
+            throw new BusinessException("Bài đăng hiện đang ở trạng thái đã xóa", 400);
         }
 
         if (!post.getUser().getId().equals(user.getId())) {
@@ -259,7 +272,7 @@ public class SellerPostService {
         if (!isWithin24h) {
             if (request.isWantsTrustedLabel()) {
                 if (user.getRemainingPremiumPosts() <= 0)
-                    throw new BusinessException("Bạn không còn lượt đăng bài Premium nào. Vui lòng nâng cấp gói.", 400);
+                    throw new BusinessException("Bạn không còn lượt đăng bài Dán Nhãn nào. Vui lòng nâng cấp gói.", 400);
                 user.setRemainingPremiumPosts(user.getRemainingPremiumPosts() - 1);
             } else {
                 if (user.getRemainingBasicPosts() <= 0)
