@@ -33,7 +33,7 @@ public class SellerPostController {
         return ResponseEntity.ok(
                 ApiResponse.<PostResponse>builder()
                         .success(true)
-                        .message("Post created successfully")
+                        .message("Tạo bài đăng thành công")
                         .data(post)
                         .build()
         );
@@ -49,7 +49,7 @@ public class SellerPostController {
         return ResponseEntity.ok(
                 ApiResponse.<PostResponse>builder()
                         .success(true)
-                        .message("Post updated successfully")
+                        .message("Cập nhật bài đăng thành công")
                         .data(updatedPost)
                         .build()
         );
@@ -61,7 +61,7 @@ public class SellerPostController {
         return ResponseEntity.ok(
                 ApiResponse.<List<PostResponse>>builder()
                         .success(true)
-                        .message("List of your posts retrieved successfully")
+                        .message("Lấy danh sách bài đăng của bạn thành công")
                         .data(posts)
                         .build()
         );
@@ -76,7 +76,7 @@ public class SellerPostController {
         return ResponseEntity.ok(
                 ApiResponse.<PostResponse>builder()
                         .success(true)
-                        .message("Post retrieved successfully")
+                        .message("Lấy thông tin bài đăng thành công")
                         .data(post)
                         .build()
         );
@@ -85,12 +85,13 @@ public class SellerPostController {
     @GetMapping("/posts/status/{status}")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getPostsByStatus(
             Authentication authentication,
-            @PathVariable PostStatus status) {
+            @PathVariable PostStatus status
+    ) {
         List<PostResponse> posts = postService.getMyPostsByStatus(authentication, status);
         return ResponseEntity.ok(
                 ApiResponse.<List<PostResponse>>builder()
                         .success(true)
-                        .message("Posts retrieved successfully")
+                        .message("Lấy danh sách bài đăng theo trạng thái thành công")
                         .data(posts)
                         .build()
         );
@@ -105,7 +106,7 @@ public class SellerPostController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Post deleted successfully")
+                        .message("Xóa bài đăng thành công")
                         .build()
         );
     }

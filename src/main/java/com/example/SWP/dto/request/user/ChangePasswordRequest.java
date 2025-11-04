@@ -11,14 +11,14 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChangePasswordRequest {
-    @NotBlank(message = "Current password must not be blank")
+    @NotBlank(message = "Mật khẩu hiện tại không được để trống")
     String currentPassword;
 
-    @NotBlank(message = "New password must not be blank")
-    @Size(min = 6, message = "New password must be at least 6 characters")
+    @NotBlank(message = "Mật khẩu mới không được để trống")
+    @Size(min = 6, message = "Mật khẩu mới phải có ít nhất 6 ký tự")
     String newPassword;
 
-    @NotBlank(message = "Confirm password must not be blank")
-    @Size(min = 6, message = "Confirm password must be at least 6 characters")
+    @NotBlank(message = "Xác nhận mật khẩu không được để trống")
+    @Size(min = 6, message = "Xác nhận mật khẩu phải có ít nhất 6 ký tự")
     String confirmPassword;
 }

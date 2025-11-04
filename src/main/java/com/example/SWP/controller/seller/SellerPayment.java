@@ -20,14 +20,14 @@ public class SellerPayment {
     @GetMapping("/seller-package")
     public ResponseEntity<ApiResponse<String>> sellerPackagePayment(
             @RequestParam Long packageId,
-            Authentication authentication) {
+            Authentication authentication
+    ) {
 
-        // Thực hiện thanh toán từ ví
         packageSellerPaymentService.sellerPackagePayment(authentication.getName(), packageId);
 
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .success(true)
-                .message("Payment successful via wallet")
+                .message("Thanh toán thành công qua ví")
                 .data(null)
                 .build();
 

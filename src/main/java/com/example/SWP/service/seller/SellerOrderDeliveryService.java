@@ -33,6 +33,7 @@ public class SellerOrderDeliveryService {
     ValidateService validateService;
     InvoiceRepository invoiceRepository;
     ContractRepository contractRepository;
+    OrderRepository orderRepository;
 
     public void createDeliveryStatus(Order order) {
         if (order == null) {
@@ -156,4 +157,19 @@ public class SellerOrderDeliveryService {
         return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
     }
 
+    public OrderDeliveryResponse getDeliveryByOrderId(Authentication authentication, Long orderId) {
+        User user = validateService.validateCurrentUser(authentication);
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
+
+        if (!order.getSeller().getId().equals(user.getId())) {
+            throw new BusinessException("Bạn không có quyền xem thông tin giao hàng của đơn này", 403);
+        }
+
+        OrderDelivery delivery = orderDeliveryRepository.findByOrder(order)
+                .orElseThrow(() -> new BusinessException("Đơn hàng này chưa có thông tin giao hàng", 400));
+
+        return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
+    }
 }

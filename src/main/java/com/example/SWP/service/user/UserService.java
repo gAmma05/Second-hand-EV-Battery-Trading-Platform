@@ -33,22 +33,6 @@ public class UserService {
     GhnService ghnService;
     ValidateService validateService;
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
-    }
-
-    public void createUser(CreateUserRequest request) {
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.BUYER)
-                .fullName(request.getFullName())
-                .provider(AuthProvider.MANUAL)
-                .status(true)
-                .build();
-        userRepository.save(user);
-    }
-
     public UserResponse getUserProfile(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
         return userMapper.toUserResponse(user);
@@ -60,22 +44,15 @@ public class UserService {
         if (request.getFullName() != null) {
             user.setFullName(request.getFullName());
         }
+
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
         }
 
-        if (request.getStreetAddress() != null &&
-                request.getProvinceId() != null &&
-                request.getDistrictId() != null &&
-                request.getWardCode() != null
+        if (request.getStreetAddress() != null && request.getProvinceId() != null
+                && request.getDistrictId() != null && request.getWardCode() != null
         ) {
-
-            ghnService.validateAddressIds(
-                    request.getProvinceId(),
-                    request.getDistrictId(),
-                    request.getWardCode()
-            );
-
+            ghnService.validateAddressIds(request.getProvinceId(), request.getDistrictId(), request.getWardCode());
             user.setProvinceId(request.getProvinceId());
             user.setDistrictId(request.getDistrictId());
             user.setWardCode(request.getWardCode());
@@ -94,19 +71,15 @@ public class UserService {
                 user.setSocialMedia(request.getSocialMedia());
             }
         }
-
         userRepository.save(user);
-
         return userMapper.toUserResponse(user);
     }
 
 
     public UserResponse updateAvatar(Authentication authentication, String avatarUrl) {
         User user = validateService.validateCurrentUser(authentication);
-
         user.setAvatar(avatarUrl);
         userRepository.save(user);
-
         return userMapper.toUserResponse(user);
     }
 
@@ -115,14 +88,30 @@ public class UserService {
         User user = validateService.validateCurrentUser(authentication);
 
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new BusinessException("Password mới và xác nhận password mới không trùng khớp", 400);
+            throw new BusinessException("Mật khẩu mới và xác nhận mật khẩu không khớp", 400);
         }
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new BusinessException("Password cũ sai", 400);
+            throw new BusinessException("Mật khẩu hiện tại không chính xác", 400);
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    public void createUser(CreateUserRequest request) {
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.BUYER)
+                .fullName(request.getFullName())
+                .provider(AuthProvider.MANUAL)
+                .status(true)
+                .build();
         userRepository.save(user);
     }
 }

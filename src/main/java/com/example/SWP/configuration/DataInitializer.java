@@ -124,6 +124,12 @@ public class DataInitializer implements CommandLineRunner {
                     .status(true)
                     .role(Role.BUYER)
                     .provider(AuthProvider.MANUAL)
+                    .address("tui hong co dia chi")
+                    .streetAddress("tui hong co luon")
+                    .provinceId(216)
+                    .districtId(1724)
+                    .wardCode("500718")
+                    .phone("0386158643")
                     .build();
 
             userRepository.save(user);
@@ -139,6 +145,15 @@ public class DataInitializer implements CommandLineRunner {
                     .status(true)
                     .remainingBasicPosts(1000)
                     .remainingPremiumPosts(1000)
+                    .address("292 to 9, Xã Thiện Trí, Huyện Cái Bè, Tiền Giang")
+                    .streetAddress("292 to 9")
+                    .provinceId(212)
+                    .districtId(1900)
+                    .wardCode("530324")
+                    .phone("0837511721")
+                    .storeName("Momo")
+                    .storeDescription("Momo chan ga dai suki")
+                    .socialMedia("momo.chan")
                     .role(Role.SELLER)
                     .provider(AuthProvider.MANUAL)
                     .build();

@@ -122,34 +122,35 @@ public class GhnService {
 
 
     public void validateAddressIds(Integer provinceId, Integer districtId, String wardCode) {
-        if (provinceId == null || districtId == null || wardCode == null || wardCode.isEmpty()) {
-            throw new BusinessException("Province, district hoặc ward không được để trống", 400);
+        if (provinceId == null || districtId == null || wardCode == null || wardCode.isBlank()) {
+            throw new BusinessException("Tỉnh/thành phố, quận/huyện hoặc phường/xã không được để trống", 400);
         }
 
         List<DistrictResponse> districts;
+
         try {
             districts = getDistricts(provinceId);
         } catch (Exception e) {
-            throw new BusinessException("Không tìm thấy districts cho ProvinceID: " + provinceId, 400);
+            throw new BusinessException("Không tìm thấy danh sách quận/huyện cho Tỉnh/TP ID: " + provinceId, 400);
         }
 
         boolean districtBelongs = districts.stream()
                 .anyMatch(d -> Objects.equals(d.getDistrictId(), districtId));
         if (!districtBelongs) {
-            throw new BusinessException("DistrictID không thuộc ProvinceID", 400);
+            throw new BusinessException("Quận/huyện không thuộc Tỉnh/TP tương ứng", 400);
         }
 
         List<WardResponse> wards;
         try {
             wards = getWards(districtId);
         } catch (Exception e) {
-            throw new BusinessException("Không tìm thấy wards cho DistrictID: " + districtId, 400);
+            throw new BusinessException("Không tìm thấy danh sách phường/xã cho Quận/Huyện ID: " + districtId, 400);
         }
 
         boolean wardBelongs = wards.stream()
                 .anyMatch(w -> wardCode.equals(w.getWardCode()));
         if (!wardBelongs) {
-            throw new BusinessException("WardCode không thuộc DistrictID", 400);
+            throw new BusinessException("Phường/xã không thuộc Quận/Huyện tương ứng", 400);
         }
     }
 

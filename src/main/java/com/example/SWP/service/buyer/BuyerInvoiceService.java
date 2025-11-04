@@ -13,13 +13,16 @@ import com.example.SWP.service.user.FeeService;
 import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
+import io.netty.util.NetUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -40,58 +43,61 @@ public class BuyerInvoiceService {
     InvoiceMapper invoiceMapper;
     ValidateService validateService;
     FeeService feeService;
-    OrderRepository orderRepository;
-    PostRepository postRepository;
     OrderDeliveryRepository orderDeliveryRepository;
 
+    @Transactional
     public void createInvoice(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy contract", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy hợp đồng", 404));
 
         Order order = contract.getOrder();
+        PaymentType paymentType = order.getPaymentType();
 
-        BigDecimal firstInvoiceAmount;
+        BigDecimal invoiceAmount;
+        InvoiceStatus invoiceStatus;
+        LocalDateTime paidAt = null;
+        LocalDateTime dueDate = null;
+        boolean shouldCreateDelivery = false;
 
-        if (order.getPaymentType() == PaymentType.FULL) {
-            if(order.isDepositPaid()) {
-                firstInvoiceAmount = feeService.calculateRemainingAmount(contract.getTotalFee());
-            } else {
-                firstInvoiceAmount = contract.getTotalFee();
-            }
-        } else if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
-            if(order.isDepositPaid()) {
-                firstInvoiceAmount = BigDecimal.ZERO;
-            } else {
-                firstInvoiceAmount = feeService.calculateDepositAmount(contract.getTotalFee());
-            }
+        if (paymentType == PaymentType.FULL) {
+            invoiceAmount = contract.getTotalFee();
+            invoiceStatus = InvoiceStatus.ACTIVE;
+            dueDate = LocalDateTime.now().plusDays(7);
+        } else if (paymentType == PaymentType.DEPOSIT) {
+            invoiceAmount = feeService.calculateDepositAmount(contract.getTotalFee());
+            invoiceStatus = InvoiceStatus.PAID;
+            paidAt = LocalDateTime.now();
+            shouldCreateDelivery = true;
         } else {
-            throw new BusinessException("Loại hình thanh toán không hợp lệ", 400);
+            throw new BusinessException("Loại thanh toán không hợp lệ", 400);
         }
 
-        Invoice depositInvoice = Invoice.builder()
+        Invoice invoice = Invoice.builder()
                 .contract(contract)
                 .invoiceNumber(Utils.generateCode("INVOICE"))
-                .totalPrice(firstInvoiceAmount)
+                .totalPrice(invoiceAmount)
                 .createdAt(LocalDateTime.now())
-                .dueDate(LocalDateTime.now().plusDays(7))
-                .status(InvoiceStatus.ACTIVE)
+                .dueDate(dueDate)
+                .paidAt(paidAt)
+                .status(invoiceStatus)
                 .build();
 
-        invoiceRepository.save(depositInvoice);
+        invoiceRepository.save(invoice);
 
-        if (contract.getOrder().getPaymentType() == PaymentType.DEPOSIT) {
-            BigDecimal finalAmount = feeService.calculateRemainingAmount(contract.getTotalFee());
-
+        if(paymentType == PaymentType.DEPOSIT) {
             Invoice finalInvoice = Invoice.builder()
                     .contract(contract)
                     .invoiceNumber(Utils.generateCode("INVOICE"))
-                    .totalPrice(finalAmount)
+                    .totalPrice(feeService.calculateRemainingAmount(contract.getTotalFee()))
                     .createdAt(LocalDateTime.now())
-                    .dueDate(null)
                     .status(InvoiceStatus.INACTIVE)
                     .build();
 
             invoiceRepository.save(finalInvoice);
+        }
+
+        if (shouldCreateDelivery) {
+            sellerOrderDeliveryService.createDeliveryStatus(order);
         }
 
         notificationService.sendNotificationToOneUser(
@@ -99,7 +105,6 @@ public class BuyerInvoiceService {
                 "Hóa đơn đã được tạo",
                 "Hóa đơn hợp đồng #" + contract.getId() + " đã được tạo. Vui lòng kiểm tra trong hệ thống."
         );
-
     }
 
     public InvoiceResponse getInvoiceDetail(Authentication authentication, Long invoiceId) {
@@ -174,7 +179,7 @@ public class BuyerInvoiceService {
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrder(order).orElse(null);
 
-        if(orderDelivery == null) {
+        if (orderDelivery == null) {
             sellerOrderDeliveryService.createDeliveryStatus(order);
         }
     }
