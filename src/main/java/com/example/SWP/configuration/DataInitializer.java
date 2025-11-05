@@ -1,9 +1,8 @@
 package com.example.SWP.configuration;
 
-import com.example.SWP.entity.PriorityPackage;
-import com.example.SWP.entity.SellerPackage;
-import com.example.SWP.entity.User;
+import com.example.SWP.entity.*;
 import com.example.SWP.enums.*;
+import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.SellerPackageRepository;
 import com.example.SWP.repository.PriorityPackageRepository;
 import com.example.SWP.repository.UserRepository;
@@ -17,7 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -29,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
     final PriorityPackageRepository priorityPackageRepository;
     final UserRepository userRepository;
     final PasswordEncoder passwordEncoder;
+    final PostRepository postRepository;
 
     @Value("${seller-package.basic.price}")
     BigDecimal basicPrice_sellerPackage;
@@ -160,6 +161,51 @@ public class DataInitializer implements CommandLineRunner {
 
             userRepository.save(user);
             log.warn("Seller user created with email 'seller@gmail.com' and password 'seller'. Please change the password after first login.");
+        }
+
+        //
+        if (postRepository.count() == 0) {
+            Optional<User> user = userRepository.findByEmail("seller@gmail.com");
+            if (user.isEmpty()) {
+                log.error("Seller user not found, cannot create posts.");
+                return;
+            }
+
+            Set<DeliveryMethod> deliveryMethods = new HashSet<>(Arrays.asList(DeliveryMethod.values()));
+            Set<PaymentType> paymentTypes = new HashSet<>(Arrays.asList(PaymentType.values()));
+
+            Post post = Post.builder()
+                    .user(user.get())
+                    .productType(ProductType.VEHICLE)
+                    .title("Umamusume")
+                    .description("Umamusume are humanoid girls who possess horse traits and features. " +
+                            "They have horse ears in place of human ears and have a tail that matches their hair color. " +
+                            "They possess incredible speed and stamina, far beyond that of a human and comparable with that of a real-life horse.")
+                    .price(new BigDecimal("1000000"))
+                    .postDate(LocalDateTime.now())
+                    .updateDate(null)
+                    .expiryDate(LocalDateTime.now().plusDays(1))
+                    .viewCount(0)
+                    .likeCount(0)
+                    .deliveryMethods(deliveryMethods)
+                    .paymentTypes(paymentTypes)
+                    .isTrusted(false)
+                    .priorityPackageId(null)
+                    .priorityExpire(null)
+                    .status(PostStatus.POSTED)
+                    .vehicleBrand("Narita")
+                    .model("Narita Top Road")
+                    .yearOfManufacture(2024)
+                    .color("Yellow")
+                    .mileage(100000)
+                    .batteryType(null)
+                    .capacity(null)
+                    .voltage(null)
+                    .batteryBrand(null)
+                    .weight(null)
+                    .build();
+            postRepository.save(post);
+            log.warn("Post created for demo purpose.");
         }
     }
 }
