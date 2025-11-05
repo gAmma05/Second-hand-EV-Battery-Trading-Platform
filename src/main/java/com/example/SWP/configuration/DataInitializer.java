@@ -163,6 +163,57 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Seller user created with email 'seller@gmail.com' and password 'seller'. Please change the password after first login.");
         }
 
+        if (userRepository.findByEmail("minedungytb@gmail.com").isEmpty()) {
+            User user = User.builder()
+                    .email("minedungytb@gmail.com")
+                    .password(passwordEncoder.encode("Dung1234*"))
+                    .fullName("Dung Seller")
+                    .status(true)
+                    .remainingBasicPosts(1000)
+                    .remainingPremiumPosts(1000)
+                    .address("555, Phường Cầu Ông Lãnh, Quận 1, Hồ Chí Minh")
+                    .streetAddress("555")
+                    .provinceId(1921)
+                    .districtId(1442)
+                    .wardCode("710000")
+                    .phone("0907771804")
+                    .storeName("Momo")
+                    .storeDescription("Momo chan ga dai suki")
+                    .socialMedia("momo.chan")
+                    .role(Role.SELLER)
+                    .provider(AuthProvider.MANUAL)
+                    .build();
+
+            userRepository.save(user);
+            log.warn("Seller user created with email 'minedungytb@gmail.com' and password 'seller'. Please change the password after first login.");
+        }
+
+        if (userRepository.findByEmail("minedung2005@gmail.com").isEmpty()) {
+            User user = User.builder()
+                    .email("minedung2005@gmail.com")
+                    .password(passwordEncoder.encode("Dung1234*"))
+                    .fullName("Zun Buyer")
+                    .status(true)
+                    .remainingBasicPosts(0)
+                    .remainingPremiumPosts(0)
+                    .address("234, Phường 6, Quận 3, Hồ Chí Minh")
+                    .streetAddress("555")
+                    .provinceId(1809)
+                    .districtId(1440)
+                    .wardCode("722700")
+                    .phone("0907771804")
+                    .storeName(null)
+                    .storeDescription(null)
+                    .socialMedia(null)
+                    .role(Role.BUYER)
+                    .provider(AuthProvider.MANUAL)
+                    .build();
+
+            userRepository.save(user);
+            log.warn("Seller user created with email 'minedung2005@gmail.com' and password 'seller'. Please change the password after first login.");
+        }
+
+
         // Demo order -> contract -> etc
         if (postRepository.count() == 0) {
             Optional<User> user = userRepository.findByEmail("seller@gmail.com");
