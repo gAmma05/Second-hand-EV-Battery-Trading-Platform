@@ -10,6 +10,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateAvatarRequest {
-    @NotBlank(message = "Avatar URL cannot be blank")
+    @NotBlank(message = "URL ảnh đại diện không được để trống")
     String avatar;
 }

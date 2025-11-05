@@ -25,7 +25,4 @@ public class CreateOrderRequest {
     PaymentType paymentType;
 
     Integer serviceTypeId;
-
-    @NotNull(message = "Vui lòng chọn bạn có muốn đặt cọc hay không")
-    Boolean wantDeposit;
 }

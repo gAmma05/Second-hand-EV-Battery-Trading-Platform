@@ -18,11 +18,17 @@ public class ValidateService {
 
     private final UserRepository userRepository;
 
-    // Validate user hiện tại và trả về User
     public User validateCurrentUser(Authentication authentication) {
         String email = authentication.getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("Người dùng không tồn tại", 404));
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new BusinessException("Người dùng không tồn tại", 404)
+        );
+
+        if (!user.isStatus()) {
+            throw new BusinessException("Tài khoản hiện tại đang bị khóa", 403);
+        }
+
+        return user;
     }
 
     // Validate dữ liệu bài đăng khi tạo hoặc cập nhật

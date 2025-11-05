@@ -28,7 +28,7 @@ public class UserController {
 
         return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
                 .success(true)
-                .message("Profile fetched successfully")
+                .message("Lấy thông tin cá nhân thành công")
                 .data(profile)
                 .build());
     }
@@ -36,13 +36,13 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             Authentication authentication,
-            @RequestBody UpdateUserRequest request
-    ) {
+            @RequestBody UpdateUserRequest request) {
+
         UserResponse updatedProfile = userService.updateUserProfile(authentication, request);
 
         return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
                 .success(true)
-                .message("Profile updated successfully")
+                .message("Cập nhật thông tin cá nhân thành công")
                 .data(updatedProfile)
                 .build());
     }
@@ -50,12 +50,13 @@ public class UserController {
     @PatchMapping("/avatar")
     public ResponseEntity<ApiResponse<UserResponse>> updateAvatar(
             Authentication authentication,
-            @Valid @RequestBody UpdateAvatarRequest request
-    ) {
+            @Valid @RequestBody UpdateAvatarRequest request) {
+
         UserResponse updated = userService.updateAvatar(authentication, request.getAvatar());
+
         return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
                 .success(true)
-                .message("Avatar updated successfully")
+                .message("Cập nhật ảnh đại diện thành công")
                 .data(updated)
                 .build());
     }
@@ -64,20 +65,15 @@ public class UserController {
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             Authentication authentication,
-            @Valid @RequestBody ChangePasswordRequest request
-    ) {
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new BusinessException("New password and confirm password do not match", 400);
-        }
+            @Valid @RequestBody ChangePasswordRequest request) {
 
         userService.changePassword(authentication, request);
 
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Password changed successfully")
+                        .message("Đổi mật khẩu thành công")
                         .build()
         );
     }
-
 }
