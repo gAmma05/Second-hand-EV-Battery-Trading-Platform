@@ -8,6 +8,7 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.OtpType;
+import com.example.SWP.enums.PaymentType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
@@ -15,6 +16,7 @@ import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.service.mail.MailService;
 import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.seller.SellerOrderDeliveryService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class BuyerContractService {
     ContractMapper contractMapper;
     OtpService otpService;
     MailService mailService;
+    SellerOrderDeliveryService sellerOrderDeliveryService;
 
     public void sendContractSignOtp(Authentication authentication, Long contractId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -96,10 +99,16 @@ public class BuyerContractService {
         contract.setBuyerSignedAt(LocalDateTime.now());
         contract.setStatus(ContractStatus.SIGNED);
 
+        contractRepository.save(contract);
+
         // Tạo hóa đơn sau khi buyer ký
         buyerInvoiceService.createInvoice(contract.getId());
 
-        contractRepository.save(contract);
+        // Tạo đơn hàng vận chuyển khi là thanh toán FULL
+        Order order = contract.getOrder();
+        if (order.getPaymentType() == PaymentType.FULL) {
+            sellerOrderDeliveryService.createDeliveryStatus(order);
+        }
 
         notificationService.sendNotificationToOneUser(
                 contract.getOrder().getSeller().getEmail(),

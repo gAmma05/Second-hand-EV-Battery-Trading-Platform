@@ -54,7 +54,7 @@ public class InvoiceStatusScheduler {
                     }
                     Contract contract = optionalContract.get();
 
-                    Optional<Invoice> optionalInvoice = invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE);
+                    Optional<Invoice> optionalInvoice = invoiceRepository.findByContractAndStatus(contract, InvoiceStatus.INACTIVE);
                     if (optionalInvoice.isEmpty()) {
                         continue;
                     }
