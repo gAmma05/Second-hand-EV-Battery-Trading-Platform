@@ -201,7 +201,7 @@ public class DataInitializer implements CommandLineRunner {
                     .provinceId(1809)
                     .districtId(1440)
                     .wardCode("722700")
-                    .phone("0907771804")
+                    .phone("0935675866")
                     .storeName(null)
                     .storeDescription(null)
                     .socialMedia(null)
