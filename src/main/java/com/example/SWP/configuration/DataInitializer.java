@@ -163,7 +163,7 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Seller user created with email 'seller@gmail.com' and password 'seller'. Please change the password after first login.");
         }
 
-        //
+        // Demo order -> contract -> etc
         if (postRepository.count() == 0) {
             Optional<User> user = userRepository.findByEmail("seller@gmail.com");
             if (user.isEmpty()) {
