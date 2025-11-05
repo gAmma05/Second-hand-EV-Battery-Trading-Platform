@@ -9,6 +9,7 @@ import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.*;
 import com.example.SWP.service.ghn.GhnService;
+import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -24,26 +25,13 @@ public class SellerService {
     UserRepository userRepository;
     PriorityPackageRepository priorityPackageRepository;
     SellerPackageRepository sellerPackageRepository;
-    GhnService ghnService;
-
+    ValidateService validateService;
 
     public void upgradeToSeller(Authentication authentication, UpgradeToSellerRequest request) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
+        User user = validateService.validateCurrentUser(authentication);
 
-        if (user.getRole() == Role.SELLER) {
-            throw new BusinessException("Người dùng đã là seller", 400);
-        }
-
-        if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
-            throw new BusinessException("Vui lòng cập nhật họ tên đầy đủ (full name) trước khi đăng ký trở thành seller", 400);
-        }
-        if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
-            throw new BusinessException("Vui lòng cập nhật số điện thoại (phone number) trước khi đăng ký trở thành seller", 400);
-        }
-        if (user.getAddress() == null) {
-            throw new BusinessException("Vui lòng cập nhật địa chỉ (address) trước khi đăng ký trở thành seller", 400);
+        if (checkIfSeller(user)) {
+            throw new BusinessException("Người dùng hiện đã nâng cấp thành người bán", 400);
         }
 
         user.setRole(Role.SELLER);
@@ -53,6 +41,23 @@ public class SellerService {
         user.setRemainingBasicPosts(3);
         userRepository.save(user);
     }
+
+
+    public void changeToSeller(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
+
+        if(!checkIfSeller(user)) {
+            throw new BusinessException("Người dùng hiện chưa nâng cấp thành người bán", 400);
+        }
+
+        user.setRole(Role.SELLER);
+    }
+
+    public boolean checkIfSeller(User user) {
+        return user.getStoreName() != null && user.getStoreDescription() != null
+                && user.getSocialMedia() != null;
+    }
+
 
     public List<PriorityPackage> getAllPriorityPackages() {
         return priorityPackageRepository.findAll();

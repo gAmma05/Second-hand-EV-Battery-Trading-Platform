@@ -1,7 +1,6 @@
 package com.example.SWP.service.buyer;
 
 import com.example.SWP.dto.response.OrderDeliveryResponse;
-import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.OrderDelivery;
 import com.example.SWP.entity.User;
@@ -28,8 +27,6 @@ public class BuyerOrderDeliveryService {
     OrderDeliveryRepository orderDeliveryRepository;
     InvoiceRepository invoiceRepository;
     OrderDeliveryMapper orderDeliveryMapper;
-    private final OrderRepository orderRepository;
-    private final PostRepository postRepository;
 
     public void confirmReceived(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -49,6 +46,7 @@ public class BuyerOrderDeliveryService {
         }
 
         boolean hasActiveInvoice = invoiceRepository.existsByContract_OrderAndStatus(order, InvoiceStatus.ACTIVE);
+
         if (hasActiveInvoice) {
             throw new BusinessException("Bạn phải thanh toán hóa đơn trước khi xác nhận nhận hàng", 400);
         }
@@ -56,13 +54,6 @@ public class BuyerOrderDeliveryService {
         orderDelivery.setStatus(DeliveryStatus.RECEIVED);
         orderDelivery.setUpdatedAt(LocalDateTime.now());
         orderDeliveryRepository.save(orderDelivery);
-
-        order.setStatus(OrderStatus.DONE);
-        orderRepository.save(order);
-
-        order.getPost().setStatus(PostStatus.SOLD);
-        postRepository.save(order.getPost());
-
     }
 
     public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {

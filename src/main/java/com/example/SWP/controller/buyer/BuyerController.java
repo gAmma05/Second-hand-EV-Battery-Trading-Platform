@@ -33,4 +33,14 @@ public class BuyerController {
                 .build());
     }
 
+    @PostMapping("/change-to-seller")
+    public ResponseEntity<ApiResponse<String>> changeToSeller(Authentication authentication) {
+        sellerService.changeToSeller(authentication);
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .success(true)
+                .message("Changed role to SELLER successfully")
+                .build());
+    }
+
 }

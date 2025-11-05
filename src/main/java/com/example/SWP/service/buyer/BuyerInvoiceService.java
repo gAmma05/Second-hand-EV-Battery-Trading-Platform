@@ -53,52 +53,36 @@ public class BuyerInvoiceService {
         Order order = contract.getOrder();
         PaymentType paymentType = order.getPaymentType();
 
-        BigDecimal invoiceAmount;
-        InvoiceStatus invoiceStatus;
-        LocalDateTime paidAt = null;
-        LocalDateTime dueDate = null;
-        boolean shouldCreateDelivery = false;
+        if (paymentType == PaymentType.DEPOSIT) {
+            BigDecimal depositFee = feeService.calculateDepositAmount(contract.getTotalFee());
 
-        if (paymentType == PaymentType.FULL) {
-            invoiceAmount = contract.getTotalFee();
-            invoiceStatus = InvoiceStatus.ACTIVE;
-            dueDate = LocalDateTime.now().plusDays(7);
-        } else if (paymentType == PaymentType.DEPOSIT) {
-            invoiceAmount = feeService.calculateDepositAmount(contract.getTotalFee());
-            invoiceStatus = InvoiceStatus.PAID;
-            paidAt = LocalDateTime.now();
-            shouldCreateDelivery = true;
-        } else {
-            throw new BusinessException("Loại thanh toán không hợp lệ", 400);
-        }
-
-        Invoice invoice = Invoice.builder()
-                .contract(contract)
-                .invoiceNumber(Utils.generateCode("INVOICE"))
-                .totalPrice(invoiceAmount)
-                .createdAt(LocalDateTime.now())
-                .dueDate(dueDate)
-                .paidAt(paidAt)
-                .status(invoiceStatus)
-                .build();
-
-        invoiceRepository.save(invoice);
-
-        if(paymentType == PaymentType.DEPOSIT) {
-            Invoice finalInvoice = Invoice.builder()
+            Invoice depositInvoice = Invoice.builder()
                     .contract(contract)
-                    .invoiceNumber(Utils.generateCode("INVOICE"))
-                    .totalPrice(feeService.calculateRemainingAmount(contract.getTotalFee()))
+                    .invoiceNumber(Utils.generateCode("DEPOSIT_FEE_INVOICE"))
+                    .totalPrice(depositFee)
                     .createdAt(LocalDateTime.now())
-                    .status(InvoiceStatus.INACTIVE)
+                    .dueDate(LocalDateTime.now().plusDays(7))
+                    .status(InvoiceStatus.ACTIVE)
                     .build();
 
-            invoiceRepository.save(finalInvoice);
+            invoiceRepository.save(depositInvoice);
         }
 
-        if (shouldCreateDelivery) {
-            sellerOrderDeliveryService.createDeliveryStatus(order);
+        BigDecimal finalFee;
+        Invoice.InvoiceBuilder invoiceBuilder = Invoice.builder()
+                .contract(contract)
+                .invoiceNumber(Utils.generateCode("FINAL_FEE_INVOICE"))
+                .createdAt(LocalDateTime.now())
+                .status(InvoiceStatus.INACTIVE);
+
+        if(paymentType == PaymentType.DEPOSIT){
+            finalFee = feeService.calculateRemainingAmount(contract.getTotalFee());
+        } else {
+            finalFee = contract.getTotalFee();
         }
+
+        Invoice finalInvoice = invoiceBuilder.totalPrice(finalFee).build();
+        invoiceRepository.save(finalInvoice);
 
         notificationService.sendNotificationToOneUser(
                 contract.getOrder().getBuyer().getEmail(),

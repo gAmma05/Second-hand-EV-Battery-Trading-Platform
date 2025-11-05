@@ -35,8 +35,6 @@ public class SellerOrderService {
     NotificationService notificationService;
     ValidateService validateService;
     OrderMapper orderMapper;
-    WalletService walletService;
-    FeeService feeService;
 
     public OrderResponse getOrderDetail(Authentication authentication, Long orderId) {
         User seller = validateService.validateCurrentUser(authentication);
@@ -61,8 +59,8 @@ public class SellerOrderService {
             throw new BusinessException("Bạn không có quyền duyệt đơn hàng này", 403);
         }
 
-        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.DEPOSITED) {
-            throw new BusinessException("Chỉ có thể duyệt đơn hàng đang chờ duyệt hoặc đã đặt cọc", 400);
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BusinessException("Chỉ có thể duyệt đơn hàng đang chờ duyệt", 400);
         }
 
         if (orderRepository.existsByPostAndStatus(order.getPost(), OrderStatus.APPROVED)) {
@@ -72,21 +70,13 @@ public class SellerOrderService {
         order.setStatus(OrderStatus.APPROVED);
         orderRepository.save(order);
 
-        Order depositedOrder = orderRepository.findByPostAndStatus(order.getPost(), OrderStatus.DEPOSITED).orElse(null);
-
-        if(depositedOrder != null) {
-            BigDecimal refundAmount = feeService.calculateDepositAmount(depositedOrder.getPost().getPrice(), depositedOrder.getShippingFee());
-            walletService.refundToWallet(depositedOrder.getBuyer(), refundAmount);
-
-            depositedOrder.setStatus(OrderStatus.REJECTED);
-            orderRepository.save(depositedOrder);
-
-            notificationService.sendNotificationToOneUser(
-                    depositedOrder.getBuyer().getEmail(),
-                    "Đơn hàng của bạn đã bị hủy",
-                    "Đơn hàng #" + depositedOrder.getId() + " đã bị hủy do bài đăng này đã được duyệt cho người khác. Tiền đặt cọc đã được hoàn lại."
-            );
+        List<Order> otherPendingOrders = orderRepository.findAllByPostAndStatus(order.getPost(), OrderStatus.PENDING);
+        for (Order otherOrder : otherPendingOrders) {
+            if (!otherOrder.getId().equals(order.getId())) {
+                otherOrder.setStatus(OrderStatus.REJECTED);
+            }
         }
+        orderRepository.saveAll(otherPendingOrders);
 
         notificationService.sendNotificationToOneUser(
                 order.getBuyer().getEmail(),
@@ -111,14 +101,8 @@ public class SellerOrderService {
             throw new BusinessException("Bạn không có quyền từ chối đơn hàng này", 403);
         }
 
-        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.DEPOSITED) {
-            throw new BusinessException("Chỉ có thể từ chối đơn hàng đang chờ duyệt hoặc đã đặt cọc", 400);
-        }
-
-        if (order.getStatus() == OrderStatus.DEPOSITED) {
-            BigDecimal shippingFee = order.getShippingFee();
-            BigDecimal refundAmount = feeService.calculateDepositAmount(order.getPost().getPrice(), shippingFee);
-            walletService.refundToWallet(order.getBuyer(), refundAmount);
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BusinessException("Chỉ có thể từ chối đơn hàng đang chờ duyệt", 400);
         }
 
         order.setStatus(OrderStatus.REJECTED);
