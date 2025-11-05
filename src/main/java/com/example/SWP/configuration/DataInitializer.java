@@ -185,7 +185,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(user);
-            log.warn("Seller user created with email 'minedungytb@gmail.com' and password 'seller'. Please change the password after first login.");
+            log.warn("Seller user created with email 'minedungytb@gmail.com' and password 'Dung1234*'. Please change the password after first login.");
         }
 
         if (userRepository.findByEmail("minedung2005@gmail.com").isEmpty()) {
@@ -210,7 +210,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(user);
-            log.warn("Seller user created with email 'minedung2005@gmail.com' and password 'seller'. Please change the password after first login.");
+            log.warn("Seller user created with email 'minedung2005@gmail.com' and password 'Dung1234*'. Please change the password after first login.");
         }
 
 
