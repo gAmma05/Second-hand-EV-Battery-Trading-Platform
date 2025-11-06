@@ -51,6 +51,7 @@ public class SellerService {
         }
 
         user.setRole(Role.SELLER);
+        userRepository.save(user);
     }
 
     public boolean checkIfSeller(User user) {

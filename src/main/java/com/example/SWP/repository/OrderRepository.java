@@ -14,11 +14,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findOrderByPost_IdAndStatus(Long postId, OrderStatus status);
-    boolean existsByPost_IdAndPaymentTypeAndStatusNotIn(Long postId, PaymentType paymentType, List<OrderStatus> status);
+    boolean existsByPost_IdAndPaymentTypeAndStatus(Long postId, PaymentType paymentType, OrderStatus status);
     List<Order> findOrderByPaymentType(PaymentType paymentType);
     List<Order> findOrderByBuyer(User buyer);
-    boolean existsByBuyerAndPostAndStatusNotIn(User buyer, Post post, List<OrderStatus> status);
+    boolean existsByBuyerAndPost_IdAndStatus(User buyer, Long postId, OrderStatus status);
     List<Order> findOrderByBuyerAndStatus(User buyer, OrderStatus status);
     boolean existsByPostAndStatus(Post post, OrderStatus orderStatus);
     List<Order> findOrderBySeller(User seller);
