@@ -25,5 +25,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findByIsTrustedTrueAndStatusAndExpiryDateAfterOrderByPostDateDesc(PostStatus postStatus, LocalDateTime now);
 
-    int countPostByStatus(PostStatus status);
+    long countByUserAndStatusAndPostDateBetween(User seller, PostStatus status, LocalDateTime start, LocalDateTime end);
+
+    long countByUserAndStatus(User seller, PostStatus status);
 }

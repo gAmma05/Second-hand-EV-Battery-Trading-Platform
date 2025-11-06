@@ -47,7 +47,6 @@ public class BuyerOrderService {
     OrderRepository orderRepository;
     PostRepository postRepository;
     NotificationService notificationService;
-    WalletService walletService;
     ValidateService validateService;
     OrderMapper orderMapper;
     FeeService feeService;
@@ -73,7 +72,7 @@ public class BuyerOrderService {
             throw new BusinessException("Bài đăng này đã có đơn hàng được duyệt", 400);
         }
 
-        if (isOrderAvailable(post.getId(), OrderStatus.DEPOSITED)) {
+        if(orderRepository.existsByPost_IdAndPaymentTypeAndStatusNotIn(post.getId(), PaymentType.DEPOSIT, List.of(OrderStatus.REJECTED))) {
             throw new BusinessException("Bài đăng này đã có đơn hàng được đặt cọc", 400);
         }
 
@@ -98,24 +97,12 @@ public class BuyerOrderService {
                 .createdAt(LocalDateTime.now())
                 .status(OrderStatus.PENDING);
 
-        BigDecimal shippingFee = feeService.calculateShippingFee(post, request.getDeliveryMethod(), request.getServiceTypeId(), buyer);
-
         if(request.getPaymentType() == PaymentType.DEPOSIT) {
             orderBuilder.depositPercentage(depositPercentage);
         }
 
+        BigDecimal shippingFee = feeService.calculateShippingFee(post, request.getDeliveryMethod(), request.getServiceTypeId(), buyer);
         Order order = orderBuilder.shippingFee(shippingFee).build();
-
-        if (request.getPaymentType() == PaymentType.DEPOSIT) {
-            BigDecimal depositAmount = feeService.calculateDepositAmount(post.getPrice(), shippingFee);
-
-            String orderId = Utils.generateCode("DEPOSIT");
-            String description = Utils.generatePaymentDescription(TransactionType.DEPOSIT, orderId);
-
-            walletService.payWithWallet(buyer, depositAmount, orderId, description, TransactionType.DEPOSIT);
-
-            order.setStatus(OrderStatus.DEPOSITED);
-        }
 
         if (request.getDeliveryMethod() == DeliveryMethod.GHN) {
             order.setServiceTypeId(request.getServiceTypeId());
@@ -148,11 +135,6 @@ public class BuyerOrderService {
 
         if (order.getStatus() == OrderStatus.REJECTED) {
             throw new BusinessException("Đơn hàng này đã bị hủy trước đó.", 400);
-        }
-
-        if (order.getStatus() == OrderStatus.DEPOSITED) {
-            BigDecimal refundAmount = feeService.calculateDepositAmount(order.getPost().getPrice(), order.getShippingFee());
-            walletService.refundToWallet(user, refundAmount);
         }
 
         order.setStatus(OrderStatus.REJECTED);

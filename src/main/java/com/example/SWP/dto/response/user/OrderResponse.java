@@ -34,8 +34,6 @@ public class OrderResponse {
     BigDecimal shippingFee;
     BigDecimal depositPercentage;
 
-    boolean depositPaid;
-
     OrderStatus status;
 
     LocalDateTime createdAt;

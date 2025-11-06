@@ -9,27 +9,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findOrderByPost_IdAndStatus(Long postId, OrderStatus status);
-
+    boolean existsByPost_IdAndPaymentTypeAndStatusNotIn(Long postId, PaymentType paymentType, List<OrderStatus> status);
     List<Order> findOrderByPaymentType(PaymentType paymentType);
-
     List<Order> findOrderByBuyer(User buyer);
-
     boolean existsByBuyerAndPostAndStatusNotIn(User buyer, Post post, List<OrderStatus> status);
-
     List<Order> findOrderByBuyerAndStatus(User buyer, OrderStatus status);
-
     boolean existsByPostAndStatus(Post post, OrderStatus orderStatus);
-
     List<Order> findOrderBySeller(User seller);
-
     List<Order> findOrderBySellerAndStatus(User seller, OrderStatus orderStatus);
-
-    Optional<Order> findByPostAndStatus(Post post, OrderStatus orderStatus);
-
-    int countOrderByStatus(OrderStatus status);
+    long countBySellerAndStatus(User seller, OrderStatus status);
+    long countBySellerAndStatusAndCreatedAtBetween(User seller, OrderStatus status, LocalDateTime start, LocalDateTime end);
+    List<Order> findAllByPostAndStatus(Post post, OrderStatus orderStatus);
 }

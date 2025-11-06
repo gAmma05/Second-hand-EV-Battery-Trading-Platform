@@ -108,7 +108,7 @@ public class SellerOrderDeliveryService {
                 Contract contract = contractRepository.findByOrder_Id(order.getId())
                         .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
-                invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
+                invoiceRepository.findByContractAndStatus(contract, InvoiceStatus.INACTIVE)
                         .ifPresent(invoice -> {
                             invoice.setStatus(InvoiceStatus.ACTIVE);
                             invoice.setDueDate(LocalDateTime.now().plusDays(7));
@@ -141,17 +141,16 @@ public class SellerOrderDeliveryService {
         if (ghnStatus == DeliveryStatus.DELIVERED) {
             Order order = orderDelivery.getOrder();
 
-            if (order.getPaymentType() == PaymentType.DEPOSIT) {
-                Contract contract = contractRepository.findByOrder_Id(order.getId())
-                        .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
+            Contract contract = contractRepository.findByOrder_Id(order.getId())
+                    .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
-                invoiceRepository.findByContractIdAndStatus(contract.getId(), InvoiceStatus.INACTIVE)
-                        .ifPresent(invoice -> {
-                            invoice.setStatus(InvoiceStatus.ACTIVE);
-                            invoice.setDueDate(LocalDateTime.now().plusDays(7));
-                            invoiceRepository.save(invoice);
-                        });
-            }
+            invoiceRepository.findByContractAndStatus(contract, InvoiceStatus.INACTIVE)
+                    .ifPresent(invoice -> {
+                        invoice.setStatus(InvoiceStatus.PAID);
+                        invoice.setDueDate(LocalDateTime.now().plusDays(7));
+                        invoice.setPaidAt(LocalDateTime.now());
+                        invoiceRepository.save(invoice);
+                    });
         }
 
         return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
