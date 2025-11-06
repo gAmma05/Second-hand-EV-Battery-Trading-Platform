@@ -45,12 +45,12 @@ public class BuyerOrderDeliveryController {
         );
     }
 
-    @GetMapping("/{orderDeliveryId}")
-    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryDetail(
+    @GetMapping("/{orderId}")
+    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryByOrderId(
             Authentication authentication,
-            @PathVariable Long orderDeliveryId
+            @PathVariable Long orderId
     ) {
-        OrderDeliveryResponse response = buyerOrderDeliveryService.getDeliveryDetail(authentication, orderDeliveryId);
+        OrderDeliveryResponse response = buyerOrderDeliveryService.getDeliveryByOrderId(authentication, orderId);
         return ResponseEntity.ok(
                 ApiResponse.<OrderDeliveryResponse>builder()
                         .success(true)

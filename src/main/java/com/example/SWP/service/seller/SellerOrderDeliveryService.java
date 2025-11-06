@@ -61,22 +61,6 @@ public class SellerOrderDeliveryService {
         orderDeliveryRepository.save(orderDelivery);
     }
 
-    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
-        User user = validateService.validateCurrentUser(authentication);
-
-        OrderDelivery delivery = orderDeliveryRepository.findById(orderDeliveryId)
-                .orElseThrow(() -> new BusinessException("Thông tin giao hàng không tồn tại", 404));
-
-        Order order = delivery.getOrder();
-
-        if (!order.getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("Bạn không có quyền xem đơn hàng này", 403);
-        }
-
-        return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
-    }
-
-
     public List<OrderDeliveryResponse> getMyDeliveries(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 

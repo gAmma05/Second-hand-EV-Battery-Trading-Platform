@@ -3,6 +3,7 @@ package com.example.SWP.service.buyer;
 import com.example.SWP.dto.request.user.ai.AiProductRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.PostFavoriteResponse;
+import com.example.SWP.dto.response.seller.ComparePostsResponse;
 import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.PostFavorite;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -87,7 +89,7 @@ public class BuyerPostService {
         }
     }
 
-    public String comparePosts(Authentication authentication, Long postId1, Long postId2) {
+    public ComparePostsResponse comparePosts(Authentication authentication, Long postId1, Long postId2) {
         User user = validateService.validateCurrentUser(authentication);
 
         Post post1 = postRepository.findById(postId1).orElseThrow(
@@ -138,8 +140,18 @@ public class BuyerPostService {
                 .description(post2.getDescription())
                 .build();
 
-        return aiService.compareProduct(req1, req2);
+        String comparisonResult = aiService.compareProduct(req1, req2);
+
+        PostResponse postResponse1 = postMapper.toPostResponse(post1);
+        PostResponse postResponse2 = postMapper.toPostResponse(post2);
+
+        return ComparePostsResponse.builder()
+                .post1(postResponse1)
+                .post2(postResponse2)
+                .comparisonResult(comparisonResult)
+                .build();
     }
+
 
     public void addToFavorites(Authentication authentication, Long postId) {
         User user = validateService.validateCurrentUser(authentication);
