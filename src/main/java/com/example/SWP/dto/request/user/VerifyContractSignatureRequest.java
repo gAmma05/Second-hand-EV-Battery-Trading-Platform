@@ -12,13 +12,13 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VerifyContractSignatureRequest {
-    @NotNull(message = "Contract ID is required")
+    @NotNull(message = "ID hợp đồng là bắt buộc")
     Long contractId;
 
-    @NotBlank(message = "OTP is required")
+    @NotBlank(message = "OTP là bắt buộc")
     @Pattern(
             regexp = "^[0-9]{6}$",
-            message = "OTP must be a 6-digit numeric code"
+            message = "OTP phải là mã số gồm 6 chữ số"
     )
     String otp;
 }

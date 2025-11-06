@@ -2,6 +2,7 @@ package com.example.SWP.controller.seller;
 
 import com.example.SWP.dto.request.seller.CreateContractRequest;
 import com.example.SWP.dto.request.seller.SignContractRequest;
+import com.example.SWP.dto.request.seller.UpdateContractRequest;
 import com.example.SWP.dto.request.user.VerifyContractSignatureRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.seller.ContractTemplateResponse;
@@ -25,36 +26,62 @@ public class SellerContractController {
     SellerContractService sellerContractService;
 
     @GetMapping("/template/{orderId}")
-    public ResponseEntity<?> generateContractTemplateByOrder(@PathVariable Long orderId, Authentication authentication) {
+    public ResponseEntity<?> generateContractTemplateByOrder(
+            @PathVariable Long orderId,
+            Authentication authentication
+    ) {
         ContractTemplateResponse response = sellerContractService.generateContractTemplate(authentication, orderId);
 
         return ResponseEntity.ok(
                 ApiResponse.<ContractTemplateResponse>builder()
                         .success(true)
-                        .message("Fetched contract preview successfully")
+                        .message("Lấy bản xem trước hợp đồng thành công")
                         .data(response)
                         .build()
         );
     }
 
     @PostMapping
-    public ResponseEntity<?> createContract(Authentication authentication, @Valid @RequestBody CreateContractRequest request) {
+    public ResponseEntity<?> createContract(
+            Authentication authentication,
+            @Valid @RequestBody CreateContractRequest request
+    ) {
         sellerContractService.createContract(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Created contract successfully")
+                        .message("Tạo hợp đồng thành công")
                         .build()
         );
     }
 
+    @PutMapping("/{contractId}")
+    public ResponseEntity<?> updateContract(
+            Authentication authentication,
+            @PathVariable Long contractId,
+            @Valid @RequestBody UpdateContractRequest request
+    ) {
+        sellerContractService.updateContract(authentication, contractId, request);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Cập nhật hợp đồng thành công")
+                        .build()
+        );
+    }
+
+
+
     @PostMapping("/{contractId}/sign/send-otp")
-    public ResponseEntity<?> sendContractOtp(Authentication authentication, @PathVariable Long contractId) {
+    public ResponseEntity<?> sendContractOtp(
+            Authentication authentication,
+            @PathVariable Long contractId
+    ) {
         sellerContractService.sendContractSignOtp(authentication, contractId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("OTP has been sent to your email to sign the contract.")
+                        .message("OTP đã được gửi đến email của bạn để ký hợp đồng")
                         .build()
         );
     }
@@ -68,18 +95,21 @@ public class SellerContractController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Contract has been signed successfully.")
+                        .message("Hợp đồng đã được ký thành công")
                         .build()
         );
     }
 
     @GetMapping("/{contractId}")
-    public ResponseEntity<?> getContractDetail(Authentication authentication, @PathVariable Long contractId) {
+    public ResponseEntity<?> getContractDetail(
+            Authentication authentication,
+            @PathVariable Long contractId
+    ) {
         ContractResponse response = sellerContractService.getContractDetail(authentication, contractId);
         return ResponseEntity.ok(
                 ApiResponse.<ContractResponse>builder()
                         .success(true)
-                        .message("Contract detail fetched successfully")
+                        .message("Chi tiết hợp đồng đã được lấy thành công")
                         .data(response)
                         .build()
         );
@@ -92,7 +122,7 @@ public class SellerContractController {
         return ResponseEntity.ok(
                 ApiResponse.<List<ContractResponse>>builder()
                         .success(true)
-                        .message("Contract list fetched successfully")
+                        .message("Danh sách hợp đồng đã được lấy thành công")
                         .data(response)
                         .build()
         );

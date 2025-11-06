@@ -27,7 +27,7 @@ public class BuyerContractController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("OTP has been sent to your email. Please check and verify.")
+                        .message("OTP đã được gửi đến email của bạn. Vui lòng kiểm tra và xác thực.")
                         .build()
         );
     }
@@ -40,7 +40,7 @@ public class BuyerContractController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Contract signed successfully.")
+                        .message("Ký hợp đồng thành công.")
                         .build()
         );
     }
@@ -51,7 +51,7 @@ public class BuyerContractController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Contract cancelled successfully")
+                        .message("Hợp đồng đã được hủy thành công.")
                         .build()
         );
     }
@@ -63,7 +63,7 @@ public class BuyerContractController {
         return ResponseEntity.ok(
                 ApiResponse.<ContractResponse>builder()
                         .success(true)
-                        .message("Contract detail fetched successfully")
+                        .message("Lấy chi tiết hợp đồng thành công.")
                         .data(contractResponse)
                         .build()
         );
@@ -76,7 +76,7 @@ public class BuyerContractController {
         return ResponseEntity.ok(
                 ApiResponse.<List<ContractResponse>>builder()
                         .success(true)
-                        .message("Contract list fetched successfully")
+                        .message("Lấy danh sách hợp đồng thành công.")
                         .data(contractList)
                         .build()
         );
