@@ -42,74 +42,90 @@ public class BuyerContractService {
     MailService mailService;
     SellerOrderDeliveryService sellerOrderDeliveryService;
 
+    /**
+     * Gửi OTP để người mua ký hợp đồng
+     */
     public void sendContractSignOtp(Authentication authentication, Long contractId) {
+        // Xác thực người mua
         User user = validateService.validateCurrentUser(authentication);
 
+        // Lấy hợp đồng theo ID, nếu không tồn tại thì báo lỗi
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
-        // Buyer phải là người của contract
+        // Kiểm tra quyền: chỉ người mua mới được ký
         if (!contract.getOrder().getBuyer().getId().equals(user.getId())) {
             throw new BusinessException("Bạn không có quyền ký hợp đồng này", 403);
         }
 
-        // Seller phải ký trước
+        // Chỉ cho phép ký khi người bán đã ký
         if (!contract.isSellerSigned()) {
             throw new BusinessException("Người bán chưa ký hợp đồng", 400);
         }
 
-        // Chi duoc phep ky hop dong dang PENDING
+        // Chỉ cho phép ký khi hợp đồng đang chờ ký
         if (contract.getStatus() != ContractStatus.PENDING) {
             throw new BusinessException("Chỉ hợp đồng đang chờ ký mới được ký", 400);
         }
 
+        // Kiểm tra xem người mua đã ký chưa
         if (contract.isBuyerSigned()) {
             throw new BusinessException("Bạn đã ký hợp đồng này rồi", 400);
         }
 
-        // Sinh và gửi OTP
+        // Tạo OTP và lưu vào hệ thống
         String otp = otpService.generateAndStoreOtp(user.getEmail(), OtpType.CONTRACT_SIGN);
 
+        // Gửi OTP đến email người mua
         mailService.sendOtpEmail(user.getEmail(), otp, OtpType.CONTRACT_SIGN);
     }
 
-    // Buyer xác minh OTP và ký contract
+    /**
+     * Xác thực OTP và ký hợp đồng bởi người mua
+     */
     public void verifyContractSignOtp(Authentication authentication, VerifyContractSignatureRequest request) {
-
+        // Xác thực người mua
         User user = validateService.validateCurrentUser(authentication);
 
+        // Lấy hợp đồng theo ID
         Contract contract = contractRepository.findById(request.getContractId())
                 .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
+        // Kiểm tra quyền: chỉ người mua mới ký được
         if (!contract.getOrder().getBuyer().getId().equals(user.getId())) {
             throw new BusinessException("Bạn không có quyền ký hợp đồng này", 403);
         }
 
+        // Kiểm tra người bán đã ký chưa
         if (!contract.isSellerSigned()) {
             throw new BusinessException("Người bán chưa ký hợp đồng", 400);
         }
 
+        // Kiểm tra người mua đã ký chưa
         if (contract.isBuyerSigned()) {
             throw new BusinessException("Bạn đã ký hợp đồng này rồi", 400);
         }
 
+        // Xác thực OTP
         otpService.verifyOtp(user.getEmail(), request.getOtp(), OtpType.CONTRACT_SIGN);
 
+        // Lưu trạng thái hợp đồng đã ký
         contract.setBuyerSigned(true);
         contract.setBuyerSignedAt(LocalDateTime.now());
         contract.setStatus(ContractStatus.SIGNED);
 
         contractRepository.save(contract);
 
-        // Tạo hóa đơn sau khi buyer ký
+        // Tạo hóa đơn nếu cần
         buyerInvoiceService.createInvoice(contract.getId());
 
-        // Tạo đơn hàng vận chuyển khi là thanh toán FULL
+        // Nếu thanh toán full, tạo trạng thái giao hàng
         Order order = contract.getOrder();
         if (order.getPaymentType() == PaymentType.FULL) {
             sellerOrderDeliveryService.createDeliveryStatus(order);
         }
 
+        // Thông báo cho người bán
         notificationService.sendNotificationToOneUser(
                 contract.getOrder().getSeller().getEmail(),
                 "Hợp đồng đã được ký bởi người mua",
@@ -118,31 +134,42 @@ public class BuyerContractService {
         );
     }
 
+    /**
+     * Hủy hợp đồng bởi người mua (chỉ khi chưa ký)
+     */
     public void cancelContract(Authentication authentication, Long contractId) {
+        // Xác thực người mua
         User buyer = validateService.validateCurrentUser(authentication);
 
+        // Lấy hợp đồng theo ID
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
+        // Kiểm tra hợp đồng chưa ký
         if (contract.isBuyerSigned() || contract.getStatus().equals(ContractStatus.SIGNED)) {
             throw new BusinessException("Hợp đồng đã được ký, không thể hủy", 400);
         }
 
+        // Kiểm tra quyền người mua
         if (!contract.getOrder().getBuyer().getId().equals(buyer.getId())) {
             throw new BusinessException("Bạn không có quyền hủy hợp đồng này", 403);
         }
 
+        // Chỉ hủy khi hợp đồng đang chờ ký
         if (contract.getStatus() != ContractStatus.PENDING) {
             throw new BusinessException("Chỉ hợp đồng đang chờ ký mới có thể hủy", 400);
         }
 
+        // Thay đổi trạng thái hợp đồng và lưu
         contract.setStatus(ContractStatus.CANCELLED);
         contractRepository.save(contract);
 
+        // Cập nhật trạng thái đơn hàng
         Order order = contract.getOrder();
         order.setStatus(OrderStatus.REJECTED);
         orderRepository.save(order);
 
+        // Thông báo cho người bán
         notificationService.sendNotificationToOneUser(
                 order.getSeller().getEmail(),
                 "Hợp đồng đã bị hủy",
@@ -151,24 +178,37 @@ public class BuyerContractService {
         );
     }
 
+    /**
+     * Lấy chi tiết hợp đồng của người mua
+     */
     public ContractResponse getContractDetail(Authentication authentication, Long contractId) {
+        // Xác thực người mua
         User buyer = validateService.validateCurrentUser(authentication);
 
+        // Lấy hợp đồng theo ID
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
+        // Kiểm tra quyền xem hợp đồng
         if (!contract.getOrder().getBuyer().getId().equals(buyer.getId())) {
             throw new BusinessException("Bạn không có quyền xem hợp đồng này", 403);
         }
 
+        // Trả về dữ liệu hợp đồng dạng response
         return contractMapper.toContractResponse(contract);
     }
 
+    /**
+     * Lấy danh sách tất cả hợp đồng của người mua
+     */
     public List<ContractResponse> getAllContracts(Authentication authentication) {
+        // Xác thực người mua
         User buyer = validateService.validateCurrentUser(authentication);
 
+        // Lấy tất cả hợp đồng liên quan đến người mua
         List<Contract> contractList = contractRepository.findByOrder_Buyer(buyer);
 
+        // Trả về danh sách hợp đồng dạng response
         return contractMapper.toContractResponses(contractList);
     }
 }
