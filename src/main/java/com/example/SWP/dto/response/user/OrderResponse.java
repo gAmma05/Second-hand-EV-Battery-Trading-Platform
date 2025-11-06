@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderResponse {
     Long id;
+    Long postId;
     ProductType productType;
 
     String vehicleBrand;

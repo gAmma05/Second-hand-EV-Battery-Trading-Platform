@@ -2,6 +2,7 @@ package com.example.SWP.controller.buyer;
 
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.buyer.PostFavoriteResponse;
+import com.example.SWP.dto.response.seller.ComparePostsResponse;
 import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.service.buyer.BuyerPostService;
 import lombok.AccessLevel;
@@ -60,18 +61,18 @@ public class BuyerPostController {
     }
 
     @GetMapping("/compare")
-    public ResponseEntity<ApiResponse<String>> comparePosts(
+    public ResponseEntity<ApiResponse<ComparePostsResponse>> comparePosts(
             Authentication authentication,
             @RequestParam Long postId1,
             @RequestParam Long postId2) {
 
-        String summary = buyerPostService.comparePosts(authentication, postId1, postId2);
+        ComparePostsResponse response = buyerPostService.comparePosts(authentication, postId1, postId2);
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.<String>builder()
+                ApiResponse.<ComparePostsResponse>builder()
                         .success(true)
                         .message("Comparison result")
-                        .data(summary)
+                        .data(response)
                         .build()
         );
     }
