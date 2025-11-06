@@ -3,6 +3,8 @@ package com.example.SWP.repository;
 import com.example.SWP.entity.Feedback;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
-    Feedback findByOrder_Id(Long orderId);
+    Optional<Feedback> findByOrder_Id(Long orderId);
 }

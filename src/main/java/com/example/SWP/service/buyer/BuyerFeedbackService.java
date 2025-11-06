@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -50,9 +51,36 @@ public class BuyerFeedbackService {
             throw new BusinessException("Đơn hàng của bạn chưa được giao hoặc bạn chưa nhận, bạn không thể feedback trên order này", 400);
         }
 
+        checkCurrentFeedback(request.getOrderId());
+
         Feedback feedback = feedbackMapper.toFeedback(request);
         feedback.setUser(user);
         feedback.setCreatedAt(LocalDateTime.now());
         feedbackRepository.save(feedback);
+    }
+
+    private void checkCurrentFeedback(Long orderId) {
+        Optional<Feedback> feedbackOptional = feedbackRepository.findByOrder_Id(orderId);
+        if (feedbackOptional.isPresent()) {
+            throw new BusinessException("Bạn đã feedback trên cái order này rồi, bạn hãy xóa nếu muốn feedback bằng nội dung khác", 400);
+        }
+    }
+
+    public void deleteFeedback(Authentication authentication, Long feedbackId) {
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
+                () -> new BusinessException("Không tìm thấy thông tin user", 404)
+        );
+
+        Optional<Feedback> feedbackOptional = feedbackRepository.findById(feedbackId);
+        if (feedbackOptional.isEmpty()) {
+            throw new BusinessException("Không tìm thấy feedback của order này để xóa, thử F5 lại nha", 404);
+        }
+
+        Feedback feedback = feedbackOptional.get();
+        if (!Objects.equals(feedback.getUser().getId(), user.getId())) {
+            throw new BusinessException("Feedback này không phải của bạn, bạn không thể xóa", 400);
+        }
+
+        feedbackRepository.deleteById(feedback.getId());
     }
 }

@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +53,7 @@ public class BuyerComplaintService {
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
 
         if (ChronoUnit.DAYS.between(LocalDateTime.now(), orderDelivery.getCreatedAt()) >= DUE_DATE) {
-            throw new BusinessException("Bạn không thể tạo khiếu nại sau " + DUE_DATE + " ngày kể từ khi giao hàng", 400);
+            throw new BusinessException("Bạn không thể tạo khiếu nại sau " + DUE_DATE + " ngày kể từ khi nhận hàng", 400);
         }
 
         if (!Objects.equals(orderDelivery.getOrder().getBuyer().getId(), user.getId())) {
@@ -62,6 +63,8 @@ public class BuyerComplaintService {
         if (!Objects.equals(orderDelivery.getStatus(), DeliveryStatus.RECEIVED)) {
             throw new BusinessException("Không thể tạo khiếu nại. Đơn hàng có thể chưa được giao hoặc chưa được xác nhận nhận hàng", 400);
         }
+
+        checkCurrentComplaint(request.getOrderId());
 
         Complaint complaint = complaintMapper.toComplaint(request);
         complaint.setStatus(ComplaintStatus.PENDING);
@@ -74,6 +77,13 @@ public class BuyerComplaintService {
                 "Về sản phẩm của bạn",
                 "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng."
         );
+    }
+
+    private void checkCurrentComplaint(Long orderId) {
+        Optional<Complaint> complaintList = complaintRepository.findByOrder_Id(orderId);
+        if (complaintList.isPresent()) {
+            throw new BusinessException("Bạn đã gửi khiếu nại cho order này, hãy kiểm tra nó trong danh sách đơn khiếu nại!", 400);
+        }
     }
 
     public void acceptComplaint(Authentication authentication, Long complaintId) {

@@ -70,8 +70,8 @@ public class SecurityConfig {
                                     resp.getWriter().write("""
                                                 {
                                                   "status": 403,
-                                                  "error": "Forbidden",
-                                                  "message": "You don't have permission to access this resource"
+                                                  "error": "Forbidden/Bị cấm",
+                                                  "message": "Bạn không có quyền sử dụng/xem các tính năng này."
                                                 }
                                             """);
                                     resp.getWriter().flush();

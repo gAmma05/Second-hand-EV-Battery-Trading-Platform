@@ -85,6 +85,12 @@ public class ValidateService {
         }
     }
 
+    public void validatePassword(String pass, String confirmPass) {
+        if (!pass.equals(confirmPass)) {
+            throw new BusinessException("Password và password xác nhận không trùng khớp với nhau, vui lòng thử lại", 400);
+        }
+    }
+
 
 }
 

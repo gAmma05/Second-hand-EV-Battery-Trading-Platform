@@ -11,7 +11,12 @@ import java.util.Optional;
 
 public interface ContractRepository extends JpaRepository<Contract, Long> {
     List<Contract> findByOrder_Seller(User user);
+
     Optional<Contract> findByOrder_Id(Long id);
+
     List<Contract> findByOrder_Buyer(User orderBuyer);
+
     boolean existsByOrderAndStatusIn(Order order, List<ContractStatus> pending);
+
+    int countContractByStatus(ContractStatus status);
 }
