@@ -24,7 +24,10 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     String title;
+
+    @Column(columnDefinition = "NVARCHAR(4000)")
     String content;
     LocalDateTime createdAt = LocalDateTime.now();
 

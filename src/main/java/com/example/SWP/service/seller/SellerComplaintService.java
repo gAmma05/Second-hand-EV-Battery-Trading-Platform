@@ -74,6 +74,11 @@ public class SellerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
+        if(Objects.equals(complaint.getStatus(), ComplaintStatus.REJECTED)){
+            complaint.setStatus(ComplaintStatus.RESOLVING);
+            complaintRepository.save(complaint);
+        }
+
         if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLVING)) {
             throw new BusinessException("Không thể phản hồi khiếu nại vì khiếu nại này không ở trạng thái đang xử lý", 400);
         }

@@ -2,6 +2,7 @@ package com.example.SWP.repository;
 
 import com.example.SWP.entity.Complaint;
 import com.example.SWP.enums.ComplaintStatus;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -21,4 +22,8 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     Optional<Complaint> findByOrder_Id(Long orderId);
 
     int countComplaintByStatus(ComplaintStatus status);
+
+    int countComplaintByOrderId(Long orderId);
+
+    double countComplaintByOrderIdAndStatus(Long orderId, ComplaintStatus status);
 }
