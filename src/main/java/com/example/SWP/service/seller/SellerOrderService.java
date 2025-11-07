@@ -3,16 +3,13 @@ package com.example.SWP.service.seller;
 import com.example.SWP.dto.request.seller.RejectOrderRequest;
 import com.example.SWP.dto.response.user.OrderResponse;
 import com.example.SWP.entity.Order;
+import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderMapper;
 import com.example.SWP.repository.OrderRepository;
-import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
-import com.example.SWP.service.user.FeeService;
-import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +17,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +61,8 @@ public class SellerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
 
+        Post post = order.getPost();
+
         // Kiểm tra quyền sở hữu
         if (!order.getSeller().equals(seller)) {
             throw new BusinessException("Bạn không có quyền duyệt đơn hàng này", 403);
@@ -79,7 +74,7 @@ public class SellerOrderService {
         }
 
         // Kiểm tra xem bài đăng đã có đơn hàng được duyệt hay chưa
-        if (orderRepository.existsByPostAndStatus(order.getPost(), OrderStatus.APPROVED)) {
+        if (orderRepository.existsByPost_IdAndStatus(post.getId(), OrderStatus.APPROVED)) {
             throw new BusinessException("Bài đăng này đã có đơn hàng được duyệt", 400);
         }
 
@@ -88,7 +83,7 @@ public class SellerOrderService {
         orderRepository.save(order);
 
         // Tự động từ chối các đơn hàng khác đang chờ duyệt cùng bài đăng
-        List<Order> otherPendingOrders = orderRepository.findAllByPostAndStatus(order.getPost(), OrderStatus.PENDING);
+        List<Order> otherPendingOrders = orderRepository.findAllByPost_IdAndStatus(post.getId(), OrderStatus.PENDING);
         for (Order otherOrder : otherPendingOrders) {
             if (!otherOrder.getId().equals(order.getId())) {
                 otherOrder.setStatus(OrderStatus.REJECTED);

@@ -17,11 +17,11 @@ import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.service.mail.MailService;
 import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.user.FeeService;
 import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.sql.Update;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -40,12 +40,13 @@ public class SellerContractService {
     ValidateService validateService;
     MailService mailService;
     OtpService otpService;
+    FeeService feeService;
 
     /**
      * Tạo preview hợp đồng dựa trên đơn hàng
      */
     public ContractTemplateResponse generateContractTemplate(Authentication authentication, Long orderId) {
-        // Xác thực người bán
+        // Xác thực và lấy thông tin người bán hiện tại
         User user = validateService.validateCurrentUser(authentication);
 
         // Lấy đơn hàng theo ID, nếu không tồn tại thì báo lỗi
@@ -103,22 +104,15 @@ public class SellerContractService {
      * Người bán tạo hợp đồng cho đơn hàng đã được duyệt
      */
     public void createContract(Authentication authentication, CreateContractRequest request) {
-        // Xác thực người bán
+        // Xác thực và lấy thông tin người bán hiện tại
         User user = validateService.validateCurrentUser(authentication);
 
         // Lấy đơn hàng theo ID, nếu không tồn tại thì báo lỗi
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
 
-        // Nếu phương thức vận chuyển là người dùng giao, người dùng có thể nhập phí vận chuyển mong muốn
-        if(order.getDeliveryMethod() == DeliveryMethod.SELLER_DELIVERY) {
-            if(request.getShippingFee() == null) {
-                throw new BusinessException("Vui lòng nhập phí vận chuyển mong muốn cho phương thức vận chuyển người bán giao", 400);
-            }
-        }
-
         // Kiểm tra hợp đồng đã tồn tại
-        if(contractRepository.existsByOrderAndStatusIn(order, List.of(ContractStatus.PENDING, ContractStatus.SIGNED))) {
+        if(contractRepository.existsByOrder_IdAndStatusIn(order.getId(), List.of(ContractStatus.PENDING, ContractStatus.SIGNED))) {
             throw new BusinessException("Đơn hàng này đã có hợp đồng, không thể tạo hợp đồng mới", 400);
         }
 
@@ -140,11 +134,15 @@ public class SellerContractService {
             throw new BusinessException("Chỉ đơn hàng đã được duyệt mới có thể tạo hợp đồng", 400);
         }
 
-        Post post = order.getPost();
-
+        // Nếu phương thức vận chuyển là người dùng giao, người dùng nhập phí vận chuyển mong muốn
         if(order.getDeliveryMethod() == DeliveryMethod.SELLER_DELIVERY) {
+            if(request.getShippingFee() == null) {
+                throw new BusinessException("Vui lòng nhập phí vận chuyển cho phương thức vận chuyển người bán giao", 400);
+            }
             order.setShippingFee(request.getShippingFee());
         }
+
+        Post post = order.getPost();
 
         // Build hợp đồng
         Contract contract = Contract.builder()
@@ -152,7 +150,7 @@ public class SellerContractService {
                 .contractCode(Utils.generateCode("CONTRACT"))
                 .content(request.getContent())
                 .status(ContractStatus.PENDING) // Chờ ký
-                .totalFee(post.getPrice().add(order.getShippingFee()))
+                .totalFee(feeService.calculateTotalAmount(post.getPrice(), order.getShippingFee()))
                 .build();
 
         // Lưu hợp đồng
@@ -170,7 +168,7 @@ public class SellerContractService {
      * Người bán sửa hợp đồng
      */
     public void updateContract(Authentication authentication, Long contractId, UpdateContractRequest request) {
-        // Xác thực người bán
+        // Xác thực và lấy thông tin người bán hiện tại
         User user = validateService.validateCurrentUser(authentication);
 
         // Lấy hợp đồng theo ID, nếu không tồn tại thì báo lỗi
@@ -182,6 +180,7 @@ public class SellerContractService {
             throw new BusinessException("Bạn không có quyền sửa hợp đồng này", 403);
         }
 
+        // Kiểm tra trạng thái hợp đồng: chỉ sửa khi hợp đồng đang chờ ký
         if (contract.getStatus() != ContractStatus.PENDING) {
             throw new BusinessException("Chỉ hợp đồng đang chờ ký mới được chỉnh sửa", 400);
         }
