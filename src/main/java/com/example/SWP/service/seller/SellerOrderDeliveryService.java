@@ -85,20 +85,18 @@ public class SellerOrderDeliveryService {
         orderDelivery.setStatus(newStatus);
         orderDelivery.setUpdatedAt(LocalDateTime.now());
 
-        if (newStatus == DeliveryStatus.DELIVERED) {
+        if (newStatus == DeliveryStatus.PICKUP_PENDING) {
             Order order = orderDelivery.getOrder();
 
-            if (order.getPaymentType() == PaymentType.DEPOSIT) {
-                Contract contract = contractRepository.findByOrder_Id(order.getId())
-                        .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
+            Contract contract = contractRepository.findByOrder_Id(order.getId())
+                    .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
-                invoiceRepository.findByContractAndStatus(contract, InvoiceStatus.INACTIVE)
-                        .ifPresent(invoice -> {
-                            invoice.setStatus(InvoiceStatus.ACTIVE);
-                            invoice.setDueDate(LocalDateTime.now().plusDays(7));
-                            invoiceRepository.save(invoice);
-                        });
-            }
+            invoiceRepository.findByContractAndStatus(contract, InvoiceStatus.INACTIVE)
+                    .ifPresent(invoice -> {
+                        invoice.setStatus(InvoiceStatus.ACTIVE);
+                        invoice.setDueDate(LocalDateTime.now().plusDays(7));
+                        invoiceRepository.save(invoice);
+                    });
         }
 
         orderDeliveryRepository.save(orderDelivery);

@@ -27,20 +27,14 @@ public class FeeService {
     @Value("${deposit-percentage}")
     BigDecimal depositPercentage;
 
-    public BigDecimal calculateDepositAmount(BigDecimal price, BigDecimal shippingFee) {
-        return price.add(shippingFee)
-                .multiply(depositPercentage)
+    public BigDecimal calculateDepositAmount(BigDecimal fee) {
+        return fee.multiply(depositPercentage)
                 .setScale(0, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculateDepositAmount(BigDecimal totalFee) {
-        return totalFee.multiply(depositPercentage)
-                .setScale(0, RoundingMode.HALF_UP);
-    }
-
-    public BigDecimal calculateRemainingAmount(BigDecimal totalFee) {
-        BigDecimal depositAmount = calculateDepositAmount(totalFee);
-        BigDecimal remaining = totalFee.subtract(depositAmount);
+    public BigDecimal calculateRemainingAmount(BigDecimal fee, BigDecimal shippingFee) {
+        BigDecimal depositAmount = calculateDepositAmount(fee);
+        BigDecimal remaining = fee.subtract(depositAmount).add(shippingFee);
         return remaining.setScale(0, RoundingMode.HALF_UP);
     }
 

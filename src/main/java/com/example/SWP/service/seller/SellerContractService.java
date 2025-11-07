@@ -110,6 +110,13 @@ public class SellerContractService {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
 
+        // Nếu phương thức vận chuyển là người dùng giao, người dùng có thể nhập phí vận chuyển mong muốn
+        if(order.getDeliveryMethod() == DeliveryMethod.SELLER_DELIVERY) {
+            if(request.getShippingFee() == null) {
+                throw new BusinessException("Vui lòng nhập phí vận chuyển mong muốn cho phương thức vận chuyển người bán giao", 400);
+            }
+        }
+
         // Kiểm tra hợp đồng đã tồn tại
         if(contractRepository.existsByOrderAndStatusIn(order, List.of(ContractStatus.PENDING, ContractStatus.SIGNED))) {
             throw new BusinessException("Đơn hàng này đã có hợp đồng, không thể tạo hợp đồng mới", 400);
@@ -134,6 +141,10 @@ public class SellerContractService {
         }
 
         Post post = order.getPost();
+
+        if(order.getDeliveryMethod() == DeliveryMethod.SELLER_DELIVERY) {
+            order.setShippingFee(request.getShippingFee());
+        }
 
         // Build hợp đồng
         Contract contract = Contract.builder()
