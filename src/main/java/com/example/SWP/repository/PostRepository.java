@@ -29,5 +29,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     long countByUserAndStatus(User seller, PostStatus status);
 
-    int countPostByStatus(PostStatus postStatus);
+    int countPostByStatus(PostStatus status);
 }

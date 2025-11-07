@@ -61,22 +61,6 @@ public class SellerOrderDeliveryService {
         orderDeliveryRepository.save(orderDelivery);
     }
 
-    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
-        User user = validateService.validateCurrentUser(authentication);
-
-        OrderDelivery delivery = orderDeliveryRepository.findById(orderDeliveryId)
-                .orElseThrow(() -> new BusinessException("Thông tin giao hàng không tồn tại", 404));
-
-        Order order = delivery.getOrder();
-
-        if (!order.getSeller().getId().equals(user.getId())) {
-            throw new BusinessException("Bạn không có quyền xem đơn hàng này", 403);
-        }
-
-        return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
-    }
-
-
     public List<OrderDeliveryResponse> getMyDeliveries(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
@@ -101,20 +85,18 @@ public class SellerOrderDeliveryService {
         orderDelivery.setStatus(newStatus);
         orderDelivery.setUpdatedAt(LocalDateTime.now());
 
-        if (newStatus == DeliveryStatus.DELIVERED) {
+        if (newStatus == DeliveryStatus.PICKUP_PENDING) {
             Order order = orderDelivery.getOrder();
 
-            if (order.getPaymentType() == PaymentType.DEPOSIT) {
-                Contract contract = contractRepository.findByOrder_Id(order.getId())
-                        .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
+            Contract contract = contractRepository.findByOrder_Id(order.getId())
+                    .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
 
-                invoiceRepository.findByContractAndStatus(contract, InvoiceStatus.INACTIVE)
-                        .ifPresent(invoice -> {
-                            invoice.setStatus(InvoiceStatus.ACTIVE);
-                            invoice.setDueDate(LocalDateTime.now().plusDays(7));
-                            invoiceRepository.save(invoice);
-                        });
-            }
+            invoiceRepository.findByContractAndStatus(contract, InvoiceStatus.INACTIVE)
+                    .ifPresent(invoice -> {
+                        invoice.setStatus(InvoiceStatus.ACTIVE);
+                        invoice.setDueDate(LocalDateTime.now().plusDays(7));
+                        invoiceRepository.save(invoice);
+                    });
         }
 
         orderDeliveryRepository.save(orderDelivery);

@@ -54,7 +54,7 @@ public class BuyerInvoiceService {
         PaymentType paymentType = order.getPaymentType();
 
         if (paymentType == PaymentType.DEPOSIT) {
-            BigDecimal depositFee = feeService.calculateDepositAmount(contract.getTotalFee());
+            BigDecimal depositFee = feeService.calculateDepositAmount(order.getPost().getPrice());
 
             Invoice depositInvoice = Invoice.builder()
                     .contract(contract)
@@ -75,8 +75,8 @@ public class BuyerInvoiceService {
                 .createdAt(LocalDateTime.now())
                 .status(InvoiceStatus.INACTIVE);
 
-        if(paymentType == PaymentType.DEPOSIT){
-            finalFee = feeService.calculateRemainingAmount(contract.getTotalFee());
+        if (paymentType == PaymentType.DEPOSIT) {
+            finalFee = feeService.calculateRemainingAmount(order.getPost().getPrice(), order.getShippingFee());
         } else {
             finalFee = contract.getTotalFee();
         }
@@ -165,6 +165,12 @@ public class BuyerInvoiceService {
 
         if (orderDelivery == null) {
             sellerOrderDeliveryService.createDeliveryStatus(order);
+        } else {
+            if (orderDelivery.getStatus() != DeliveryStatus.PICKUP_PENDING) {
+                throw new BusinessException("Bạn chỉ có thể thanh toán hóa đơn khi đang chờ lấy hàng", 400);
+            }
+            orderDelivery.setStatus(DeliveryStatus.DELIVERED);
+            orderDeliveryRepository.save(orderDelivery);
         }
     }
 

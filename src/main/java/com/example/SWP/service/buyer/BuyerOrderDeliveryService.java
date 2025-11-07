@@ -27,6 +27,7 @@ public class BuyerOrderDeliveryService {
     OrderDeliveryRepository orderDeliveryRepository;
     InvoiceRepository invoiceRepository;
     OrderDeliveryMapper orderDeliveryMapper;
+    OrderRepository orderRepository;
 
     public void confirmReceived(Authentication authentication, Long orderDeliveryId) {
         User user = validateService.validateCurrentUser(authentication);
@@ -56,27 +57,27 @@ public class BuyerOrderDeliveryService {
         orderDeliveryRepository.save(orderDelivery);
     }
 
-    public OrderDeliveryResponse getDeliveryDetail(Authentication authentication, Long orderDeliveryId) {
-        User user = validateService.validateCurrentUser(authentication);
-
-        OrderDelivery orderDelivery = orderDeliveryRepository.findById(orderDeliveryId)
-                .orElseThrow(() -> new BusinessException("Trạng thái giao hàng không tồn tại", 404));
-
-        Order order = orderDelivery.getOrder();
-
-        if (!order.getBuyer().getId().equals(user.getId())) {
-            throw new BusinessException("Bạn không có quyền xem thông tin giao hàng này", 403);
-        }
-
-        return orderDeliveryMapper.toOrderDeliveryResponse(orderDelivery);
-    }
-
-
     public List<OrderDeliveryResponse> getMyDeliveries(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
         List<OrderDelivery> deliveries = orderDeliveryRepository.findAllByOrder_Buyer_Id(user.getId());
 
         return orderDeliveryMapper.toOrderDeliveryResponseList(deliveries);
+    }
+
+    public OrderDeliveryResponse getDeliveryByOrderId(Authentication authentication, Long orderId) {
+        User user = validateService.validateCurrentUser(authentication);
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Đơn hàng không tồn tại", 404));
+
+        if (!order.getBuyer().getId().equals(user.getId())) {
+            throw new BusinessException("Bạn không có quyền xem thông tin giao hàng của đơn này", 403);
+        }
+
+        OrderDelivery delivery = orderDeliveryRepository.findByOrder(order)
+                .orElseThrow(() -> new BusinessException("Đơn hàng này chưa có thông tin giao hàng", 400));
+
+        return orderDeliveryMapper.toOrderDeliveryResponse(delivery);
     }
 }

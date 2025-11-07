@@ -41,19 +41,6 @@ public class SellerOrderDeliveryController {
                 .build());
     }
 
-    @GetMapping("/{orderDeliveryId}")
-    public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryDetail(
-            Authentication authentication,
-            @PathVariable Long orderDeliveryId
-    ) {
-        OrderDeliveryResponse response = sellerOrderDeliveryService.getDeliveryDetail(authentication, orderDeliveryId);
-        return ResponseEntity.ok(ApiResponse.<OrderDeliveryResponse>builder()
-                .success(true)
-                .message("Chi tiết đơn hàng giao")
-                .data(response)
-                .build());
-    }
-
     @PutMapping("/{orderDeliveryId}/manual")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateManualStatus(
             @PathVariable Long orderDeliveryId,

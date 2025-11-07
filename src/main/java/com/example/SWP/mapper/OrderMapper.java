@@ -10,6 +10,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
 
+    @Mapping(target = "postId", source = "post.id")
     @Mapping(target = "productType", source = "post.productType")
     @Mapping(target = "vehicleBrand", source = "post.vehicleBrand")
     @Mapping(target = "model", source = "post.model")
