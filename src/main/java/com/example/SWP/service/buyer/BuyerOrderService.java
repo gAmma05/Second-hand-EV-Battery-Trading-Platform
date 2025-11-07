@@ -80,12 +80,12 @@ public class BuyerOrderService {
         }
 
         // Nếu bài đăng đã có đơn hàng được duyệt, không cho tạo thêm
-        if (orderRepository.existsByPostAndStatus(post, OrderStatus.APPROVED)) {
+        if (orderRepository.existsByPost_IdAndStatus(post.getId(), OrderStatus.APPROVED)) {
             throw new BusinessException("Bài đăng này đã có đơn hàng được duyệt", 400);
         }
 
         // Nếu bài đăng đã hoàn tất giao dịch thì không thể đặt hàng nữa
-        if (orderRepository.existsByPostAndStatus(post, OrderStatus.DONE)) {
+        if (orderRepository.existsByPost_IdAndStatus(post.getId(), OrderStatus.DONE)) {
             throw new BusinessException("Bài đăng này đã hoàn tất giao dịch", 400);
         }
 
@@ -98,8 +98,8 @@ public class BuyerOrderService {
         }
 
         // Nếu người mua có một đơn hàng đang chờ xử lý cho cùng bài đăng, không cho phép tạo thêm
-        if (orderRepository.existsByBuyerAndPost_IdAndStatus(
-                buyer,
+        if (orderRepository.existsByBuyer_IdAndPost_IdAndStatus(
+                buyer.getId(),
                 post.getId(),
                 OrderStatus.PENDING)) {
             throw new BusinessException("Bạn đã có đơn hàng đang xử lý cho bài đăng này", 400);
@@ -164,15 +164,9 @@ public class BuyerOrderService {
             throw new BusinessException("Đơn hàng này không thuộc về bạn.", 400);
         }
 
-        // Không cho hủy nếu đơn hàng đã bị từ chối, duyệt, hoàn tất hoặc đã hủy trước đó
-        switch (order.getStatus()) {
-            case APPROVED -> throw new BusinessException("Đơn hàng đã được người bán chấp thuận.", 400);
-            case REJECTED -> throw new BusinessException("Đơn hàng này đã bị người bán từ chối trước đó.", 400);
-            case CANCELED -> throw new BusinessException("Đơn hàng này đã bị hủy trước đó.", 400);
-            case DONE -> throw new BusinessException("Đơn hàng này đã hoàn tất giao dịch.", 400);
-            default -> {
-                // Cho phép hủy nếu trạng thái hiện tại là PENDING
-            }
+        // Chỉ có thể hủy đơn hàng đang chờ xử lý
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BusinessException("Chỉ có thể hủy đơn hàng đang chờ duyệt", 400);
         }
 
         // Cập nhật trạng thái đơn hàng thành CANCELED

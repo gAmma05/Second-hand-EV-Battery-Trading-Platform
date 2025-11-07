@@ -12,6 +12,7 @@ import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.service.validate.ValidateService;
 import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -32,6 +33,7 @@ public class GhnService {
     final RestTemplate restTemplate;
     final PostRepository postRepository;
     final UserRepository userRepository;
+    final ValidateService validateService;
 
     @Value("${ghn.token}")
     String GHN_TOKEN;
@@ -181,37 +183,46 @@ public class GhnService {
         return String.join(", ", streetAddress, wardName, districtName, provinceName);
     }
 
+    /**
+     * Tính phí vận chuyển giữa người bán và người mua thông qua dịch vụ GHN.
+     */
     public FeeResponse calculateShippingFee(FeeRequest request, User buyer) {
-
-        if(buyer == null) {
-            throw  new BusinessException("Người mua không tồn tại", 404);
+        // Kiểm tra người mua có tồn tại không
+        if (buyer == null) {
+            throw new BusinessException("Người mua không tồn tại", 404);
         }
 
+        // Kiểm tra vai trò người dùng phải là BUYER
         if (buyer.getRole() != Role.BUYER) {
             throw new BusinessException("Người dùng không phải là người mua", 400);
         }
 
-        if (buyer.getDistrictId() == null || buyer.getWardCode() == null) {
-            throw new BusinessException("Người mua chưa cập nhật địa chỉ", 400);
-        }
+        // Xác thực thông tin địa chỉ của người mua
+        validateService.validateAddressInfo(buyer);
 
+        // Lấy thông tin bài đăng từ postId
         Post post = postRepository.findById(request.getPostId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
 
+        // Lấy thông tin người bán từ bài đăng
         User seller = post.getUser();
+
         if (seller == null) {
             throw new BusinessException("Người bán không tồn tại", 404);
         }
 
+        // Lấy thông tin địa chỉ người bán và người mua để tính phí
         Integer fromDistrictId = seller.getDistrictId();
         Integer toDistrictId = buyer.getDistrictId();
         String toWardCode = buyer.getWardCode();
 
+        // Thiết lập header cho request gửi đến API GHN
         HttpHeaders headers = new HttpHeaders();
         headers.set("Token", GHN_TOKEN);
         headers.set("ShopId", String.valueOf(GHN_SHOP_ID));
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        // Chuẩn bị body gửi đến GHN API
         Map<String, Object> body = new HashMap<>();
         body.put("from_district_id", fromDistrictId);
         body.put("to_district_id", toDistrictId);
@@ -219,6 +230,7 @@ public class GhnService {
         body.put("service_type_id", request.getServiceTypeId());
         body.put("weight", post.getWeight());
 
+        // Nếu là loại dịch vụ đặc biệt, thêm danh sách items vào body
         if (request.getServiceTypeId() == 5) {
             List<Map<String, Object>> itemsList = new ArrayList<>();
             Map<String, Object> item = new HashMap<>();
@@ -227,17 +239,20 @@ public class GhnService {
             body.put("items", itemsList);
         }
 
+        // Gộp body và header vào đối tượng HttpEntity
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         String url = GHN_URL + "/v2/shipping-order/fee";
 
+        // Gửi request POST đến GHN API để tính phí vận chuyển
         ResponseEntity<Map> response = restTemplate.exchange(
                 url, HttpMethod.POST, entity, Map.class
         );
 
+        // Lấy dữ liệu phản hồi từ GHN
         Map<String, Object> responseBody = response.getBody();
         Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
 
-
+        // Trả về đối tượng FeeResponse chứa thông tin chi tiết về phí
         return FeeResponse.builder()
                 .total((Integer) data.get("total"))
                 .service_fee((Integer) data.get("service_fee"))
