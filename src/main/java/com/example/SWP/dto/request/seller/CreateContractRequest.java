@@ -20,4 +20,6 @@ public class CreateContractRequest {
     @NotNull(message = "Nội dung của hợp đồng là bắt buộc")
     @Size(max = 1000, message = "Nội dung phải dưới 1000 ký tự")
     String content;
+
+    BigDecimal shippingFee;
 }
