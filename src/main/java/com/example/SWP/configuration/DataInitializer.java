@@ -1,8 +1,10 @@
 package com.example.SWP.configuration;
 
 import com.example.SWP.entity.*;
+import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.enums.*;
 import com.example.SWP.repository.*;
+import com.example.SWP.repository.wallet.WalletRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -32,6 +34,7 @@ public class DataInitializer implements CommandLineRunner {
     final ContractRepository contractRepository;
     final InvoiceRepository invoiceRepository;
     final OrderDeliveryRepository orderDeliveryRepository;
+    final WalletRepository walletRepository;
 
     @Value("${seller-package.basic.price}")
     BigDecimal basicPrice_sellerPackage;
@@ -273,64 +276,82 @@ public class DataInitializer implements CommandLineRunner {
                 int existedOrder = orderRepository.countOrderByPost_Id(p.getId());
                 if (existedOrder > 0) {
                     log.warn("Order already exist for post with id " + p.getId() + ", skipping.");
-                    return;
+                } else {
+                    User u = user.get();
+                    Order order = Order.builder()
+                            .post(p)
+                            .seller(p.getUser())
+                            .buyer(u)
+                            .deliveryMethod(DeliveryMethod.BUYER_PICKUP)
+                            .paymentType(PaymentType.FULL)
+                            .serviceTypeId(null)
+                            .shippingFee(BigDecimal.valueOf(200000.0))
+                            .depositPercentage(null)
+                            .status(OrderStatus.APPROVED)
+                            .createdAt(LocalDateTime.now().minusDays(7))
+                            .build();
+                    orderRepository.save(order);
+
+                    BigDecimal totalFee = p.getPrice().add(order.getShippingFee());
+                    Contract contract = Contract.builder()
+                            .order(order)
+                            .contractCode("UMA-0001")
+                            .content("Just don't send her to glue factory")
+                            .totalFee(totalFee)
+                            .sellerSigned(true)
+                            .buyerSigned(true)
+                            .sellerSignedAt(LocalDateTime.now().plusDays(2))
+                            .buyerSignedAt(LocalDateTime.now().plusDays(7))
+                            .status(ContractStatus.SIGNED)
+                            .build();
+                    contractRepository.save(contract);
+
+                    Invoice invoice = Invoice.builder()
+                            .contract(contract)
+                            .invoiceNumber("UMAPYOI-001")
+                            .totalPrice(totalFee)
+                            .createdAt(LocalDateTime.now().plusDays(7))
+                            .dueDate(LocalDateTime.now().plusDays(14))
+                            .paidAt(LocalDateTime.now().plusDays(12))
+                            .status(InvoiceStatus.PAID)
+                            .build();
+
+                    invoiceRepository.save(invoice);
+
+                    OrderDelivery orderDelivery = OrderDelivery.builder()
+                            .order(order)
+                            .deliveryProvider(null)
+                            .deliveryTrackingNumber(null)
+                            .deliveryDate(LocalDateTime.now().plusDays(14))
+                            .status(DeliveryStatus.DELIVERED)
+                            .createdAt(LocalDateTime.now().plusDays(7))
+                            .build();
+
+                    orderDeliveryRepository.save(orderDelivery);
                 }
-                User u = user.get();
-                Order order = Order.builder()
-                        .post(p)
-                        .seller(p.getUser())
-                        .buyer(u)
-                        .deliveryMethod(DeliveryMethod.BUYER_PICKUP)
-                        .paymentType(PaymentType.FULL)
-                        .serviceTypeId(null)
-                        .shippingFee(BigDecimal.valueOf(200000.0))
-                        .depositPercentage(null)
-                        .status(OrderStatus.APPROVED)
-                        .createdAt(LocalDateTime.now().minusDays(7))
-                        .build();
-                orderRepository.save(order);
-
-                BigDecimal totalFee = p.getPrice().add(order.getShippingFee());
-                Contract contract = Contract.builder()
-                        .order(order)
-                        .contractCode("UMA-0001")
-                        .content("Just don't send her to glue factory")
-                        .totalFee(totalFee)
-                        .sellerSigned(true)
-                        .buyerSigned(true)
-                        .sellerSignedAt(LocalDateTime.now().plusDays(2))
-                        .buyerSignedAt(LocalDateTime.now().plusDays(7))
-                        .status(ContractStatus.SIGNED)
-                        .build();
-                contractRepository.save(contract);
-
-                Invoice invoice = Invoice.builder()
-                        .contract(contract)
-                        .invoiceNumber("UMAPYOI-001")
-                        .totalPrice(totalFee)
-                        .createdAt(LocalDateTime.now().plusDays(7))
-                        .dueDate(LocalDateTime.now().plusDays(14))
-                        .paidAt(LocalDateTime.now().plusDays(12))
-                        .status(InvoiceStatus.PAID)
-                        .build();
-
-                invoiceRepository.save(invoice);
-
-                OrderDelivery orderDelivery = OrderDelivery.builder()
-                        .order(order)
-                        .deliveryProvider(null)
-                        .deliveryTrackingNumber(null)
-                        .deliveryDate(LocalDateTime.now().plusDays(14))
-                        .status(DeliveryStatus.DELIVERED)
-                        .createdAt(LocalDateTime.now().plusDays(7))
-                        .build();
-
-                orderDeliveryRepository.save(orderDelivery);
 
             } else {
                 log.error("Post not found, cannot create order.");
                 return;
             }
+        }
+
+        if (!walletRepository.existsByUser_Email("minedung2005@gmail.com")) {
+            Optional<User> userOpt = userRepository.findByEmail("minedung2005@gmail.com");
+            if (userOpt.isEmpty()) {
+                log.error("User not found, cannot create wallet.");
+                return;
+            }
+            User user = userOpt.get();
+            Wallet wallet = Wallet.builder()
+                    .user(user)
+                    .balance(BigDecimal.valueOf(9999999.0))
+                    .build();
+
+            walletRepository.save(wallet);
+            log.warn("Wallet created for demo purpose.");
+        } else {
+            log.warn("Wallet already exist, skipping initialization");
         }
     }
 }
