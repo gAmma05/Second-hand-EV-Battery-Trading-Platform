@@ -16,7 +16,7 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
 
     List<Contract> findByOrder_Buyer(User orderBuyer);
 
-    boolean existsByOrderAndStatusIn(Order order, List<ContractStatus> pending);
+    boolean existsByOrder_IdAndStatusIn(Long orderId, List<ContractStatus> pending);
 
     int countContractByStatus(ContractStatus status);
 }

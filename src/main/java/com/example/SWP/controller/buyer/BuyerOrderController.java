@@ -25,53 +25,62 @@ public class BuyerOrderController {
     BuyerOrderService buyerOrderService;
 
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<Void>> createOrder(Authentication authentication, CreateOrderRequest request) {
+    public ResponseEntity<ApiResponse<Void>> createOrder(
+            Authentication authentication,
+            @Valid CreateOrderRequest request
+    ) {
         buyerOrderService.createOrder(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Order created successfully")
+                        .message("Tạo đơn hàng thành công")
                         .build()
         );
     }
 
     @PatchMapping("/cancel")
-    public ResponseEntity<ApiResponse<Void>> cancelOrder(Authentication authentication, @Valid @RequestBody CancelOrderRequest request) {
+    public ResponseEntity<ApiResponse<Void>> cancelOrder(
+            Authentication authentication,
+            @Valid @RequestBody CancelOrderRequest request
+    ) {
         buyerOrderService.cancelOrder(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Order cancelled successfully")
+                        .message("Huỷ đơn hàng thành công")
                         .build()
         );
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetail(
+            Authentication authentication,
+            @PathVariable Long orderId
+    ) {
         OrderResponse response = buyerOrderService.getOrderDetail(authentication, orderId);
         return ResponseEntity.ok(
                 ApiResponse.<OrderResponse>builder()
                         .success(true)
-                        .message("Order detail fetched successfully")
+                        .message("Lấy chi tiết đơn hàng thành công")
                         .data(response)
                         .build()
         );
     }
 
-    @GetMapping()
-    public ResponseEntity<?> getMyOrders(Authentication authentication) {
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(Authentication authentication) {
         List<OrderResponse> response = buyerOrderService.getMyOrders(authentication);
         return ResponseEntity.ok(
                 ApiResponse.<List<OrderResponse>>builder()
                         .success(true)
-                        .message("Order detail fetched successfully")
+                        .message("Lấy danh sách đơn hàng thành công")
                         .data(response)
                         .build()
         );
     }
 
     @GetMapping("/status")
-    public ResponseEntity<?> getOrdersByStatus(
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByStatus(
             Authentication authentication,
             @RequestParam("status") OrderStatus status
     ) {
@@ -80,7 +89,7 @@ public class BuyerOrderController {
         return ResponseEntity.ok(
                 ApiResponse.<List<OrderResponse>>builder()
                         .success(true)
-                        .message("Order detail fetched successfully")
+                        .message("Lấy danh sách đơn hàng theo trạng thái thành công")
                         .data(response)
                         .build()
         );

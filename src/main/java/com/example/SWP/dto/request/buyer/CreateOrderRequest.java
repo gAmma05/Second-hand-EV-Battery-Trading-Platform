@@ -21,7 +21,7 @@ public class CreateOrderRequest {
     DeliveryMethod deliveryMethod;
 
 
-    @NotNull(message = "Loại thanh toán là bắt buộc")
+    @NotNull(message = "Phương thức thanh toán là bắt buộc")
     PaymentType paymentType;
 
     Integer serviceTypeId;

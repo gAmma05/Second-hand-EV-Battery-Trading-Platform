@@ -79,7 +79,8 @@ public class ValidateService {
 
         if (user.getDistrictId() == null || user.getProvinceId() == null ||
                 user.getWardCode() == null || user.getWardCode().isBlank() ||
-                user.getStreetAddress() == null || user.getStreetAddress().isBlank()
+                user.getStreetAddress() == null || user.getStreetAddress().isBlank() ||
+                user.getAddress() == null || user.getAddress().isBlank()
         ) {
             throw new BusinessException("Thông tin địa chỉ của người dùng chưa đầy đủ. Vui lòng cập nhật địa chỉ trước khi tiếp tục.", 400);
         }
