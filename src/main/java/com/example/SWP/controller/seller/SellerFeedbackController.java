@@ -27,7 +27,7 @@ public class SellerFeedbackController {
         return ResponseEntity.ok(
                 ApiResponse.<FeedbackResponse>builder()
                         .success(true)
-                        .message("Feedback fetched successfully")
+                        .message("Truy xuất feedback thành công")
                         .data(response)
                         .build()
         );

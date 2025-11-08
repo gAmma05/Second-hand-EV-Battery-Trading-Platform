@@ -323,7 +323,7 @@ public class DataInitializer implements CommandLineRunner {
                             .deliveryProvider(null)
                             .deliveryTrackingNumber(null)
                             .deliveryDate(LocalDateTime.now().plusDays(14))
-                            .status(DeliveryStatus.DELIVERED)
+                            .status(DeliveryStatus.RECEIVED)
                             .createdAt(LocalDateTime.now().plusDays(7))
                             .build();
 
@@ -352,6 +352,52 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Wallet created for demo purpose.");
         } else {
             log.warn("Wallet already exist, skipping initialization");
+        }
+
+        if (!postRepository.existsByVehicleBrand("Mejiro")) {
+            Optional<User> user = userRepository.findByEmail("seller@gmail.com");
+            if (user.isEmpty()) {
+                log.error("Seller user not found, cannot create posts.");
+                return;
+            }
+
+            Set<DeliveryMethod> deliveryMethods = new HashSet<>(Arrays.asList(DeliveryMethod.values()));
+            Set<PaymentType> paymentTypes = new HashSet<>(Arrays.asList(PaymentType.values()));
+
+            Post post = Post.builder()
+                    .user(user.get())
+                    .productType(ProductType.VEHICLE)
+                    .title("Umamusume")
+                    .description("Umamusume are humanoid girls who possess horse traits and features. " +
+                            "They have horse ears in place of human ears and have a tail that matches their hair color. " +
+                            "They possess incredible speed and stamina, far beyond that of a human and comparable with that of a real-life horse.")
+                    .price(new BigDecimal("1000000"))
+                    .postDate(LocalDateTime.now())
+                    .updateDate(null)
+                    .expiryDate(LocalDateTime.now().plusDays(1))
+                    .viewCount(0)
+                    .likeCount(0)
+                    .deliveryMethods(deliveryMethods)
+                    .paymentTypes(paymentTypes)
+                    .isTrusted(false)
+                    .priorityPackageId(null)
+                    .priorityExpire(null)
+                    .status(PostStatus.POSTED)
+                    .vehicleBrand("Mejiro")
+                    .model("Mejiro Mcqueen")
+                    .yearOfManufacture(1987)
+                    .color("Purple")
+                    .mileage(100000)
+                    .batteryType(null)
+                    .capacity(null)
+                    .voltage(null)
+                    .batteryBrand(null)
+                    .weight(null)
+                    .build();
+            postRepository.save(post);
+            log.warn("Post Mejiro created for demo purpose.");
+        } else {
+            log.warn("Post Mejiro already exist, skipping initialization");
         }
     }
 }
