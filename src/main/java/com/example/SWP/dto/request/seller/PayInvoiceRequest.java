@@ -12,9 +12,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class PayInvoiceRequest {
-    @NotNull(message = "Invoice ID must not be null")
+    @NotNull(message = "ID hóa đơn không được để trống")
     Long invoiceId;
 
-    @NotNull(message = "Payment method must not be null")
+    @NotNull(message = "Phương thức thanh toán không được để trống")
     PaymentMethod paymentMethod;
 }

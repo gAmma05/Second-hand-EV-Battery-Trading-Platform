@@ -3,9 +3,9 @@ package com.example.SWP.controller.seller;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.request.seller.RejectOrderRequest;
 import com.example.SWP.dto.response.user.OrderResponse;
-import com.example.SWP.entity.Order;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.service.seller.SellerOrderService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,49 +24,55 @@ public class SellerOrderController {
     SellerOrderService sellerOrderService;
 
     @GetMapping("/approve")
-    public ResponseEntity<?> approveOrder(Authentication authentication, @RequestParam Long orderId) {
+    public ResponseEntity<ApiResponse<Void>> approveOrder(
+            Authentication authentication,
+            @RequestParam Long orderId
+    ) {
         sellerOrderService.approveOrder(authentication, orderId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Order approved successfully")
+                        .message("Đơn hàng đã được phê duyệt thành công")
                         .build()
         );
     }
 
     @PostMapping("/reject")
-    public ResponseEntity<?> rejectOrder(Authentication authentication, RejectOrderRequest rejectOrderRequest) {
+    public ResponseEntity<ApiResponse<Void>> rejectOrder(
+            Authentication authentication,
+            @Valid @RequestBody RejectOrderRequest rejectOrderRequest
+    ) {
         sellerOrderService.rejectOrder(authentication, rejectOrderRequest);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Order rejected successfully")
+                        .message("Đơn hàng đã bị từ chối thành công")
                         .build()
         );
     }
 
     @PostMapping("/{orderId}")
-    public ResponseEntity<ApiResponse<?>> getOrderDetail(Authentication authentication, @PathVariable Long orderId) {
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetail(
+            Authentication authentication,
+            @PathVariable Long orderId
+    ) {
         OrderResponse response = sellerOrderService.getOrderDetail(authentication, orderId);
-
         return ResponseEntity.ok(
                 ApiResponse.<OrderResponse>builder()
                         .success(true)
-                        .message("Order detail fetched successfully")
+                        .message("Đã lấy chi tiết đơn hàng thành công")
                         .data(response)
                         .build()
         );
     }
 
     @GetMapping
-    public ResponseEntity<?> getMyOrders(Authentication authentication) {
-
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(Authentication authentication) {
         List<OrderResponse> response = sellerOrderService.getMyOrders(authentication);
-
         return ResponseEntity.ok(
                 ApiResponse.<List<OrderResponse>>builder()
                         .success(true)
-                        .message("Order detail fetched successfully")
+                        .message("Đã lấy chi tiết đơn hàng thành công")
                         .data(response)
                         .build()
         );
@@ -79,14 +84,12 @@ public class SellerOrderController {
             @RequestParam("status") OrderStatus status
     ) {
         List<OrderResponse> response = sellerOrderService.getOrdersByStatus(authentication, status);
-
         return ResponseEntity.ok(
                 ApiResponse.<List<OrderResponse>>builder()
                         .success(true)
-                        .message("Order detail fetched successfully")
+                        .message("Đã lấy chi tiết đơn hàng thành công")
                         .data(response)
                         .build()
         );
     }
-
 }
