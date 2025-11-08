@@ -77,15 +77,15 @@ public class WalletService {
         Wallet wallet = walletRepository.findByUser(user)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy ví của người dùng", 404));
 
-        String orderId = Utils.generateCode("TOUP");
-        String description = Utils.generatePaymentDescription(TransactionType.TOUP, orderId);
+        String orderId = Utils.generateCode(TransactionType.TOUP_WALLET.name());
+        String description = Utils.generatePaymentDescription(TransactionType.TOUP_WALLET, orderId);
 
         WalletTransaction transaction = WalletTransaction.builder()
                 .wallet(wallet)
                 .orderId(orderId)
                 .amount(amount)
                 .description(description)
-                .type(TransactionType.TOUP)
+                .type(TransactionType.TOUP_WALLET)
                 .status(PaymentStatus.PENDING)
                 .balanceBefore(wallet.getBalance())
                 .createdAt(LocalDateTime.now())
@@ -139,14 +139,14 @@ public class WalletService {
         wallet.setBalance(balanceAfter);
         walletRepository.save(wallet);
 
-        String orderId = Utils.generateCode("WITHDRAW");
-        String description = Utils.generatePaymentDescription(TransactionType.WITHDRAW, orderId);
+        String orderId = Utils.generateCode(TransactionType.WITHDRAW_WALLET.name());
+        String description = Utils.generatePaymentDescription(TransactionType.WITHDRAW_WALLET, orderId);
 
         // Tạo giao dịch rút tiền
         WalletTransaction transaction = WalletTransaction.builder()
                 .wallet(wallet)
                 .amount(amount)
-                .type(TransactionType.WITHDRAW)
+                .type(TransactionType.WITHDRAW_WALLET)
                 .status(PaymentStatus.SUCCESS)
                 .orderId(orderId)
                 .description(description)
@@ -169,14 +169,14 @@ public class WalletService {
         wallet.setBalance(balanceAfter);
         walletRepository.save(wallet);
 
-        String orderId = Utils.generateCode("REFUND");
-        String description = Utils.generatePaymentDescription(TransactionType.REFUND, orderId);
+        String orderId = Utils.generateCode(TransactionType.REFUND_WALLET.name());
+        String description = Utils.generatePaymentDescription(TransactionType.REFUND_WALLET, orderId);
 
         WalletTransaction transaction = WalletTransaction.builder()
                 .wallet(wallet)
                 .orderId(orderId)
                 .amount(amount)
-                .type(TransactionType.REFUND)
+                .type(TransactionType.REFUND_WALLET)
                 .status(PaymentStatus.SUCCESS)
                 .description(description)
                 .balanceBefore(balanceBefore)

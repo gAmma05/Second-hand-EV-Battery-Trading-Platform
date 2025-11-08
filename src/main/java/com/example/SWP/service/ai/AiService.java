@@ -26,7 +26,6 @@ public class AiService {
         }
 
         try {
-            System.out.println("AI response (price): " + response);
             String numeric = response.replaceAll("[^0-9.]", "");
             return numeric.isEmpty() ? 0.0 : Double.parseDouble(numeric);
         } catch (Exception e) {

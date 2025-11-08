@@ -44,14 +44,14 @@ public class SellerPaymentService {
 
         BigDecimal amount = pkg.getPrice();
 
-        String code = Utils.generateCode("SELLER_PACKAGE_PAYMENT");
+        String code = Utils.generateCode(TransactionType.PURCHASE_SELLER_PACKAGE.name());
 
         walletService.payWithWallet(
                 user,
                 amount,
                 code,
-                Utils.generatePaymentDescription(TransactionType.PACKAGE, code),
-                TransactionType.PACKAGE
+                Utils.generatePaymentDescription(TransactionType.PURCHASE_SELLER_PACKAGE, code),
+                TransactionType.PURCHASE_SELLER_PACKAGE
         );
 
         // Tạo SellerPackagePayment
@@ -75,16 +75,16 @@ public class SellerPaymentService {
     public PriorityPackagePayment priorityPackagePayment(User user, Long priorityPackageId) {
         // Lấy gói ưu tiên
         PriorityPackage priorityPackage = priorityPackageRepository.findById(priorityPackageId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy package ưu tiên", 404));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy gói ưu tiên đăng bài", 404));
 
         BigDecimal amount = priorityPackage.getPrice();
-        String code = Utils.generateCode("PPP");
+        String code = Utils.generateCode(TransactionType.PURCHASE_PRIORITY_PACKAGE.name());
         walletService.payWithWallet(
                 user,
                 amount,
                 code,
-                Utils.generatePaymentDescription(TransactionType.PACKAGE, code),
-                TransactionType.PACKAGE
+                Utils.generatePaymentDescription(TransactionType.PURCHASE_PRIORITY_PACKAGE, code),
+                TransactionType.PURCHASE_PRIORITY_PACKAGE
         );
 
         // Tạo PriorityPackagePayment, post = null tạm thời do chua tao

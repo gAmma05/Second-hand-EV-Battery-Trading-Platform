@@ -167,8 +167,8 @@ public class BuyerInvoiceService {
                     user,
                     invoice.getTotalPrice(),
                     invoice.getInvoiceNumber(),
-                    Utils.generatePaymentDescription(TransactionType.INVOICE, invoice.getInvoiceNumber()),
-                    TransactionType.INVOICE
+                    Utils.generatePaymentDescription(TransactionType.PAY_INVOICE, invoice.getInvoiceNumber()),
+                    TransactionType.PAY_INVOICE
             );
         } else {
             // Các phương thức khác chưa được hỗ trợ
