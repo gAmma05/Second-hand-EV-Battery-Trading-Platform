@@ -9,6 +9,7 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.enums.DeliveryStatus;
 import com.example.SWP.enums.OrderStatus;
+import com.example.SWP.enums.PostStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ComplaintMapper;
 import com.example.SWP.repository.ComplaintRepository;
@@ -106,6 +107,7 @@ public class BuyerComplaintService {
 
         complaint.setStatus(ComplaintStatus.RESOLVED);
         complaint.getOrder().setStatus(OrderStatus.DONE);
+        complaint.getOrder().getPost().setStatus(PostStatus.SOLD);
         complaintRepository.save(complaint);
 
         notificationService.sendNotificationToOneUser(
