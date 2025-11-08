@@ -71,12 +71,15 @@ public class DataInitializer implements CommandLineRunner {
             SellerPackage basic = SellerPackage.builder()
                     .type(SellerPackageType.BASIC)
                     .price(basicPrice_sellerPackage)
+                    .description("Gói cơ bản tăng lượng đăng bài cho người bán")
                     .postLimit(basicMaxPosts_sellerPackage)
                     .build();
 
             SellerPackage premium = SellerPackage.builder()
                     .type(SellerPackageType.PREMIUM)
                     .price(premiumPrice_sellerPackage)
+                    .description((("Gói Premium tăng lượng đăng bài cho người bán " +
+                            "và có thể yêu cầu kiểm duyệt - nhán dãn, nhằm tăng uy tín cho sản phẩm")))
                     .postLimit(premiumMaxPosts_sellerPackage)
                     .build();
 
