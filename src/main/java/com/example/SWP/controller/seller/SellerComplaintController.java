@@ -30,7 +30,7 @@ public class SellerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint accepted successfully")
+                        .message("Chấp nhận khiếu nại thành công")
                         .build()
         );
     }
@@ -41,7 +41,7 @@ public class SellerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint requested to admin successfully")
+                        .message("Đã gửi khiếu nại cho ban quản trị (admin) để xử lí")
                         .build()
         );
     }
@@ -52,7 +52,7 @@ public class SellerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint resolved successfully")
+                        .message("Xử lí khiếu nại thành công")
                         .build()
         );
     }
@@ -61,12 +61,12 @@ public class SellerComplaintController {
     public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
         ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);
         if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to fetch complaint detail");
+            return ResponseEntity.badRequest().body("Có lỗi khi truy xuất khiếu nại");
         }
         return ResponseEntity.ok(
                 ApiResponse.<ComplaintResponse>builder()
                         .success(true)
-                        .message("Complaint detail fetched successfully")
+                        .message("Truy xuất khiếu nại thành công")
                         .data(response)
                         .build()
         );
@@ -79,7 +79,7 @@ public class SellerComplaintController {
             return ResponseEntity.badRequest().body(
                     ApiResponse.<ComplaintResponse>builder()
                             .success(false)
-                            .message("List is empty")
+                            .message("Danh sách bị trống")
                             .build()
             );
         }
@@ -87,7 +87,7 @@ public class SellerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<List<ComplaintResponse>>builder()
                         .success(true)
-                        .message("Fetched complaint list successfully")
+                        .message("Truy xuất danh sách khiếu nại thành công")
                         .data(list)
                         .build()
         );

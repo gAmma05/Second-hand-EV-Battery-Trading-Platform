@@ -33,4 +33,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     int countPostByStatus(PostStatus status);
 
     Optional<Post> getPostByVehicleBrand(String narita);
+
+    boolean existsByVehicleBrand(String mejiro);
 }

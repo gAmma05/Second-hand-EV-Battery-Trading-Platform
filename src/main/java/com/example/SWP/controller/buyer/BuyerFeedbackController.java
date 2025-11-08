@@ -28,7 +28,7 @@ public class BuyerFeedbackController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Feedback created successfully")
+                        .message("Tạo feedback thành công")
                         .build()
         );
     }
@@ -39,7 +39,7 @@ public class BuyerFeedbackController {
         return ResponseEntity.ok(
                 ApiResponse.<FeedbackResponse>builder()
                         .success(true)
-                        .message("Feedback fetched successfully")
+                        .message("Truy xuất feedback thành công")
                         .data(response)
                         .build()
         );
@@ -51,7 +51,7 @@ public class BuyerFeedbackController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Feedback deleted successfully")
+                        .message("Đã xóa feedback")
                         .build()
         );
     }

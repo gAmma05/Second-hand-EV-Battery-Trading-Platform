@@ -31,7 +31,7 @@ public class BuyerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Created complaint successfully")
+                        .message("Tạo khiếu nại thành công")
                         .build()
         );
     }
@@ -45,7 +45,7 @@ public class BuyerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<ComplaintResponse>builder()
                         .success(true)
-                        .message("Complaint detail fetched successfully")
+                        .message("Truy xuất thông tin khiếu nại thành công")
                         .data(response)
                         .build()
         );
@@ -57,7 +57,7 @@ public class BuyerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint accepted successfully")
+                        .message("Chấp nhận khiếu nại thành công")
                         .build()
         );
     }
@@ -68,7 +68,7 @@ public class BuyerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint rejected successfully")
+                        .message("Từ chối khiếu nại thành công")
                         .build()
         );
     }
@@ -79,8 +79,8 @@ public class BuyerComplaintController {
         if (list == null || list.isEmpty()) {
             return ResponseEntity.badRequest().body(
                     ApiResponse.<ComplaintResponse>builder()
-                            .success(false)
-                            .message("List is empty")
+                            .success(true)
+                            .message("Danh sách bị trống")
                             .build()
             );
         }
@@ -88,7 +88,7 @@ public class BuyerComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<List<ComplaintResponse>>builder()
                         .success(true)
-                        .message("Fetched complaint list successfully")
+                        .message("Truy xuất danh sách khiếu nại thành công")
                         .data(list)
                         .build()
         );
