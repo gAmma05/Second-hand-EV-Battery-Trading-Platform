@@ -4,12 +4,11 @@ import com.example.SWP.dto.request.buyer.FeedbackRequest;
 import com.example.SWP.entity.Feedback;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
+import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.FeedbackMapper;
-import com.example.SWP.repository.FeedbackRepository;
-import com.example.SWP.repository.OrderRepository;
-import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +33,10 @@ public class BuyerFeedbackService {
 
     FeedbackRepository feedbackRepository;
 
+    OrderDeliveryRepository orderDeliveryRepository;
+
+    ComplaintRepository complaintRepository;
+
     public void addFeedback(Authentication authentication, FeedbackRequest request) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
                 () -> new BusinessException("Không tìm thấy thông tin user", 404)
@@ -49,6 +52,12 @@ public class BuyerFeedbackService {
 
         if (!Objects.equals(order.getStatus(), OrderStatus.DONE)) {
             throw new BusinessException("Đơn hàng của bạn chưa được giao hoặc bạn chưa nhận, bạn không thể feedback trên order này", 400);
+        }
+
+        if (complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.RESOLVING) > 0
+                || complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.ADMIN_SOLVING) > 0
+                || complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.REJECTED) > 0) {
+            throw new BusinessException("Đơn hàng này đang có khiếu nại, chưa thể feedback", 400);
         }
 
         checkCurrentFeedback(request.getOrderId());

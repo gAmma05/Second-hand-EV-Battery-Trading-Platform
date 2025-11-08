@@ -25,4 +25,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countBySellerAndStatusAndCreatedAtBetween(User seller, OrderStatus status, LocalDateTime start, LocalDateTime end);
     List<Order> findAllByPost_IdAndStatus(Long postId, OrderStatus orderStatus);
     int countOrderByStatus(OrderStatus orderStatus);
+
+    int countOrderByPost_Id(Long postId);
 }

@@ -3,6 +3,7 @@ package com.example.SWP.dto.request.buyer;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,6 @@ public class FeedbackRequest {
     @Max(value = 5, message = "Rating must be between 1 and 5")
     Integer rating;
 
-    @Max(value = 1000, message = "Comment must be less than 1000 characters")
+    @Size(max = 1000, message = "Comment must be less than 1000 characters")
     String comment;
 }

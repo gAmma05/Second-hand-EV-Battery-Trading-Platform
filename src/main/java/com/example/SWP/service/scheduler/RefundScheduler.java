@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -39,9 +40,11 @@ public class RefundScheduler {
         try {
             for (OrderDelivery od : odList) {
                 if (ChronoUnit.DAYS.between(od.getCreatedAt(), today) >= CHECK_DAYS) {
-                    Order order = orderRepository.findById(od.getOrder().getId()).orElseThrow(
-                            () -> new BusinessException("Không tìm thấy order", 404)
-                    );
+                    Optional<Order> orderOpt = orderRepository.findById(od.getOrder().getId());
+                    if(orderOpt.isEmpty()) {
+                       throw new BusinessException("Order not found", 404);
+                    }
+                    Order order = orderOpt.get();
                     walletService.refundToWallet(order.getSeller(), order.getPost().getPrice());
                 }
             }

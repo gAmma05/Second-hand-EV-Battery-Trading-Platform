@@ -8,6 +8,7 @@ import com.example.SWP.entity.OrderDelivery;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.enums.DeliveryStatus;
+import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ComplaintMapper;
 import com.example.SWP.repository.ComplaintRepository;
@@ -99,7 +100,12 @@ public class BuyerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
+            throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài post này", 400);
+        }
+
         complaint.setStatus(ComplaintStatus.RESOLVED);
+        complaint.getOrder().setStatus(OrderStatus.DONE);
         complaintRepository.save(complaint);
 
         notificationService.sendNotificationToOneUser(
@@ -120,6 +126,10 @@ public class BuyerComplaintService {
 
         if (!Objects.equals(complaint.getOrder().getBuyer().getId(), user.getId())) {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
+        }
+
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
+            throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài khiếu nại này này", 400);
         }
 
         complaint.setStatus(ComplaintStatus.REJECTED);

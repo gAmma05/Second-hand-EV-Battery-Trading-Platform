@@ -32,14 +32,8 @@ public class ComplaintScheduler {
         for (Complaint complaint : complaintList) {
             try {
                 if (complaint.getStatus() == ComplaintStatus.PENDING) {
-                    if (complaint.getUpdatedAt() == null) {
-                        if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) >= CHECK_DAYS) {
-                            complaint.setStatus(ComplaintStatus.ADMIN_SOLVING);
-                        }
-                    } else {
-                        if (ChronoUnit.DAYS.between(complaint.getUpdatedAt(), today) >= CHECK_DAYS) {
-                            complaint.setStatus(ComplaintStatus.ADMIN_SOLVING);
-                        }
+                    if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) >= CHECK_DAYS) {
+                        complaint.setStatus(ComplaintStatus.ADMIN_SOLVING); //comment before I forgot to mention this in commit
                     }
                     complaint.setUpdatedAt(LocalDateTime.now());
                 }

@@ -8,6 +8,7 @@ import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ComplaintMapper;
 import com.example.SWP.repository.ComplaintRepository;
+import com.example.SWP.service.user.WalletService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -29,6 +30,8 @@ public class AdminComplaintService {
 
     ComplaintMapper complaintMapper;
 
+    WalletService walletService;
+
     public void handleComplaint(HandleComplaintRequest request) {
         Optional<Complaint> complaintOptional = complaintRepository.findById(request.getComplaintId());
         if (complaintOptional.isEmpty()) {
@@ -45,6 +48,8 @@ public class AdminComplaintService {
         complaint.setUpdatedAt(LocalDateTime.now());
         complaint.setStatus(ComplaintStatus.RESOLVED);
         complaintRepository.save(complaint);
+
+        walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
 
     }
 
