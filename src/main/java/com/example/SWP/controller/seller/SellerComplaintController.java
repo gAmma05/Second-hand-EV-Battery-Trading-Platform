@@ -57,7 +57,7 @@ public class SellerComplaintController {
         );
     }
 
-    @PostMapping("/detail")
+    @GetMapping("/detail")
     public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
         ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);
         if (response == null) {
