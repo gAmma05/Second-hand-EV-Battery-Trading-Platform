@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -31,7 +32,9 @@ public class Complaint {
     @Column(columnDefinition = "NVARCHAR(1000)")
     String description;
 
-    String evidenceUrls;
+    @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "image_order")
+    List<ComplaintImage> complaintImages;
 
     @Column(columnDefinition = "NVARCHAR(1000)")
     String resolutionNotes;

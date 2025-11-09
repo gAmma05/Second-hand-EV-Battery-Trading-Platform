@@ -44,26 +44,6 @@ public class AuthController {
     }
 
 
-    @Operation(
-            summary = "Register a user",
-            description = "Register a user with email, password and full name"
-    )
-
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "201",
-            description = "User registered successfully"
-    )
-
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "400",
-            description = "Password and confirm password does not match"
-    )
-
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "401",
-            description = "Email is already in use or user already verified"
-    )
-
     //Dang ky tai khoan va nhan ma OTP ve mail
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody CreateUserRequest request) {
@@ -79,20 +59,6 @@ public class AuthController {
                         .message(message)
                         .build());
     }
-
-    @Operation(
-            summary = "Verify account",
-            description = "Verify account with email and OTP"
-    )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "Account verified successfully"
-    )
-
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "401",
-            description = "Invalid OTP or user already verified"
-    )
 
     //Verify email thong qua ma otp
     @PostMapping("/verify-register")

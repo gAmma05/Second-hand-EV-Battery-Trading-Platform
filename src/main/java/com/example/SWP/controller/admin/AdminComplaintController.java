@@ -34,6 +34,17 @@ public class AdminComplaintController {
         );
     }
 
+    @PutMapping("/refund")
+    public ResponseEntity<?> refundComplaint(@RequestParam Long complaintId) {
+        adminComplaintService.refundToBuyer(complaintId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Complaint refunded successfully")
+                        .build()
+        );
+    }
+
     @GetMapping("/detail")
     public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
         ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);

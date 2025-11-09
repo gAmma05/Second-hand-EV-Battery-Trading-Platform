@@ -1,6 +1,6 @@
 package com.example.SWP.service.seller;
 
-import com.example.SWP.dto.request.seller.ComplaintResolutionRequest;
+import com.example.SWP.dto.request.seller.ComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
 import com.example.SWP.entity.User;
@@ -9,6 +9,7 @@ import com.example.SWP.mapper.ComplaintMapper;
 import com.example.SWP.repository.ComplaintRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.user.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -33,40 +34,15 @@ public class SellerComplaintService {
 
     NotificationService notificationService;
 
-    public void acceptComplaint(Authentication authentication, Long complaintId) {
+    WalletService walletService;
+
+    public void responseComplaint(Authentication authentication, ComplaintRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new BusinessException("Không tìm thấy người dùng", 404)
         );
 
-        Complaint complaint = complaintRepository.findById(complaintId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy khiếu nại", 404));
-
-        if (!Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
-            throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
-        }
-
-        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.PENDING)) {
-            throw new BusinessException("Không thể chấp nhận khiếu nại vì khiếu nại này không ở trạng thái chờ xử lý", 400);
-        }
-
-        complaint.setStatus(ComplaintStatus.RESOLVING);
-        complaintRepository.save(complaint);
-
-        notificationService.sendNotificationToOneUser(
-                complaint.getOrder().getBuyer().getEmail(),
-                "Về khiếu nại của bạn",
-                "Người bán đã chấp nhận khiếu nại của bạn. Vui lòng chờ phản hồi từ họ."
-        );
-    }
-
-    public void responseComplaint(Authentication authentication, ComplaintResolutionRequest request) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("Không tìm thấy người dùng", 404)
-        );
-
-        Complaint complaint = complaintRepository.findById(request.getId()).orElseThrow(
+        Complaint complaint = complaintRepository.findById(request.getComplaintId()).orElseThrow(
                 () -> new BusinessException("Không tìm thấy khiếu nại", 404)
         );
 
@@ -74,17 +50,23 @@ public class SellerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
-        if(Objects.equals(complaint.getStatus(), ComplaintStatus.REJECTED)){
-            complaint.setStatus(ComplaintStatus.RESOLVING);
+        if (Objects.equals(complaint.getStatus(), ComplaintStatus.REJECTED)) {
+            complaint.setStatus(ComplaintStatus.PENDING);
             complaintRepository.save(complaint);
         }
 
-        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLVING)) {
-            throw new BusinessException("Không thể phản hồi khiếu nại vì khiếu nại này không ở trạng thái đang xử lý", 400);
+        if (request.isAccepted()) {
+            complaintMapper.updateComplaint(request, complaint);
+            complaint.setStatus(ComplaintStatus.RESOLUTION_GIVEN);
+            complaint.setUpdatedAt(LocalDateTime.now());
+        } else {
+            if (request.isRequestToAdmin()) {
+                complaint.setStatus(ComplaintStatus.ADMIN_SOLVING);
+            } else {
+                complaint.setStatus(ComplaintStatus.REJECTED);
+                walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
+            }
         }
-
-        complaintMapper.updateComplaint(request, complaint);
-        complaint.setStatus(ComplaintStatus.RESOLUTION_GIVEN);
         complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
 
@@ -106,7 +88,7 @@ public class SellerComplaintService {
         );
 
         if (!Objects.equals(complaint.getStatus(), ComplaintStatus.REJECTED) &&
-                !Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLVING)) {
+                !Objects.equals(complaint.getStatus(), ComplaintStatus.PENDING)) {
             throw new BusinessException("Không thể gửi yêu cầu đến quản trị viên. Khiếu nại phải ở trạng thái bị từ chối hoặc đang xử lý mới có thể yêu cầu", 400);
         }
 
@@ -135,6 +117,7 @@ public class SellerComplaintService {
         List<ComplaintResponse> response = new ArrayList<>();
         for (Complaint one : list) {
             ComplaintResponse complaint = complaintMapper.toComplaintResponse(one);
+            complaint.setName(one.getOrder().getBuyer().getFullName());
             response.add(complaint);
         }
         return response;
