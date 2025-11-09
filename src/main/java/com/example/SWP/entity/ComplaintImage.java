@@ -1,5 +1,6 @@
 package com.example.SWP.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,6 +19,7 @@ public class ComplaintImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "complaint_id", nullable = false)
+    @JsonIgnore
     Complaint complaint;
 
     String imageUrl;
