@@ -44,6 +44,16 @@ public class ComplaintService {
             );
         }
 
-        return complaintMapper.toComplaintResponse(complaint);
+        if (complaint.getOrder() == null) {
+            throw new BusinessException("Không tìm thấy order", 404);
+        }
+
+        ComplaintResponse response = complaintMapper.toComplaintResponse(complaint);
+        if (user.getRole() == Role.SELLER) {
+            response.setName(complaint.getOrder().getBuyer().getFullName());
+        } else if (user.getRole() == Role.BUYER) {
+            response.setName(complaint.getOrder().getSeller().getFullName());
+        }
+        return response;
     }
 }

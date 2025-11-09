@@ -117,6 +117,7 @@ public class SellerComplaintService {
         List<ComplaintResponse> response = new ArrayList<>();
         for (Complaint one : list) {
             ComplaintResponse complaint = complaintMapper.toComplaintResponse(one);
+            complaint.setName(one.getOrder().getBuyer().getFullName());
             response.add(complaint);
         }
         return response;
