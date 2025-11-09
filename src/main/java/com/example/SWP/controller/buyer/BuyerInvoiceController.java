@@ -22,73 +22,88 @@ public class BuyerInvoiceController {
 
     BuyerInvoiceService buyerInvoiceService;
 
+    /**
+     * Lấy chi tiết một hóa đơn cụ thể của người mua
+     */
     @GetMapping("/{invoiceId}")
-    public ResponseEntity<?> getInvoiceDetail(Authentication authentication, @PathVariable Long invoiceId) {
+    public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceDetail(
+            Authentication authentication,
+            @PathVariable Long invoiceId
+    ) {
         InvoiceResponse response = buyerInvoiceService.getInvoiceDetail(authentication, invoiceId);
-        if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to fetch this invoice detail");
-        }
         return ResponseEntity.ok(
                 ApiResponse.<InvoiceResponse>builder()
                         .success(true)
-                        .message("Fetched invoice detail successfully")
+                        .message("Lấy thông tin chi tiết hóa đơn thành công")
                         .data(response)
                         .build()
         );
     }
 
+    /**
+     * Lấy tất cả hóa đơn của người mua hiện tại
+     */
     @GetMapping
-    public ResponseEntity<?> getAllInvoices(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<InvoiceResponse>>> getAllInvoices(Authentication authentication) {
         List<InvoiceResponse> response = buyerInvoiceService.getAllInvoices(authentication);
-
         return ResponseEntity.ok(
                 ApiResponse.<List<InvoiceResponse>>builder()
                         .success(true)
-                        .message("All invoices retrieved successfully")
+                        .message("Lấy danh sách tất cả hóa đơn thành công")
                         .data(response)
                         .build()
         );
     }
 
+    /**
+     * Lấy tất cả hóa đơn thuộc về một đơn hàng cụ thể
+     */
     @GetMapping("/orders/{orderId}")
-    public ResponseEntity<?> getAllInvoicesByOrderId(Authentication authentication, @PathVariable Long orderId) {
+    public ResponseEntity<ApiResponse<List<InvoiceResponse>>> getAllInvoicesByOrderId(
+            Authentication authentication,
+            @PathVariable Long orderId
+    ) {
         List<InvoiceResponse> response = buyerInvoiceService.getAllInvoicesByOrderId(authentication, orderId);
-
         return ResponseEntity.ok(
                 ApiResponse.<List<InvoiceResponse>>builder()
                         .success(true)
-                        .message("All invoices retrieved successfully")
+                        .message("Lấy danh sách hóa đơn theo đơn hàng thành công")
                         .data(response)
                         .build()
         );
     }
 
+    /**
+     * Lấy danh sách hóa đơn theo trạng thái (ACTIVE, PAID, EXPIRED, ...)
+     */
     @GetMapping("/status")
-    public ResponseEntity<?> getInvoicesByStatus(
+    public ResponseEntity<ApiResponse<List<InvoiceResponse>>> getInvoicesByStatus(
             Authentication authentication,
             @RequestParam("status") InvoiceStatus status
     ) {
         List<InvoiceResponse> response = buyerInvoiceService.getInvoicesByStatus(authentication, status);
-
         return ResponseEntity.ok(
                 ApiResponse.<List<InvoiceResponse>>builder()
                         .success(true)
-                        .message("Fetched " + status + " invoices successfully")
+                        .message("Lấy danh sách hóa đơn theo trạng thái " + status + " thành công")
                         .data(response)
                         .build()
         );
     }
 
-
+    /**
+     * Thanh toán hóa đơn
+     */
     @PostMapping("/pay")
-    public ResponseEntity<?> payInvoice(Authentication authentication, @Valid @RequestBody PayInvoiceRequest request) {
+    public ResponseEntity<ApiResponse<Void>> payInvoice(
+            Authentication authentication,
+            @Valid @RequestBody PayInvoiceRequest request
+    ) {
         buyerInvoiceService.payInvoice(authentication, request);
-
         return ResponseEntity.ok(
-                ApiResponse.<String>builder()
+                ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Invoice paid successfully")
-                        .data(null)
+                        .message("Thanh toán hóa đơn thành công")
                         .build()
         );
     }

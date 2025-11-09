@@ -51,7 +51,7 @@ public class SellerStatsController {
         return ResponseEntity.ok(
                 ApiResponse.<Map<String, Long>>builder()
                         .success(true)
-                        .message("hống kê số lượng bài đăng theo trạng thái thành công")
+                        .message("Thống kê số lượng bài đăng theo trạng thái thành công")
                         .data(responses)
                         .build()
         );
