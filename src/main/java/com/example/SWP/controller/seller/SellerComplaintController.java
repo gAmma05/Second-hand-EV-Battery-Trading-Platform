@@ -1,6 +1,6 @@
 package com.example.SWP.controller.seller;
 
-import com.example.SWP.dto.request.seller.ComplaintResolutionRequest;
+import com.example.SWP.dto.request.seller.ComplaintRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.service.complaint.ComplaintService;
@@ -24,17 +24,6 @@ public class SellerComplaintController {
 
     ComplaintService complaintService;
 
-    @PatchMapping("/accept")
-    public ResponseEntity<?> acceptComplaintRequest(Authentication authentication, @RequestParam Long complaintId) {
-        sellerComplaintService.acceptComplaint(authentication, complaintId);
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Chấp nhận khiếu nại thành công")
-                        .build()
-        );
-    }
-
     @PatchMapping("/admin-request")
     public ResponseEntity<?> adminRequestComplaint(Authentication authentication, @RequestParam Long complaintId) {
         sellerComplaintService.requestToAdmin(authentication, complaintId);
@@ -47,12 +36,12 @@ public class SellerComplaintController {
     }
 
     @PatchMapping("/resolution")
-    public ResponseEntity<?> resolveComplaint(Authentication authentication, @Valid @RequestBody ComplaintResolutionRequest request) {
+    public ResponseEntity<?> resolveComplaint(Authentication authentication, @Valid @RequestBody ComplaintRequest request) {
         sellerComplaintService.responseComplaint(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Xử lí khiếu nại thành công")
+                        .message("Đã cập nhật khiếu nại")
                         .build()
         );
     }

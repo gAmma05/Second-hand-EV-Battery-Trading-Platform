@@ -2,7 +2,7 @@ package com.example.SWP.mapper;
 
 import com.example.SWP.dto.request.buyer.CreateComplaintRequest;
 import com.example.SWP.dto.request.buyer.RejectComplaintRequest;
-import com.example.SWP.dto.request.seller.ComplaintResolutionRequest;
+import com.example.SWP.dto.request.seller.ComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
 import org.mapstruct.Mapper;
@@ -19,6 +19,7 @@ public interface ComplaintMapper {
     Complaint toComplaint(CreateComplaintRequest request);
 
     void updateComplaint(RejectComplaintRequest request, @MappingTarget Complaint complaint);
+    @Mapping(source = "complaintId", target = "id")
     @Mapping(source = "resolution", target = "resolutionNotes")
-    void updateComplaint(ComplaintResolutionRequest request, @MappingTarget Complaint complaint);
+    void updateComplaint(ComplaintRequest request, @MappingTarget Complaint complaint);
 }
