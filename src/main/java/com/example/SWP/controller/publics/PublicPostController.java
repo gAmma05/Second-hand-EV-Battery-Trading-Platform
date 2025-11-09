@@ -22,53 +22,49 @@ public class PublicPostController {
 
     PublicPostService publicPostService;
 
-    // Lấy tất cả post
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostResponse>>> getAllPosts() {
         List<PostResponse> posts = publicPostService.getAllPosts();
         return ResponseEntity.ok(
                 ApiResponse.<List<PostResponse>>builder()
                         .success(true)
-                        .message("All posts retrieved successfully")
+                        .message("Tất cả bài đăng đã được lấy thành công")
                         .data(posts)
                         .build()
         );
     }
 
-    // Lấy post theo ProductType
     @GetMapping("/type/{productType}")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getPostsByProductType(@PathVariable ProductType productType) {
         List<PostResponse> posts = publicPostService.getPostsByProductType(productType);
         return ResponseEntity.ok(
                 ApiResponse.<List<PostResponse>>builder()
                         .success(true)
-                        .message("Posts by product type retrieved successfully")
+                        .message("Bài đăng theo loại sản phẩm đã được lấy thành công")
                         .data(posts)
                         .build()
         );
     }
 
-    // Lấy tất cả post ưu tiên còn hiệu lực
     @GetMapping("/priority")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getPriorityPosts() {
         List<PostResponse> posts = publicPostService.getPriorityPosts();
         return ResponseEntity.ok(
                 ApiResponse.<List<PostResponse>>builder()
                         .success(true)
-                        .message("Priority posts retrieved successfully")
+                        .message("Bài đăng ưu tiên đã được lấy thành công")
                         .data(posts)
                         .build()
         );
     }
 
-    // Lấy tất cả post trusted
     @GetMapping("/trusted")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getTrustedPosts() {
         List<PostResponse> posts = publicPostService.getTrustedPosts();
         return ResponseEntity.ok(
                 ApiResponse.<List<PostResponse>>builder()
                         .success(true)
-                        .message("Trusted posts retrieved successfully")
+                        .message("Bài đăng uy tín đã được lấy thành công")
                         .data(posts)
                         .build()
         );
@@ -80,7 +76,7 @@ public class PublicPostController {
         return ResponseEntity.ok(
                 ApiResponse.<PostResponse>builder()
                         .success(true)
-                        .message("Post detail retrieved successfully")
+                        .message("Chi tiết bài đăng đã được lấy thành công")
                         .data(response)
                         .build()
         );

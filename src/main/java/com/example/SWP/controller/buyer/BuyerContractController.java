@@ -21,8 +21,10 @@ public class BuyerContractController {
     BuyerContractService buyerContractService;
 
     @PatchMapping("/{contractId}/sign/send-otp")
-    public ResponseEntity<?> sendContractSignOtp(Authentication authentication,
-                                                 @PathVariable Long contractId) {
+    public ResponseEntity<?> sendContractSignOtp(
+            Authentication authentication,
+            @PathVariable Long contractId
+    ) {
         buyerContractService.sendContractSignOtp(authentication, contractId);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
@@ -34,8 +36,10 @@ public class BuyerContractController {
 
     // Xác minh OTP và ký hợp đồng
     @PatchMapping("/sign/verify")
-    public ResponseEntity<?> verifyContractSignOtp(Authentication authentication,
-                                                   @RequestBody VerifyContractSignatureRequest request) {
+    public ResponseEntity<?> verifyContractSignOtp(
+            Authentication authentication,
+            @RequestBody VerifyContractSignatureRequest request
+    ) {
         buyerContractService.verifyContractSignOtp(authentication, request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()

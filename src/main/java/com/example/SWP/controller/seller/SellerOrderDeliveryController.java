@@ -19,28 +19,40 @@ import java.util.List;
 public class SellerOrderDeliveryController {
     SellerOrderDeliveryService sellerOrderDeliveryService;
 
+    /**
+     * Lấy danh sách tất cả đơn hàng giao của người bán hiện tại
+     */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderDeliveryResponse>>> getMyDeliveries(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<OrderDeliveryResponse>>> getMyDeliveries(
+            Authentication authentication
+    ) {
         List<OrderDeliveryResponse> responses = sellerOrderDeliveryService.getMyDeliveries(authentication);
         return ResponseEntity.ok(ApiResponse.<List<OrderDeliveryResponse>>builder()
                 .success(true)
-                .message("Danh sách đơn hàng giao của bạn")
+                .message("Lấy danh sách đơn hàng giao của bạn thành công")
                 .data(responses)
                 .build());
     }
 
+    /**
+     * Lấy chi tiết đơn hàng giao theo ID đơn hàng
+     */
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryByOrderId(
-            Authentication authentication, @PathVariable Long orderId
+            Authentication authentication,
+            @PathVariable Long orderId
     ) {
         OrderDeliveryResponse response = sellerOrderDeliveryService.getDeliveryByOrderId(authentication, orderId);
         return ResponseEntity.ok(ApiResponse.<OrderDeliveryResponse>builder()
                 .success(true)
-                .message("Danh sách đơn hàng giao của bạn")
+                .message("Lấy chi tiết đơn hàng giao thành công")
                 .data(response)
                 .build());
     }
 
+    /**
+     * Cập nhật trạng thái giao hàng thủ công bởi người bán
+     */
     @PutMapping("/{orderDeliveryId}/manual")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateManualStatus(
             @PathVariable Long orderDeliveryId,
@@ -56,6 +68,9 @@ public class SellerOrderDeliveryController {
         );
     }
 
+    /**
+     * Đồng bộ trạng thái giao hàng từ GHN
+     */
     @PutMapping("/{orderDeliveryId}/ghn")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> updateGhnStatus(
             @PathVariable Long orderDeliveryId

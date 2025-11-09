@@ -31,7 +31,7 @@ public class ValidateService {
         return user;
     }
 
-    // Validate dữ liệu bài đăng khi tạo hoặc cập nhật
+    // Kiểm tra dữ liệu bài đăng khi tạo hoặc cập nhật
     public void validatePost(
             ProductType productType, String vehicleBrand, String model, Integer yearOfManufacture,
             String color, Integer mileage, String batteryType, String batteryBrand,
@@ -91,7 +91,5 @@ public class ValidateService {
             throw new BusinessException("Password và password xác nhận không trùng khớp với nhau, vui lòng thử lại", 400);
         }
     }
-
-
 }
 

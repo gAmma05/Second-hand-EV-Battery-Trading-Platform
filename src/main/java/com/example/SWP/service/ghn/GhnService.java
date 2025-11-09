@@ -364,60 +364,19 @@ public class GhnService {
         return DeliveryStatus.DELIVERED;
     }
 
+    /**
+     * Tạo thông tin đơn giao hàng cho đối tác GHN.
+     */
     public void createGhnOrder(OrderDelivery orderDelivery) {
+        // Kiểm tra đối tượng truyền vào có hợp lệ hay không
         if (orderDelivery == null) {
-            throw new BusinessException("OrderDelivery không tồn tại", 404);
+            throw new BusinessException("Đơn hàng vận chuyển không tồn tại", 404);
         }
 
+        // Gán nhà cung cấp dịch vụ giao hàng là GHN
         orderDelivery.setDeliveryProvider(DeliveryProvider.GHN);
+
+        // Sinh mã vận đơn (tracking number) duy nhất cho GHN
         orderDelivery.setDeliveryTrackingNumber(Utils.generateCode("GHN"));
     }
-
-//    public void validateGhnTokenAndShop(String token, Integer shopId) {
-//        String url = GHN_URL + "/v2/shop/all";
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.set("Token", token);
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        Map<String, Object> body = new HashMap<>();
-//        body.put("offset", 0);
-//        body.put("limit", 50);
-//        body.put("client_phone", "");
-//
-//        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-//
-//        try {
-//            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
-//
-//            if (!response.getStatusCode().is2xxSuccessful()) {
-//                throw new BusinessException("Lỗi khi gọi GHN", response.getStatusCodeValue());
-//            }
-//
-//            Map<String, Object> responseBody = response.getBody();
-//            if (responseBody == null || !responseBody.containsKey("data")) {
-//                throw new BusinessException("Không nhận được data từ GHN", 500);
-//            }
-//
-//            Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
-//            List<Map<String, Object>> shops = (List<Map<String, Object>>) data.get("shops");
-//
-//            if (shops == null || shops.isEmpty()) {
-//                throw new BusinessException("Token hợp lệ nhưng client chưa có shop nào", 400);
-//            }
-//
-//            boolean match = shops.stream()
-//                    .anyMatch(shop -> shopId.equals(((Number) shop.get("_id")).intValue()));
-//
-//            if (!match) {
-//                throw new BusinessException("ShopId không thuộc token này", 400);
-//            }
-//
-//        } catch (HttpClientErrorException.Unauthorized e) {
-//            throw new BusinessException("Token GHN không hợp lệ", 401);
-//        } catch (Exception e) {
-//            throw new BusinessException("Lỗi khi validate token/shopId GHN: " + e.getMessage(), 500);
-//        }
-//    }
-
 }

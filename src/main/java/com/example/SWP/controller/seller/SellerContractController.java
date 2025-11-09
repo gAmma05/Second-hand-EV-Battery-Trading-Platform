@@ -26,7 +26,7 @@ public class SellerContractController {
     SellerContractService sellerContractService;
 
     @GetMapping("/template/{orderId}")
-    public ResponseEntity<?> generateContractTemplateByOrder(
+    public ResponseEntity<ApiResponse<ContractTemplateResponse>> generateContractTemplateByOrder(
             @PathVariable Long orderId,
             Authentication authentication
     ) {
@@ -42,7 +42,7 @@ public class SellerContractController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createContract(
+    public ResponseEntity<ApiResponse<Void>> createContract(
             Authentication authentication,
             @Valid @RequestBody CreateContractRequest request
     ) {
@@ -56,7 +56,7 @@ public class SellerContractController {
     }
 
     @PutMapping("/{contractId}")
-    public ResponseEntity<?> updateContract(
+    public ResponseEntity<ApiResponse<Void>> updateContract(
             Authentication authentication,
             @PathVariable Long contractId,
             @Valid @RequestBody UpdateContractRequest request
@@ -73,7 +73,7 @@ public class SellerContractController {
 
 
     @PostMapping("/{contractId}/sign/send-otp")
-    public ResponseEntity<?> sendContractOtp(
+    public ResponseEntity<ApiResponse<Void>> sendContractOtp(
             Authentication authentication,
             @PathVariable Long contractId
     ) {
@@ -87,7 +87,7 @@ public class SellerContractController {
     }
 
     @PostMapping("/sign/verify")
-    public ResponseEntity<?> verifyContractSignature(
+    public ResponseEntity<ApiResponse<Void>> verifyContractSignature(
             Authentication authentication,
             @Valid @RequestBody VerifyContractSignatureRequest request
     ) {
@@ -101,7 +101,7 @@ public class SellerContractController {
     }
 
     @GetMapping("/{contractId}")
-    public ResponseEntity<?> getContractDetail(
+    public ResponseEntity<ApiResponse<ContractResponse>> getContractDetail(
             Authentication authentication,
             @PathVariable Long contractId
     ) {
@@ -116,9 +116,8 @@ public class SellerContractController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getContractList(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<ContractResponse>>> getContractList(Authentication authentication) {
         List<ContractResponse> response = sellerContractService.getAllContracts(authentication);
-
         return ResponseEntity.ok(
                 ApiResponse.<List<ContractResponse>>builder()
                         .success(true)

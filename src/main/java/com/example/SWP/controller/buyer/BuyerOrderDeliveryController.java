@@ -19,6 +19,9 @@ public class BuyerOrderDeliveryController {
 
     BuyerOrderDeliveryService buyerOrderDeliveryService;
 
+    /**
+     * Người mua xác nhận đã nhận được hàng
+     */
     @PostMapping("/{orderDeliveryId}/confirm-received")
     public ResponseEntity<ApiResponse<Void>> confirmReceived(
             Authentication authentication,
@@ -33,6 +36,9 @@ public class BuyerOrderDeliveryController {
         );
     }
 
+    /**
+     * Lấy danh sách tất cả đơn hàng giao của người mua hiện tại
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<OrderDeliveryResponse>>> getMyDeliveries(Authentication authentication) {
         List<OrderDeliveryResponse> responses = buyerOrderDeliveryService.getMyDeliveries(authentication);
@@ -45,6 +51,9 @@ public class BuyerOrderDeliveryController {
         );
     }
 
+    /**
+     * Lấy chi tiết đơn hàng giao theo ID đơn hàng
+     */
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<OrderDeliveryResponse>> getDeliveryByOrderId(
             Authentication authentication,
