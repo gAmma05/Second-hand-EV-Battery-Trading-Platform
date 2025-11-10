@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -34,7 +35,7 @@ public class Complaint {
 
     @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "image_order")
-    List<ComplaintImage> complaintImages;
+    List<ComplaintImage> complaintImages = new ArrayList<>();
 
     @Column(columnDefinition = "NVARCHAR(1000)")
     String resolutionNotes;

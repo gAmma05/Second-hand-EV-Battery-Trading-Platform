@@ -26,20 +26,6 @@ public interface ComplaintMapper {
     @Mapping(source = "resolution", target = "resolutionNotes")
     void updateComplaint(ComplaintRequest request, @MappingTarget Complaint complaint);
 
-
-    @AfterMapping
-    default void mapImages(CreateComplaintRequest request, @MappingTarget Complaint complaint) {
-        if (request.getComplaintImages() != null) {
-            List<ComplaintImage> images = request.getComplaintImages().stream()
-                    .map(url -> ComplaintImage.builder()
-                            .imageUrl(url)
-                            .complaint(complaint)
-                            .build())
-                    .toList();
-            complaint.setComplaintImages(images);
-        }
-    }
-
     @Named("mapImagesToUrls")
     default List<String> mapImagesToUrls(List<ComplaintImage> images) {
         if (images == null) return null;
