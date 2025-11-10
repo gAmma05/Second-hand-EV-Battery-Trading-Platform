@@ -60,6 +60,7 @@ public class SellerComplaintService {
             complaint.setStatus(ComplaintStatus.RESOLUTION_GIVEN);
             complaint.setUpdatedAt(LocalDateTime.now());
         } else {
+            complaint.setResolutionNotes(request.getResolution());
             if (request.isRequestToAdmin()) {
                 complaint.setStatus(ComplaintStatus.ADMIN_SOLVING);
             } else {

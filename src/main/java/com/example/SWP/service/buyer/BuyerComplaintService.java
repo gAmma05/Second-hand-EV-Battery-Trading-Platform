@@ -4,6 +4,7 @@ import com.example.SWP.dto.request.buyer.CreateComplaintRequest;
 import com.example.SWP.dto.request.buyer.RejectComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
+import com.example.SWP.entity.ComplaintImage;
 import com.example.SWP.entity.OrderDelivery;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ComplaintStatus;
@@ -69,6 +70,17 @@ public class BuyerComplaintService {
         checkCurrentComplaint(request.getOrderId());
 
         Complaint complaint = complaintMapper.toComplaint(request);
+
+        List<ComplaintImage> imageList = new ArrayList<>();
+        for (String url : request.getComplaintImages()) {
+            ComplaintImage image = ComplaintImage.builder()
+                    .complaint(complaint)
+                    .imageUrl(url)
+                    .build();
+            imageList.add(image);
+        }
+        complaint.setComplaintImages(imageList);
+
         complaint.setStatus(ComplaintStatus.PENDING);
         complaint.setCreatedAt(LocalDateTime.now());
 
