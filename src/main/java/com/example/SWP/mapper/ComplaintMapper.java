@@ -20,6 +20,7 @@ public interface ComplaintMapper {
 
     @Mapping(source = "orderId", target = "order.id")
     @Mapping(source = "complaintType", target = "type")
+    @Mapping(target = "complaintImages", ignore = true)
     Complaint toComplaint(CreateComplaintRequest request);
 
     @Mapping(source = "complaintId", target = "id")
@@ -29,7 +30,7 @@ public interface ComplaintMapper {
 
     @AfterMapping
     default void mapImages(CreateComplaintRequest request, @MappingTarget Complaint complaint) {
-        if (request.getComplaintImages() != null && !request.getComplaintImages().isEmpty()) {
+        if (request.getComplaintImages() != null) {
             List<ComplaintImage> images = request.getComplaintImages().stream()
                     .map(url -> ComplaintImage.builder()
                             .imageUrl(url)

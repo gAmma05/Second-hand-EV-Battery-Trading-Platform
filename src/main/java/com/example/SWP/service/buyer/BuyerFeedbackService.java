@@ -54,7 +54,7 @@ public class BuyerFeedbackService {
             throw new BusinessException("Đơn hàng của bạn chưa được giao hoặc bạn chưa nhận, bạn không thể feedback trên order này", 400);
         }
 
-        if (complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.RESOLVING) > 0
+        if (complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.PENDING) > 0
                 || complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.ADMIN_SOLVING) > 0
                 || complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.REJECTED) > 0) {
             throw new BusinessException("Đơn hàng này đang có khiếu nại, chưa thể feedback", 400);
