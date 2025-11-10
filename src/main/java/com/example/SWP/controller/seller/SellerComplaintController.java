@@ -24,17 +24,6 @@ public class SellerComplaintController {
 
     ComplaintService complaintService;
 
-    @PatchMapping("/admin-request")
-    public ResponseEntity<?> adminRequestComplaint(Authentication authentication, @RequestParam Long complaintId) {
-        sellerComplaintService.requestToAdmin(authentication, complaintId);
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Đã gửi khiếu nại cho ban quản trị (admin) để xử lí")
-                        .build()
-        );
-    }
-
     @PatchMapping("/resolution")
     public ResponseEntity<?> resolveComplaint(Authentication authentication, @Valid @RequestBody ComplaintRequest request) {
         sellerComplaintService.responseComplaint(authentication, request);

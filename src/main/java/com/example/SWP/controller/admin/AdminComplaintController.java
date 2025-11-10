@@ -29,7 +29,7 @@ public class AdminComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint handled successfully")
+                        .message("Xử lí khiếu nại thành công")
                         .build()
         );
     }
@@ -40,7 +40,7 @@ public class AdminComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
-                        .message("Complaint refunded successfully")
+                        .message("Hoàn tiền thành công")
                         .build()
         );
     }
@@ -51,7 +51,7 @@ public class AdminComplaintController {
         return ResponseEntity.ok(
                 ApiResponse.<ComplaintResponse>builder()
                         .success(true)
-                        .message("Complaint detail fetched successfully")
+                        .message("Truy xuất dữ liệu thành công")
                         .data(response)
                         .build()
         );
@@ -64,14 +64,14 @@ public class AdminComplaintController {
             return ResponseEntity.ok(
                     ApiResponse.<ComplaintResponse>builder()
                             .success(true)
-                            .message("List is empty")
+                            .message("Danh sách bị trống")
                             .build()
             );
         }
         return ResponseEntity.ok(
                 ApiResponse.<List<ComplaintResponse>>builder()
                         .success(true)
-                        .message("Fetched complaint list successfully")
+                        .message("Truy xuất dữ liệu thành công")
                         .data(response)
                         .build()
         );
