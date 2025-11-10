@@ -6,16 +6,15 @@ import com.example.SWP.dto.request.seller.ComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
 import com.example.SWP.entity.ComplaintImage;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface ComplaintMapper {
     @Mapping(source = "order.id", target = "orderId")
+    @Mapping(source = "complaintImages", target = "imageUrls", qualifiedByName = "mapImagesToUrls")
     ComplaintResponse toComplaintResponse(Complaint complaint);
 
     @Mapping(source = "orderId", target = "order.id")
@@ -39,5 +38,13 @@ public interface ComplaintMapper {
                     .toList();
             complaint.setComplaintImages(images);
         }
+    }
+
+    @Named("mapImagesToUrls")
+    default List<String> mapImagesToUrls(List<ComplaintImage> images) {
+        if (images == null) return null;
+        return images.stream()
+                .map(ComplaintImage::getImageUrl)
+                .collect(Collectors.toList());
     }
 }
