@@ -70,4 +70,24 @@ public class SellerComplaintController {
                         .build()
         );
     }
+
+    @GetMapping("/list/by-order-id")
+    public ResponseEntity<?> getComplaintListByOrderId(Authentication authentication, @RequestParam long orderId) {
+        List<ComplaintResponse> list = sellerComplaintService.getComplaintsByOrderId(authentication, orderId);
+        if (list == null || list.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.builder()
+                            .success(false)
+                            .message("Danh sách bị trống")
+                            .build()
+            );
+        }
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .success(true)
+                        .message("Truy xuất danh sách khiếu nại bằng orderId thành công")
+                        .data(list)
+                        .build()
+        );
+    }
 }

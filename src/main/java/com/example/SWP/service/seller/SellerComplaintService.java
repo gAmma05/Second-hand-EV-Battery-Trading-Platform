@@ -113,6 +113,16 @@ public class SellerComplaintService {
         return getComplaintsList(list);
     }
 
+    public List<ComplaintResponse> getComplaintsByOrderId(Authentication authentication, Long orderId) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new BusinessException("Không tìm thấy người dùng", 404)
+        );
+
+        List<Complaint> list = complaintRepository.findByOrder_IdAndOrder_Seller_Id(orderId, user.getId());
+        return getComplaintsList(list);
+    }
+
     private List<ComplaintResponse> getComplaintsList(List<Complaint> list) {
         List<ComplaintResponse> response = new ArrayList<>();
         for (Complaint one : list) {
