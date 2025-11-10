@@ -40,7 +40,7 @@ public class BuyerComplaintController {
     public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
         ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);
         if (response == null) {
-            return ResponseEntity.badRequest().body("Failed to fetch complaint detail");
+            return ResponseEntity.badRequest().body("Không thể truy xuất dữ liệu");
         }
         return ResponseEntity.ok(
                 ApiResponse.<ComplaintResponse>builder()
