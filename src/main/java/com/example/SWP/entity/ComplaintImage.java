@@ -22,5 +22,6 @@ public class ComplaintImage {
     @JsonIgnore
     Complaint complaint;
 
+    @Column(columnDefinition = "TEXT")
     String imageUrl;
 }
