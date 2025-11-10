@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,7 +20,7 @@ public class ComplaintResponse {
     ComplaintType type;
     String name;
     String description;
-    String evidenceUrls;
+    List<String> imageUrls;
     String resolutionNotes;
     String createdAt;
     String updatedAt;
