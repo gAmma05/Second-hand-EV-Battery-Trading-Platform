@@ -111,18 +111,46 @@ public class SellerOrderDeliveryService {
             );
         }
 
-        // Trạng thái cập nhật mới phải là trạng thái TIẾP THEO trong enum
-        if (newStatus.ordinal() != currentStatus.ordinal() + 1) {
-            // Lấy tên trạng thái tiếp theo đúng
-            DeliveryStatus[] allStatuses = DeliveryStatus.values();
-            String expectedStatusName = allStatuses[currentStatus.ordinal() + 1].getVietnameseName();
+        Order order = orderDelivery.getOrder();
 
-            throw new BusinessException(
-                    "Trạng thái hiện tại là " + currentStatus.getVietnameseName() +
-                            ", trạng thái tiếp theo phải là " + expectedStatusName,
-                    400
-            );
+        // Logic bỏ qua bước DELIVERING nếu đơn hàng là BUYER_PICKUP
+        if (order.getDeliveryMethod() == DeliveryMethod.BUYER_PICKUP) {
+            // Nếu trạng thái mới là PICKUP_PENDING, chỉ cho phép từ READY → PICKUP_PENDING
+            if (newStatus == DeliveryStatus.PICKUP_PENDING) {
+                if (currentStatus != DeliveryStatus.READY) {
+                    throw new BusinessException(
+                            "Chỉ có thể cập nhật trạng thái " + DeliveryStatus.PICKUP_PENDING.getVietnameseName() +
+                            " từ trạng thái " + DeliveryStatus.READY.getVietnameseName(),
+                            400
+                    );
+                }
+            } else {
+                // Các trạng thái khác vẫn tuần tự
+                if (newStatus.ordinal() != currentStatus.ordinal() + 1) {
+                    DeliveryStatus[] allStatuses = DeliveryStatus.values();
+                    String expectedStatusName = allStatuses[currentStatus.ordinal() + 1].getVietnameseName();
+
+                    throw new BusinessException(
+                            "Trạng thái hiện tại là " + currentStatus.getVietnameseName() +
+                                    ", trạng thái tiếp theo phải là " + expectedStatusName,
+                            400
+                    );
+                }
+            }
+        } else {
+            // Đơn bình thường: tất cả vẫn tuần tự
+            if (newStatus.ordinal() != currentStatus.ordinal() + 1) {
+                DeliveryStatus[] allStatuses = DeliveryStatus.values();
+                String expectedStatusName = allStatuses[currentStatus.ordinal() + 1].getVietnameseName();
+
+                throw new BusinessException(
+                        "Trạng thái hiện tại là " + currentStatus.getVietnameseName() +
+                                ", trạng thái tiếp theo phải là " + expectedStatusName,
+                        400
+                );
+            }
         }
+
 
         // Cập nhật trạng thái và thời gian cập nhật
         orderDelivery.setStatus(newStatus);
@@ -130,8 +158,6 @@ public class SellerOrderDeliveryService {
 
         // Nếu trạng thái mới là PICKUP_PENDING → kích hoạt hóa đơn chưa kích hoạt
         if (newStatus == DeliveryStatus.PICKUP_PENDING) {
-            Order order = orderDelivery.getOrder();
-
             // Lấy hợp đồng liên quan
             Contract contract = contractRepository.findByOrder_Id(order.getId())
                     .orElseThrow(() -> new BusinessException("Hợp đồng không tồn tại", 404));
