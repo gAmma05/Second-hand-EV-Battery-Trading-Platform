@@ -71,7 +71,7 @@ public class AdminComplaintService {
             throw new BusinessException("Bạn chưa thể giải quyết bản khiếu nại này vì nó đang ở trạng thái mà chưa cần bạn (Admin) giải can thiệp", 400);
         }
 
-        complaint.setStatus(ComplaintStatus.REJECTED);
+        complaint.setStatus(ComplaintStatus.RESOLVED);
         complaintRepository.save(complaint);
 
         walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
