@@ -47,7 +47,7 @@ public class AdminComplaintService {
 
         complaint.setResolutionNotes(request.getResolution());
         complaint.setUpdatedAt(LocalDateTime.now());
-        complaint.setStatus(ComplaintStatus.RESOLVED);
+        complaint.setStatus(ComplaintStatus.ADMIN_RESOLUTION_GIVEN);
         complaintRepository.save(complaint);
 
         notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(),
