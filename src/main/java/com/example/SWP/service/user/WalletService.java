@@ -200,28 +200,20 @@ public class WalletService {
 
     //Lich su giao dich cua wallet
     public List<WalletTransaction> getTransactions(
-            Authentication authentication, int page, int size
+            Authentication authentication
     ) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-        Page<WalletTransaction> transactionsPage = walletTransactionRepository.findByWallet(user.getWallet(), pageable);
-
-        return transactionsPage.getContent();
+        return walletTransactionRepository.findByWallet(user.getWallet());
     }
 
     //Loc lich su giao dich theo loai giao dich
     public List<WalletTransaction>  getTransactionsByType(
-            Authentication authentication, TransactionType type, int page, int size
+            Authentication authentication, TransactionType type
     ) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-        Page<WalletTransaction> transactionsPage = walletTransactionRepository.findByWalletAndType(user.getWallet(), type, pageable);
-
-        return transactionsPage.getContent();
+        return walletTransactionRepository.findByWalletAndType(user.getWallet(), type);
     }
 
     //Xem chi tiet 1 giao dich trong lich su wallet
@@ -275,15 +267,10 @@ public class WalletService {
 
     public List<WalletTransaction> getTransactionsByStatus(
             Authentication authentication,
-            PaymentStatus status,
-            int page, int size)
-    {
+            PaymentStatus status
+    ) {
         User user = validateService.validateCurrentUser(authentication);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-        Page<WalletTransaction> transactionsPage = walletTransactionRepository.findByWalletAndStatus(user.getWallet(), status, pageable);
-
-        return transactionsPage.getContent();
+        return walletTransactionRepository.findByWalletAndStatus(user.getWallet(), status);
     }
 }

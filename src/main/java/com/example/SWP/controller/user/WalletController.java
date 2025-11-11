@@ -143,11 +143,9 @@ public class WalletController {
 
     @GetMapping("/transactions")
     public ResponseEntity<ApiResponse<List<WalletTransaction>>> getTransactions(
-            Authentication authentication,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            Authentication authentication) {
 
-        List<WalletTransaction> transactions = walletService.getTransactions(authentication, page, size);
+        List<WalletTransaction> transactions = walletService.getTransactions(authentication);
 
         ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
                 .success(true)
@@ -187,10 +185,9 @@ public class WalletController {
     @GetMapping("/transactions/type")
     public ResponseEntity<ApiResponse<List<WalletTransaction>>> getTransactionsByType(
             Authentication authentication,
-            @RequestParam TransactionType type,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        List<WalletTransaction> transactions = walletService.getTransactionsByType(authentication, type, page, size);
+            @RequestParam TransactionType type
+    ) {
+        List<WalletTransaction> transactions = walletService.getTransactionsByType(authentication, type);
         ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
                 .success(true)
                 .message("Filtered transaction history fetched successfully")
@@ -202,10 +199,9 @@ public class WalletController {
     @GetMapping("/transactions/status")
     public ResponseEntity<ApiResponse<List<WalletTransaction>>> getTransactionsByStatus(
             Authentication authentication,
-            @RequestParam PaymentStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        List<WalletTransaction> transactions = walletService.getTransactionsByStatus(authentication, status, page, size);
+            @RequestParam PaymentStatus status
+    ) {
+        List<WalletTransaction> transactions = walletService.getTransactionsByStatus(authentication, status);
         ApiResponse<List<WalletTransaction>> response = ApiResponse.<List<WalletTransaction>>builder()
                 .success(true)
                 .message("Filtered transaction history fetched successfully")
