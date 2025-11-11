@@ -8,15 +8,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface WalletTransactionRepository extends JpaRepository<WalletTransaction, Long> {
     Optional<WalletTransaction> findByOrderId(String orderId);
 
-    List<WalletTransaction> findByWallet(Wallet wallet);
+    Page<WalletTransaction> findByWallet(Wallet wallet, Pageable pageable);
 
-    List<WalletTransaction> findByWalletAndType(Wallet wallet, TransactionType type);
+    Page<WalletTransaction> findByWalletAndType(Wallet wallet, TransactionType type, Pageable pageable);
 
-    List<WalletTransaction> findByWalletAndStatus(Wallet wallet, PaymentStatus status);
+    Page<WalletTransaction> findByWalletAndStatus(Wallet wallet, PaymentStatus status, Pageable pageable);
 }
