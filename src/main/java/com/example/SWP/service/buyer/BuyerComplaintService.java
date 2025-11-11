@@ -129,7 +129,7 @@ public class BuyerComplaintService {
         if (Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
             complaint.setStatus(ComplaintStatus.REJECTED);
             complaint.setUpdatedAt(LocalDateTime.now());
-        } else if (!Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_RESOLUTION_GIVEN)) {
+        } else if (Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_RESOLUTION_GIVEN)) {
             complaint.setStatus(ComplaintStatus.REJECTED);
             complaint.setUpdatedAt(LocalDateTime.now());
             walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
