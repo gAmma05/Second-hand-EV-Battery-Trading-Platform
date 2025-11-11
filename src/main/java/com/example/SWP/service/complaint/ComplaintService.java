@@ -50,9 +50,12 @@ public class ComplaintService {
 
         ComplaintResponse response = complaintMapper.toComplaintResponse(complaint);
         if (user.getRole() == Role.SELLER) {
-            response.setName(complaint.getOrder().getBuyer().getFullName());
+            response.setBuyerName(complaint.getOrder().getBuyer().getFullName());
         } else if (user.getRole() == Role.BUYER) {
-            response.setName(complaint.getOrder().getSeller().getFullName());
+            response.setSellerName(complaint.getOrder().getSeller().getFullName());
+        } else if (user.getRole() == Role.ADMIN) {
+            response.setSellerName(complaint.getOrder().getSeller().getFullName());
+            response.setBuyerName(complaint.getOrder().getBuyer().getFullName());
         }
         return response;
     }
