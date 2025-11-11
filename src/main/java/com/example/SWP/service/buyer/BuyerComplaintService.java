@@ -129,16 +129,17 @@ public class BuyerComplaintService {
         if (Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
             complaint.setStatus(ComplaintStatus.REJECTED);
             complaint.setUpdatedAt(LocalDateTime.now());
+            notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Người mua đã từ chối hướng giải quyết của bạn. Lý do: " + request.getReason() + ".");
         } else if (Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_RESOLUTION_GIVEN)) {
-            complaint.setStatus(ComplaintStatus.REJECTED);
+            complaint.setStatus(ComplaintStatus.RESOLVED);
             complaint.setUpdatedAt(LocalDateTime.now());
             walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
+            notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Người mua đã từ chối hướng giải quyết của admin. Lý do: " + request.getReason() + "."
+                    + " Đơn hàng sẽ được hoàn tiền");
         } else {
             throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài khiếu nại này này", 400);
         }
         complaintRepository.save(complaint);
-
-        notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Người mua đã từ chối hướng giải quyết của bạn. Lý do: " + request.getReason() + ".");
     }
 
     public List<ComplaintResponse> getMyComplaints(Authentication authentication) {
