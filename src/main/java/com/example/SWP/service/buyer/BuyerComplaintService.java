@@ -17,6 +17,7 @@ import com.example.SWP.repository.ComplaintRepository;
 import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.user.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
@@ -44,14 +45,14 @@ public class BuyerComplaintService {
 
     NotificationService notificationService;
 
+    WalletService walletService;
+
     public void createComplaint(Authentication authentication, CreateComplaintRequest request) {
 
         int DUE_DATE = 7;
 
         String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("Không tìm thấy người dùng", 404)
-        );
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
 
@@ -73,10 +74,7 @@ public class BuyerComplaintService {
 
         List<ComplaintImage> imageList = new ArrayList<>();
         for (String url : request.getComplaintImages()) {
-            ComplaintImage image = ComplaintImage.builder()
-                    .complaint(complaint)
-                    .imageUrl(url)
-                    .build();
+            ComplaintImage image = ComplaintImage.builder().complaint(complaint).imageUrl(url).build();
             imageList.add(image);
         }
         complaint.setComplaintImages(imageList);
@@ -86,11 +84,7 @@ public class BuyerComplaintService {
 
         complaintRepository.save(complaint);
 
-        notificationService.sendNotificationToOneUser(
-                orderDelivery.getOrder().getSeller().getEmail(),
-                "Về sản phẩm của bạn",
-                "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng."
-        );
+        notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng.");
     }
 
     private void checkCurrentComplaint(Long orderId) {
@@ -102,18 +96,15 @@ public class BuyerComplaintService {
 
     public void acceptComplaint(Authentication authentication, Long complaintId) {
         String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("Không tìm thấy người dùng", 404)
-        );
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
-        Complaint complaint = complaintRepository.findById(complaintId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy khiếu nại", 404));
+        Complaint complaint = complaintRepository.findById(complaintId).orElseThrow(() -> new BusinessException("Không tìm thấy khiếu nại", 404));
 
         if (!Objects.equals(complaint.getOrder().getBuyer().getId(), user.getId())) {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
-        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN) && !Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_RESOLUTION_GIVEN)) {
             throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài post này", 400);
         }
 
@@ -122,46 +113,37 @@ public class BuyerComplaintService {
         complaint.getOrder().getPost().setStatus(PostStatus.SOLD);
         complaintRepository.save(complaint);
 
-        notificationService.sendNotificationToOneUser(
-                complaint.getOrder().getSeller().getEmail(),
-                "Về sản phẩm của bạn",
-                "Người mua đã chấp nhận hướng giải quyết của bạn."
-        );
+        notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Người mua đã chấp nhận hướng giải quyết của bạn.");
     }
 
     public void rejectComplaint(Authentication authentication, RejectComplaintRequest request) {
         String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("Không tìm thấy người dùng", 404)
-        );
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
-        Complaint complaint = complaintRepository.findById(request.getComplaintId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy khiếu nại", 404));
+        Complaint complaint = complaintRepository.findById(request.getComplaintId()).orElseThrow(() -> new BusinessException("Không tìm thấy khiếu nại", 404));
 
         if (!Objects.equals(complaint.getOrder().getBuyer().getId(), user.getId())) {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
-        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
+        if (Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
+            complaint.setStatus(ComplaintStatus.REJECTED);
+            complaint.setUpdatedAt(LocalDateTime.now());
+        } else if (!Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_RESOLUTION_GIVEN)) {
+            complaint.setStatus(ComplaintStatus.REJECTED);
+            complaint.setUpdatedAt(LocalDateTime.now());
+            walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
+        } else {
             throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài khiếu nại này này", 400);
         }
-
-        complaint.setStatus(ComplaintStatus.REJECTED);
-        complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
 
-        notificationService.sendNotificationToOneUser(
-                complaint.getOrder().getSeller().getEmail(),
-                "Về sản phẩm của bạn",
-                "Người mua đã từ chối hướng giải quyết của bạn. Lý do: " + request.getReason() + "."
-        );
+        notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Người mua đã từ chối hướng giải quyết của bạn. Lý do: " + request.getReason() + ".");
     }
 
     public List<ComplaintResponse> getMyComplaints(Authentication authentication) {
         String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("Không tìm thấy người dùng", 404)
-        );
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         List<Complaint> list = complaintRepository.findByOrder_Buyer_Id(user.getId());
         return getComplaintsList(list);
@@ -169,9 +151,7 @@ public class BuyerComplaintService {
 
     public List<ComplaintResponse> getComplaintsByOrderId(Authentication authentication, Long orderId) {
         String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BusinessException("Không tìm thấy người dùng", 404)
-        );
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         List<Complaint> list = complaintRepository.findByOrder_IdAndOrder_Buyer_Id(orderId, user.getId());
         return getComplaintsList(list);
@@ -181,7 +161,7 @@ public class BuyerComplaintService {
         List<ComplaintResponse> response = new ArrayList<>();
         for (Complaint one : list) {
             ComplaintResponse complaint = complaintMapper.toComplaintResponse(one);
-            complaint.setName(one.getOrder().getSeller().getFullName());
+            complaint.setSellerName(one.getOrder().getSeller().getFullName());
             response.add(complaint);
         }
         return response;

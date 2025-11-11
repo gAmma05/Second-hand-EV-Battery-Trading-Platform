@@ -3,7 +3,6 @@ package com.example.SWP.service.admin;
 import com.example.SWP.dto.request.admin.HandleComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
-import com.example.SWP.entity.User;
 import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ComplaintMapper;
@@ -13,7 +12,6 @@ import com.example.SWP.service.user.WalletService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

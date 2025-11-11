@@ -18,7 +18,8 @@ public class ComplaintResponse {
     Long id;
     Long orderId;
     ComplaintType type;
-    String name;
+    String sellerName;
+    String buyerName;
     String description;
     List<String> imageUrls;
     String resolutionNotes;
