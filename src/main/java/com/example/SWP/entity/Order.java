@@ -51,6 +51,8 @@ public class Order {
 
     BigDecimal depositPercentage;
 
+    Boolean wantDeposit;
+
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(50)")
     OrderStatus status;

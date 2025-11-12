@@ -5,11 +5,14 @@ import com.example.SWP.dto.response.user.OrderResponse;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
+import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderMapper;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.service.notification.NotificationService;
+import com.example.SWP.service.user.FeeService;
+import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -28,6 +32,8 @@ public class SellerOrderService {
     NotificationService notificationService;
     ValidateService validateService;
     OrderMapper orderMapper;
+    FeeService feeService;
+    WalletService walletService;
 
     /**
      * Lấy chi tiết 1 đơn hàng của người bán
@@ -82,6 +88,21 @@ public class SellerOrderService {
         order.setStatus(OrderStatus.APPROVED);
         orderRepository.save(order);
 
+        // Hoàn tiền cho đơn hàng đang đặt cọc khi người bán chấp nhận đơn không đặt cọc
+        Order depositedOrder = orderRepository.findByPost_IdAndWantDepositAndStatus(post.getId(), true, OrderStatus.PENDING);
+        if(depositedOrder != null) {
+            BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
+            walletService.refundToWallet(depositedOrder.getBuyer(), refundAmount);
+
+            // Thông báo hoàn tiền cọc
+            notificationService.sendNotificationToOneUser(
+                    depositedOrder.getBuyer().getEmail(),
+                    "Hoàn tiền cọc đơn hàng #" + depositedOrder.getId(),
+                    "Đơn hàng đặt cọc của bạn đã bị từ chối do người bán chấp nhận đơn hàng khác. " +
+                            "Số tiền **" + refundAmount + " VND** đã được hoàn vào ví của bạn."
+            );
+        }
+
         // Tự động từ chối các đơn hàng khác đang chờ duyệt cùng bài đăng
         List<Order> otherPendingOrders = orderRepository.findAllByPost_IdAndStatus(post.getId(), OrderStatus.PENDING);
         for (Order otherOrder : otherPendingOrders) {
@@ -126,6 +147,20 @@ public class SellerOrderService {
         // Chỉ được từ chối đơn hàng đang ở trạng thái PENDING
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BusinessException("Chỉ có thể từ chối đơn hàng đang chờ duyệt", 400);
+        }
+
+        // Hoàn tiền cọc nếu người bán từ chối đơn hàng đặt cọc
+        if(order.getWantDeposit()) {
+            Post post = order.getPost();
+            BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
+            walletService.refundToWallet(order.getBuyer(), refundAmount);
+
+            // Gửi thông báo hoàn tiền
+            notificationService.sendNotificationToOneUser(
+                    order.getBuyer().getEmail(),
+                    "Hoàn tiền cọc đơn hàng #" + order.getId(),
+                    "Đơn hàng của bạn đã bị từ chối. Số tiền cọc **" + refundAmount + " VND** đã được hoàn vào ví của bạn."
+            );
         }
 
         // Cập nhật trạng thái đơn hàng sang REJECTED

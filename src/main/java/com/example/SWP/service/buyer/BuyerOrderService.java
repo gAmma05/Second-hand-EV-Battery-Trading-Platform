@@ -9,13 +9,18 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.PaymentType;
+import com.example.SWP.enums.TransactionType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderMapper;
+import com.example.SWP.repository.AppConfigRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
+import com.example.SWP.service.admin.AdminConfigService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.FeeService;
+import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
+import com.example.SWP.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
@@ -39,10 +44,9 @@ public class BuyerOrderService {
     ValidateService validateService;
     OrderMapper orderMapper;
     FeeService feeService;
-
-    @NonFinal
-    @Value("${deposit-percentage}")
-    BigDecimal depositPercentage;
+    WalletService walletService;
+    AppConfigRepository appConfigRepository;
+    AdminConfigService adminConfigService;
 
     /**
      * Người mua tạo đơn hàng mới
@@ -90,9 +94,9 @@ public class BuyerOrderService {
         }
 
         // Nếu đã có đơn đặt cọc đang chờ xử lý thì không được tạo thêm đơn đặt cọc mới
-        if (orderRepository.existsByPost_IdAndPaymentTypeAndStatus(
+        if (orderRepository.existsByPost_IdAndWantDepositAndStatus(
                 post.getId(),
-                PaymentType.DEPOSIT,
+                true,
                 OrderStatus.PENDING)) {
             throw new BusinessException("Bài đăng này đã có đơn hàng được đặt cọc", 400);
         }
@@ -116,8 +120,16 @@ public class BuyerOrderService {
                 .status(OrderStatus.PENDING);
 
         // Nếu là đơn đặt cọc thì gán tỷ lệ đặt cọc
-        if (request.getPaymentType() == PaymentType.DEPOSIT) {
+        if (request.getWantDeposit()) {
+            BigDecimal depositPercentage = adminConfigService.getDepositPercentage();
             orderBuilder.depositPercentage(depositPercentage);
+            orderBuilder.wantDeposit(true);
+
+            // Thanh toán tiền cọc trước
+            BigDecimal depositAmount = feeService.calculateDepositAmount(post.getPrice());
+            String orderId = Utils.generateCode(TransactionType.PAY_INVOICE.name());
+            String description = Utils.generatePaymentDescription(TransactionType.PAY_INVOICE, orderId);
+            walletService.payWithWallet(buyer, depositAmount, orderId, description, TransactionType.PAY_INVOICE);
         }
 
         // Tính phí vận chuyển dựa trên phương thức giao hàng và địa chỉ người mua
@@ -167,6 +179,21 @@ public class BuyerOrderService {
         // Chỉ có thể hủy đơn hàng đang chờ xử lý
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BusinessException("Chỉ có thể hủy đơn hàng đang chờ duyệt", 400);
+        }
+
+        // Nếu là đặt cọc trước thì sẽ hoàn tiền về ví cho người mua
+        if(order.getWantDeposit()) {
+            Post post = order.getPost();
+            BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
+            walletService.refundToWallet(user, refundAmount);
+
+            // Thông báo hoàn tiền
+            notificationService.sendNotificationToOneUser(
+                    user.getEmail(),
+                    "Hoàn tiền cọc đơn hàng đã hủy",
+                    String.format("Bạn đã hủy đơn hàng #%d. Số tiền cọc **%s VND** đã được hoàn vào ví của bạn.",
+                            order.getId(), refundAmount.toString())
+            );
         }
 
         // Cập nhật trạng thái đơn hàng thành CANCELED

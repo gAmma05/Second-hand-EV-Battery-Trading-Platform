@@ -35,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
     final InvoiceRepository invoiceRepository;
     final OrderDeliveryRepository orderDeliveryRepository;
     final WalletRepository walletRepository;
+    final AppConfigRepository appConfigRepository;
 
     @Value("${seller-package.basic.price}")
     BigDecimal basicPrice_sellerPackage;
@@ -61,13 +62,14 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${priority-package.premium.durationDays}")
     int premiumDurationDays_priorityPackage;
 
+    @Value("${deposit-percentage}")
+    BigDecimal depositPercentage;
 
     @Override
     public void run(String... args) {
 
         //Tao package
         if (packageRepository.count() == 0) {
-
             SellerPackage basic = SellerPackage.builder()
                     .type(SellerPackageType.BASIC)
                     .price(basicPrice_sellerPackage)
@@ -286,10 +288,11 @@ public class DataInitializer implements CommandLineRunner {
                             .seller(p.getUser())
                             .buyer(u)
                             .deliveryMethod(DeliveryMethod.BUYER_PICKUP)
-                            .paymentType(PaymentType.FULL)
+                            .paymentType(PaymentType.PLATFORM)
                             .serviceTypeId(null)
                             .shippingFee(BigDecimal.valueOf(200000.0))
                             .depositPercentage(null)
+                            .wantDeposit(true)
                             .status(OrderStatus.APPROVED)
                             .createdAt(LocalDateTime.now().minusDays(7))
                             .build();
@@ -401,6 +404,17 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Post Mejiro created for demo purpose.");
         } else {
             log.warn("Post Mejiro already exist, skipping initialization");
+        }
+
+        if (!appConfigRepository.existsByConfigKey("DEPOSIT_PERCENTAGE_KEY")) {
+
+            AppConfig depositConfig = AppConfig.builder()
+                    .configKey("DEPOSIT_PERCENTAGE_KEY")
+                    .configValue("0.20")
+                    .description("Tỉ lệ phần trăm đặt cọc bắt buộc cho các giao dịch.")
+                    .build();
+
+            appConfigRepository.save(depositConfig);
         }
     }
 }
