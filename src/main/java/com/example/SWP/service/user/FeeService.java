@@ -5,6 +5,7 @@ import com.example.SWP.dto.response.ghn.FeeResponse;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.DeliveryMethod;
+import com.example.SWP.service.admin.AdminConfigService;
 import com.example.SWP.service.ghn.GhnService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,10 +23,7 @@ import java.math.RoundingMode;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class FeeService {
     GhnService ghnService;
-
-    @NonFinal
-    @Value("${deposit-percentage}")
-    BigDecimal depositPercentage;
+    AdminConfigService adminConfigService;
 
     /**
      * Tính tổng tiền = fee + phí vận chuyển, làm tròn 0 chữ số thập phân (HALF_UP)
@@ -39,6 +37,7 @@ public class FeeService {
      * Tính tiền đặt cọc = fee * depositPercentage, làm tròn 0 chữ số thập phân (HALF_UP)
      */
     public BigDecimal calculateDepositAmount(BigDecimal fee) {
+        BigDecimal depositPercentage = adminConfigService.getDepositPercentage();
         return fee.multiply(depositPercentage)
                 .setScale(0, RoundingMode.HALF_UP);
     }

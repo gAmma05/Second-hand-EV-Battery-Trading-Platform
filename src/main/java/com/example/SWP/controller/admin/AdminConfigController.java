@@ -1,8 +1,10 @@
 package com.example.SWP.controller.admin;
 
+import com.example.SWP.dto.request.admin.AppConfigRequest;
 import com.example.SWP.dto.request.admin.PriorityPackageRequest;
 import com.example.SWP.dto.request.admin.SellerPackageRequest;
 import com.example.SWP.dto.response.ApiResponse;
+import com.example.SWP.entity.AppConfig;
 import com.example.SWP.entity.PriorityPackage;
 import com.example.SWP.entity.SellerPackage;
 import com.example.SWP.service.admin.AdminConfigService;
@@ -126,6 +128,75 @@ public class AdminConfigController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Xóa gói ưu tiên thành công.")
+                        .build()
+        );
+    }
+
+    /**
+     * Lấy tất cả các cấu hình hệ thống
+     */
+    @GetMapping("/app-configs")
+    public ResponseEntity<ApiResponse<List<AppConfig>>> findAllAppConfigs() {
+        List<AppConfig> responses = adminConfigService.findAllAppConfigs();
+        return ResponseEntity.ok(
+                ApiResponse.<List<AppConfig>>builder()
+                        .success(true)
+                        .message("Lấy danh sách cấu hình hệ thống thành công.")
+                        .data(responses)
+                        .build()
+        );
+    }
+
+    /**
+     * Thêm cấu hình hệ thống
+     */
+    @PostMapping("/app-configs")
+    public ResponseEntity<ApiResponse<AppConfig>> createAppConfig(
+            @Valid @RequestBody AppConfigRequest request) {
+
+        AppConfig createdConfig = adminConfigService.createAppConfig(request);
+
+        return new ResponseEntity<>(
+                ApiResponse.<AppConfig>builder()
+                        .success(true)
+                        .message("Thêm cấu hình hệ thống thành công.")
+                        .data(createdConfig)
+                        .build(),
+                HttpStatus.CREATED
+        );
+    }
+
+    /**
+     * Cập nhật cấu hình hệ thống
+     */
+    @PutMapping("/app-configs")
+    public ResponseEntity<ApiResponse<AppConfig>> updateAppConfig(
+            @Valid @RequestBody AppConfigRequest request) {
+
+        AppConfig updatedConfig = adminConfigService.updateAppConfig(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<AppConfig>builder()
+                        .success(true)
+                        .message("Cập nhật cấu hình hệ thống thành công.")
+                        .data(updatedConfig)
+                        .build()
+        );
+    }
+
+    /**
+     * Xóa cấu hình hệ thống bằng ID
+     */
+    @DeleteMapping("/app-configs/id/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteAppConfigById(
+            @PathVariable Long id) {
+
+        adminConfigService.deleteAppConfigById(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Xóa cấu hình hệ thống thành công.")
                         .build()
         );
     }

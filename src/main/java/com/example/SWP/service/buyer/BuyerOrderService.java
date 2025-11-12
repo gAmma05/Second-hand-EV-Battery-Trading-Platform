@@ -12,8 +12,10 @@ import com.example.SWP.enums.PaymentType;
 import com.example.SWP.enums.TransactionType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderMapper;
+import com.example.SWP.repository.AppConfigRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
+import com.example.SWP.service.admin.AdminConfigService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.FeeService;
 import com.example.SWP.service.user.WalletService;
@@ -43,10 +45,8 @@ public class BuyerOrderService {
     OrderMapper orderMapper;
     FeeService feeService;
     WalletService walletService;
-
-    @NonFinal
-    @Value("${deposit-percentage}")
-    BigDecimal depositPercentage;
+    AppConfigRepository appConfigRepository;
+    AdminConfigService adminConfigService;
 
     /**
      * Người mua tạo đơn hàng mới
@@ -121,6 +121,7 @@ public class BuyerOrderService {
 
         // Nếu là đơn đặt cọc thì gán tỷ lệ đặt cọc
         if (request.getWantDeposit()) {
+            BigDecimal depositPercentage = adminConfigService.getDepositPercentage();
             orderBuilder.depositPercentage(depositPercentage);
             orderBuilder.wantDeposit(true);
 
