@@ -50,23 +50,6 @@ public class BuyerInvoiceService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy hợp đồng", 404));
 
         Order order = contract.getOrder();
-        PaymentType paymentType = order.getPaymentType();
-
-        // Nếu loại thanh toán là "ĐẶT CỌC" → tạo hóa đơn đặt cọc trước
-        if (paymentType == PaymentType.DEPOSIT) {
-            BigDecimal depositFee = feeService.calculateDepositAmount(order.getPost().getPrice());
-
-            Invoice depositInvoice = Invoice.builder()
-                    .contract(contract)
-                    .invoiceNumber(Utils.generateCode("DEPOSIT_FEE_INVOICE"))
-                    .totalPrice(depositFee)
-                    .createdAt(LocalDateTime.now())
-                    .dueDate(LocalDateTime.now().plusDays(7))
-                    .status(InvoiceStatus.ACTIVE)
-                    .build();
-
-            invoiceRepository.save(depositInvoice);
-        }
 
         // Tính phần còn lại phải thanh toán
         BigDecimal finalFee;
@@ -74,9 +57,9 @@ public class BuyerInvoiceService {
                 .contract(contract)
                 .invoiceNumber(Utils.generateCode("FINAL_FEE_INVOICE"))
                 .createdAt(LocalDateTime.now())
-                .status(InvoiceStatus.INACTIVE); // Chưa kích hoạt nếu là thanh toán đặt cọc
+                .status(InvoiceStatus.INACTIVE); // Chưa kích hoạt
 
-        if (paymentType == PaymentType.DEPOSIT) {
+        if (order.getWantDeposit()) {
             finalFee = feeService.calculateRemainingAmount(order.getPost().getPrice(), order.getShippingFee());
         } else {
             finalFee = contract.getTotalFee();

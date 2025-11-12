@@ -24,5 +24,8 @@ public class CreateOrderRequest {
     @NotNull(message = "Phương thức thanh toán là bắt buộc")
     PaymentType paymentType;
 
+    @NotNull(message = "Vui lòng chọn có đặt cọc trước hay không")
+    Boolean wantDeposit;
+
     Integer serviceTypeId;
 }

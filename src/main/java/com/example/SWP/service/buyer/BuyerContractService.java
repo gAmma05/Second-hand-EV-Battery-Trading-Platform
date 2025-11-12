@@ -4,6 +4,7 @@ import com.example.SWP.dto.request.user.VerifyContractSignatureRequest;
 import com.example.SWP.dto.response.user.ContractResponse;
 import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
+import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
 import com.example.SWP.enums.ContractStatus;
 import com.example.SWP.enums.OrderStatus;
@@ -17,6 +18,8 @@ import com.example.SWP.service.mail.MailService;
 import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.seller.SellerOrderDeliveryService;
+import com.example.SWP.service.user.FeeService;
+import com.example.SWP.service.user.WalletService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -41,6 +45,8 @@ public class BuyerContractService {
     OtpService otpService;
     MailService mailService;
     SellerOrderDeliveryService sellerOrderDeliveryService;
+    FeeService feeService;
+    WalletService walletService;
 
     /**
      * Gửi OTP để người mua ký hợp đồng
@@ -119,11 +125,9 @@ public class BuyerContractService {
         // Tạo hóa đơn nếu cần
         buyerInvoiceService.createInvoice(contract.getId());
 
-        // Nếu thanh toán full, tạo trạng thái giao hàng
+        // Tạo trạng thái giao hàng
         Order order = contract.getOrder();
-        if (order.getPaymentType() == PaymentType.FULL) {
-            sellerOrderDeliveryService.createDeliveryStatus(order);
-        }
+        sellerOrderDeliveryService.createDeliveryStatus(order);
 
         // Thông báo cho người bán
         notificationService.sendNotificationToOneUser(
@@ -160,12 +164,26 @@ public class BuyerContractService {
             throw new BusinessException("Chỉ hợp đồng đang chờ ký mới có thể hủy", 400);
         }
 
+        // Nếu đơn hàng đó đã đặt cọc trước, thì khi hủy hợp đồng sẽ hoàn tiền cọc
+        Order order = contract.getOrder();
+        Post post = order.getPost();
+        if(order.getWantDeposit()) {
+            BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
+            walletService.refundToWallet(buyer, refundAmount);
+
+            // Thông báo hoàn cọc
+            notificationService.sendNotificationToOneUser(
+                    buyer.getEmail(),
+                    "Hoàn tiền cọc hợp đồng đã hủy",
+                    "Hợp đồng cho đơn hàng #" + order.getId() + " đã bị hủy bởi bạn. Số tiền cọc **" + refundAmount + " VND** đã được hoàn vào ví của bạn."
+            );
+        }
+
         // Thay đổi trạng thái hợp đồng và lưu
         contract.setStatus(ContractStatus.CANCELLED);
         contractRepository.save(contract);
 
         // Cập nhật trạng thái đơn hàng
-        Order order = contract.getOrder();
         order.setStatus(OrderStatus.REJECTED);
         orderRepository.save(order);
 

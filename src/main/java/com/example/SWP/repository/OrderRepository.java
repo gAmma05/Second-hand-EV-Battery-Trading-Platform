@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    boolean existsByPost_IdAndPaymentTypeAndStatus(Long postId, PaymentType paymentType, OrderStatus status);
     List<Order> findOrderByBuyer(User buyer);
     boolean existsByBuyer_IdAndPost_IdAndStatus(Long buyerId, Long postId, OrderStatus status);
     List<Order> findOrderByBuyerAndStatus(User buyer, OrderStatus status);
@@ -27,4 +26,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     int countOrderByStatus(OrderStatus orderStatus);
 
     int countOrderByPost_Id(Long postId);
+    boolean existsByPost_IdAndWantDepositAndStatus(Long postId, Boolean wantDeposit, OrderStatus status);
+    Order findByPost_IdAndWantDepositAndStatus(Long postId, Boolean wantDeposit, OrderStatus status);
 }
+

@@ -286,10 +286,11 @@ public class DataInitializer implements CommandLineRunner {
                             .seller(p.getUser())
                             .buyer(u)
                             .deliveryMethod(DeliveryMethod.BUYER_PICKUP)
-                            .paymentType(PaymentType.FULL)
+                            .paymentType(PaymentType.PLATFORM)
                             .serviceTypeId(null)
                             .shippingFee(BigDecimal.valueOf(200000.0))
                             .depositPercentage(null)
+                            .wantDeposit(true)
                             .status(OrderStatus.APPROVED)
                             .createdAt(LocalDateTime.now().minusDays(7))
                             .build();

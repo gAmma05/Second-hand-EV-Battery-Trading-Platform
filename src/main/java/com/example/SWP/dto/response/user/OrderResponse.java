@@ -34,6 +34,7 @@ public class OrderResponse {
     BigDecimal price;
     BigDecimal shippingFee;
     BigDecimal depositPercentage;
+    Boolean wantDeposit;
 
     OrderStatus status;
 
