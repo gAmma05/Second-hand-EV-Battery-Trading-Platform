@@ -8,6 +8,7 @@ import com.example.SWP.dto.request.user.UpdateUserRequest;
 import com.example.SWP.dto.response.ApiResponse;
 import com.example.SWP.dto.response.UserResponse;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.service.admin.AdminConfigService;
 import com.example.SWP.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +16,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final AdminConfigService adminConfigService;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getMyProfile(Authentication authentication) {
@@ -73,6 +77,18 @@ public class UserController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Đổi mật khẩu thành công")
+                        .build()
+        );
+    }
+
+    @GetMapping("/deposit-percentage")
+    public ResponseEntity<ApiResponse<BigDecimal>> getDepositPercentage() {
+        BigDecimal depositPecentage = adminConfigService.getDepositPercentage();
+        return ResponseEntity.ok(
+                ApiResponse.<BigDecimal>builder()
+                        .success(true)
+                        .message("Lấy thông tin phần trăm đặt cọc thành công")
+                        .data(depositPecentage)
                         .build()
         );
     }

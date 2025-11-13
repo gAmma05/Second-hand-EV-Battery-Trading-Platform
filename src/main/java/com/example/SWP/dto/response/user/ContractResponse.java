@@ -53,6 +53,8 @@ public class ContractResponse {
 
     BigDecimal depositPercentage;
 
+    Boolean wantDeposit;
+
     boolean sellerSigned;
     boolean buyerSigned;
 
