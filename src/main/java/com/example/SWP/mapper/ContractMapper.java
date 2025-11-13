@@ -32,6 +32,7 @@ public interface ContractMapper {
     @Mapping(source = "order.post.price", target = "price")
     @Mapping(source = "order.shippingFee", target = "shippingFee")
     @Mapping(source = "order.depositPercentage", target = "depositPercentage")
+    @Mapping(source = "order.wantDeposit", target = "wantDeposit")
     ContractResponse toContractResponse(Contract contract);
 
     List<ContractResponse> toContractResponses(List<Contract> contracts);
