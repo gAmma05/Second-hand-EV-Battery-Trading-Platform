@@ -83,6 +83,10 @@ public class SellerComplaintService {
                 () -> new BusinessException("Không tìm thấy khiếu nại", 404)
         );
 
+        if (!Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
+            throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
+        }
+
         if (!Objects.equals(complaint.getStatus(), ComplaintStatus.BUYER_REJECTED) &&
                 !Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_REVIEWING)) {
             throw new BusinessException("Không thể gửi yêu cầu đến quản trị viên. Khiếu nại phải ở trạng thái bị từ chối hoặc đang xử lý mới có thể yêu cầu", 400);

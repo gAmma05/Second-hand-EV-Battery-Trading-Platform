@@ -3,11 +3,15 @@ package com.example.SWP.service.admin;
 import com.example.SWP.dto.request.admin.HandleComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
+import com.example.SWP.entity.escrow.Escrow;
 import com.example.SWP.enums.ComplaintStatus;
+import com.example.SWP.enums.EscrowStatus;
 import com.example.SWP.enums.ResolutionType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ComplaintMapper;
 import com.example.SWP.repository.ComplaintRepository;
+import com.example.SWP.repository.escrow.EscrowRepository;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.WalletService;
 import lombok.AccessLevel;
@@ -34,6 +38,10 @@ public class AdminComplaintService {
 
     NotificationService notificationService;
 
+    EscrowRepository escrowRepository;
+
+    EscrowService escrowService;
+
     public void handleComplaint(HandleComplaintRequest request) {
         Optional<Complaint> complaintOptional = complaintRepository.findById(request.getComplaintId());
         if (complaintOptional.isEmpty()) {
@@ -48,6 +56,13 @@ public class AdminComplaintService {
 
         if (Objects.equals(request.getResolutionType(), ResolutionType.REFUND)) {
             complaint.setStatus(ComplaintStatus.CLOSED_REFUND); //admin dung ve phia buyer
+            Optional<Escrow> escrowOptional = escrowRepository.findByOrder_Id(complaint.getOrder().getId());
+            if (escrowOptional.isEmpty()) {
+                throw new BusinessException("Không tìm thấy escrow từ order, hãy thử lại!", 404);
+            }
+            Escrow escrow = escrowOptional.get();
+            walletService.refundToWallet(complaint.getOrder().getBuyer(), escrow.getTotalAmount());
+            escrowService.switchStatus(EscrowStatus.REFUND_TO_BUYER, complaint.getOrder().getId());
         } else if (Objects.equals(request.getResolutionType(), ResolutionType.NO_REFUND)) {
             complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND); //admin dung ve phia seller
         }

@@ -30,7 +30,7 @@ public class RefundScheduler {
 
     WalletService walletService;
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 */10 * * * *")
     public void autoRefund() {
         int CHECK_DAYS = 7;
         LocalDateTime today = LocalDateTime.now();
@@ -45,6 +45,7 @@ public class RefundScheduler {
                        throw new BusinessException("Order not found", 404);
                     }
                     Order order = orderOpt.get();
+
                     walletService.refundToWallet(order.getSeller(), order.getPost().getPrice());
                 }
             }
