@@ -79,7 +79,7 @@ public class BuyerComplaintService {
         }
         complaint.setComplaintImages(imageList);
 
-        complaint.setStatus(ComplaintStatus.PENDING);
+        complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
         complaint.setCreatedAt(LocalDateTime.now());
 
         complaintRepository.save(complaint);
@@ -94,6 +94,67 @@ public class BuyerComplaintService {
         }
     }
 
+    private boolean checkExistComplaint(Long orderId) {
+        Optional<Complaint> complaintList = complaintRepository.findByOrder_Id(orderId);
+        if (complaintList.isPresent()) {
+            return true;
+        }
+        return false;
+    }
+
+    public void requestToAdmin(Authentication authentication, CreateComplaintRequest request) {
+        int DUE_DATE = 7;
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
+
+        OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
+
+        if (ChronoUnit.DAYS.between(LocalDateTime.now(), orderDelivery.getCreatedAt()) >= DUE_DATE) {
+            throw new BusinessException("Bạn không thể tạo khiếu nại sau " + DUE_DATE + " ngày kể từ khi nhận hàng", 400);
+        }
+
+        if (!Objects.equals(orderDelivery.getOrder().getBuyer().getId(), user.getId())) {
+            throw new BusinessException("Đơn hàng này không thuộc về bạn", 400);
+        }
+
+        if (!Objects.equals(orderDelivery.getStatus(), DeliveryStatus.RECEIVED)) {
+            throw new BusinessException("Không thể tạo khiếu nại. Đơn hàng có thể chưa được giao hoặc chưa được xác nhận nhận hàng", 400);
+        }
+
+        Complaint complaint = null;
+
+        if (checkExistComplaint(request.getOrderId())) {
+            Optional<Complaint> complaintOpt = complaintRepository.findByOrder_Id(request.getOrderId());
+            if (complaintOpt.isEmpty()) {
+                throw new BusinessException("Không tìm thấy complaint", 404);
+            }
+
+            complaint = complaintOpt.get();
+            if(!Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_REJECTED)){
+                throw new BusinessException("Bạn hãy đợi kết quả xử lí của seller trước khi tiến hành gửi cho admin", 400);
+            }
+            complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
+            complaint.setUpdatedAt(LocalDateTime.now());
+        } else {
+            complaint = complaintMapper.toComplaint(request);
+
+            List<ComplaintImage> imageList = new ArrayList<>();
+            for (String url : request.getComplaintImages()) {
+                ComplaintImage image = ComplaintImage.builder().complaint(complaint).imageUrl(url).build();
+                imageList.add(image);
+            }
+            complaint.setComplaintImages(imageList);
+
+            complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
+            complaint.setCreatedAt(LocalDateTime.now());
+        }
+
+        notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(), "Về khiếu nại trên đơn hàng của bạn", "Đơn khiếu nại đã được gửi lên admin để xử lí.");
+
+        complaintRepository.save(complaint);
+    }
+
     public void acceptComplaint(Authentication authentication, Long complaintId) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
@@ -104,11 +165,11 @@ public class BuyerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
-        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN) && !Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_RESOLUTION_GIVEN)) {
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_RESOLVED)) {
             throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài post này", 400);
         }
 
-        complaint.setStatus(ComplaintStatus.RESOLVED);
+        complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
         complaint.getOrder().setStatus(OrderStatus.DONE);
         complaint.getOrder().getPost().setStatus(PostStatus.SOLD);
         complaintRepository.save(complaint);
@@ -126,16 +187,10 @@ public class BuyerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
-        if (Objects.equals(complaint.getStatus(), ComplaintStatus.RESOLUTION_GIVEN)) {
-            complaint.setStatus(ComplaintStatus.REJECTED);
+        if (Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_RESOLVED)) {
+            complaint.setStatus(ComplaintStatus.BUYER_REJECTED);
             complaint.setUpdatedAt(LocalDateTime.now());
             notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Người mua đã từ chối hướng giải quyết của bạn. Lý do: " + request.getReason() + ".");
-        } else if (Objects.equals(complaint.getStatus(), ComplaintStatus.ADMIN_RESOLUTION_GIVEN)) {
-            complaint.setStatus(ComplaintStatus.RESOLVED);
-            complaint.setUpdatedAt(LocalDateTime.now());
-            walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
-            notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Người mua đã từ chối hướng giải quyết của admin. Lý do: " + request.getReason() + "."
-                    + " Đơn hàng sẽ được hoàn tiền");
         } else {
             throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài khiếu nại này này", 400);
         }
