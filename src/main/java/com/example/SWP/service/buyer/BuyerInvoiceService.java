@@ -7,6 +7,7 @@ import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.InvoiceMapper;
 import com.example.SWP.repository.*;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.seller.SellerOrderDeliveryService;
 import com.example.SWP.service.user.FeeService;
@@ -37,6 +38,7 @@ public class BuyerInvoiceService {
     ValidateService validateService;
     FeeService feeService;
     OrderDeliveryRepository orderDeliveryRepository;
+    EscrowService escrowService;
 
     /**
      * Tạo hóa đơn cho hợp đồng.
@@ -157,6 +159,13 @@ public class BuyerInvoiceService {
             // Các phương thức khác chưa được hỗ trợ
             throw new BusinessException("Phương thức thanh toán không được hỗ trợ", 400);
         }
+
+        escrowService.createEscrow(
+                invoice.getContract().getOrder().getSeller().getId(),
+                user.getId(),
+                invoice.getContract().getOrder(),
+                false,
+                invoice.getTotalPrice());
 
         // Cập nhật trạng thái hóa đơn sau khi thanh toán thành công
         invoice.setPaidAt(LocalDateTime.now());

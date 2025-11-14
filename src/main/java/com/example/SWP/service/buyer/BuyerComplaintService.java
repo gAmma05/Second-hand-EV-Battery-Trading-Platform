@@ -84,7 +84,9 @@ public class BuyerComplaintService {
 
         complaintRepository.save(complaint);
 
-        notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(), "Về sản phẩm của bạn", "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng.");
+        notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(),
+                "Về sản phẩm của bạn",
+                "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng.");
     }
 
     private void checkCurrentComplaint(Long orderId) {
@@ -109,11 +111,7 @@ public class BuyerComplaintService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
-
-        if (ChronoUnit.DAYS.between(LocalDateTime.now(), orderDelivery.getCreatedAt()) >= DUE_DATE) {
-            throw new BusinessException("Bạn không thể tạo khiếu nại sau " + DUE_DATE + " ngày kể từ khi nhận hàng", 400);
-        }
-
+        
         if (!Objects.equals(orderDelivery.getOrder().getBuyer().getId(), user.getId())) {
             throw new BusinessException("Đơn hàng này không thuộc về bạn", 400);
         }
@@ -127,27 +125,17 @@ public class BuyerComplaintService {
         if (checkExistComplaint(request.getOrderId())) {
             Optional<Complaint> complaintOpt = complaintRepository.findByOrder_Id(request.getOrderId());
             if (complaintOpt.isEmpty()) {
-                throw new BusinessException("Không tìm thấy complaint", 404);
+                throw new BusinessException("Không tìm thấy complaint, hãy thử lại", 404);
             }
 
             complaint = complaintOpt.get();
-            if(!Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_REJECTED)){
+            if (!Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_REJECTED)) {
                 throw new BusinessException("Bạn hãy đợi kết quả xử lí của seller trước khi tiến hành gửi cho admin", 400);
             }
             complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
             complaint.setUpdatedAt(LocalDateTime.now());
         } else {
-            complaint = complaintMapper.toComplaint(request);
-
-            List<ComplaintImage> imageList = new ArrayList<>();
-            for (String url : request.getComplaintImages()) {
-                ComplaintImage image = ComplaintImage.builder().complaint(complaint).imageUrl(url).build();
-                imageList.add(image);
-            }
-            complaint.setComplaintImages(imageList);
-
-            complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
-            complaint.setCreatedAt(LocalDateTime.now());
+            throw new BusinessException("Bạn không thể gửi lên admin nếu trước đó chưa gửi cho seller", 400);
         }
 
         notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(), "Về khiếu nại trên đơn hàng của bạn", "Đơn khiếu nại đã được gửi lên admin để xử lí.");

@@ -6,14 +6,12 @@ import com.example.SWP.entity.Contract;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.ContractStatus;
-import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.OtpType;
-import com.example.SWP.enums.PaymentType;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ContractMapper;
 import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.OrderRepository;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.mail.MailService;
 import com.example.SWP.service.mail.OtpService;
 import com.example.SWP.service.notification.NotificationService;
@@ -47,6 +45,7 @@ public class BuyerContractService {
     SellerOrderDeliveryService sellerOrderDeliveryService;
     FeeService feeService;
     WalletService walletService;
+    EscrowService escrowService;
 
     /**
      * Gửi OTP để người mua ký hợp đồng
@@ -167,9 +166,10 @@ public class BuyerContractService {
         // Nếu đơn hàng đó đã đặt cọc trước, thì khi hủy hợp đồng sẽ hoàn tiền cọc
         Order order = contract.getOrder();
         Post post = order.getPost();
-        if(order.getWantDeposit()) {
+        if (order.getWantDeposit()) {
             BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
             walletService.refundToWallet(buyer, refundAmount);
+            escrowService.switchStatus(EscrowStatus.REFUND_TO_BUYER, order.getId());
 
             // Thông báo hoàn cọc
             notificationService.sendNotificationToOneUser(

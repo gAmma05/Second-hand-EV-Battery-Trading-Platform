@@ -1,5 +1,6 @@
 package com.example.SWP.dto.request.admin;
 
+import com.example.SWP.enums.ResolutionType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,6 @@ public class HandleComplaintRequest {
     @NotNull(message = "Complaint ID is required")
     Long complaintId;
 
-    @NotNull(message = "Resolution is required")
-    String resolution;
+    @NotNull(message = "Resolution type is required")
+    ResolutionType resolutionType;
 }

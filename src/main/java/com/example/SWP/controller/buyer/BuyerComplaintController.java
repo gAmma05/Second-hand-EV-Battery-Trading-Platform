@@ -36,17 +36,13 @@ public class BuyerComplaintController {
         );
     }
 
-    @GetMapping("/detail")
-    public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
-        ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);
-        if (response == null) {
-            return ResponseEntity.badRequest().body("Không thể truy xuất dữ liệu");
-        }
+    @PostMapping("/admin-request")
+    public ResponseEntity<?> adminRequestComplaint(Authentication authentication, @Valid @RequestBody CreateComplaintRequest request) {
+        buyerComplaintService.requestToAdmin(authentication, request);
         return ResponseEntity.ok(
-                ApiResponse.<ComplaintResponse>builder()
+                ApiResponse.builder()
                         .success(true)
-                        .message("Truy xuất thông tin khiếu nại thành công")
-                        .data(response)
+                        .message("Request đến admin thành công")
                         .build()
         );
     }
@@ -69,6 +65,21 @@ public class BuyerComplaintController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Từ chối khiếu nại thành công")
+                        .build()
+        );
+    }
+
+    @GetMapping("/detail")
+    public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
+        ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);
+        if (response == null) {
+            return ResponseEntity.badRequest().body("Không thể truy xuất dữ liệu");
+        }
+        return ResponseEntity.ok(
+                ApiResponse.<ComplaintResponse>builder()
+                        .success(true)
+                        .message("Truy xuất thông tin khiếu nại thành công")
+                        .data(response)
                         .build()
         );
     }

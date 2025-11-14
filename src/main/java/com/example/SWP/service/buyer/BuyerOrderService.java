@@ -6,16 +6,14 @@ import com.example.SWP.dto.response.user.OrderResponse;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.DeliveryMethod;
-import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.PaymentType;
-import com.example.SWP.enums.TransactionType;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderMapper;
 import com.example.SWP.repository.AppConfigRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.service.admin.AdminConfigService;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.FeeService;
 import com.example.SWP.service.user.WalletService;
@@ -47,6 +45,7 @@ public class BuyerOrderService {
     WalletService walletService;
     AppConfigRepository appConfigRepository;
     AdminConfigService adminConfigService;
+    EscrowService escrowService;
 
     /**
      * Người mua tạo đơn hàng mới
@@ -69,7 +68,7 @@ public class BuyerOrderService {
         }
 
         // Kiểm tra loại giao hàng mà bài đăng hỗ trợ
-        if(!post.getDeliveryMethods().contains(request.getDeliveryMethod())) {
+        if (!post.getDeliveryMethods().contains(request.getDeliveryMethod())) {
             throw new BusinessException("Bài đăng không hỗ trợ loại giao hàng này", 400);
         }
 
@@ -119,6 +118,8 @@ public class BuyerOrderService {
                 .createdAt(LocalDateTime.now())
                 .status(OrderStatus.PENDING);
 
+        BigDecimal depositAmount = BigDecimal.ZERO;
+
         // Nếu là đơn đặt cọc thì gán tỷ lệ đặt cọc
         if (request.getWantDeposit()) {
             BigDecimal depositPercentage = adminConfigService.getDepositPercentage();
@@ -126,7 +127,7 @@ public class BuyerOrderService {
             orderBuilder.wantDeposit(true);
 
             // Thanh toán tiền cọc trước
-            BigDecimal depositAmount = feeService.calculateDepositAmount(post.getPrice());
+            depositAmount = feeService.calculateDepositAmount(post.getPrice());
             String orderId = Utils.generateCode(TransactionType.PAY_INVOICE.name());
             String description = Utils.generatePaymentDescription(TransactionType.PAY_INVOICE, orderId);
             walletService.payWithWallet(buyer, depositAmount, orderId, description, TransactionType.PAY_INVOICE);
@@ -141,6 +142,8 @@ public class BuyerOrderService {
         );
 
         Order order = orderBuilder.shippingFee(shippingFee).build();
+
+        escrowService.createEscrow(post.getUser().getId(), buyer.getId(), order, request.getWantDeposit(), depositAmount);
 
         // Nếu chọn GHN thì lưu loại dịch vụ, ngược lại để null
         if (request.getDeliveryMethod() == DeliveryMethod.GHN) {
@@ -182,10 +185,12 @@ public class BuyerOrderService {
         }
 
         // Nếu là đặt cọc trước thì sẽ hoàn tiền về ví cho người mua
-        if(order.getWantDeposit()) {
+        if (order.getWantDeposit()) {
             Post post = order.getPost();
             BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
             walletService.refundToWallet(user, refundAmount);
+
+            escrowService.switchStatus(EscrowStatus.REFUND_TO_BUYER, order.getId());
 
             // Thông báo hoàn tiền
             notificationService.sendNotificationToOneUser(
