@@ -19,4 +19,5 @@ public class HandleComplaintRequest {
 
     @NotNull(message = "Resolution type is required")
     ResolutionType resolutionType;
+
 }

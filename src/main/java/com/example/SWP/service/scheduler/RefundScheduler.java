@@ -1,11 +1,18 @@
 package com.example.SWP.service.scheduler;
 
+import com.example.SWP.entity.Complaint;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.OrderDelivery;
+import com.example.SWP.entity.escrow.Escrow;
+import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.enums.DeliveryStatus;
+import com.example.SWP.enums.EscrowStatus;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.repository.ComplaintRepository;
 import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.repository.OrderRepository;
+import com.example.SWP.repository.escrow.EscrowRepository;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.user.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +37,12 @@ public class RefundScheduler {
 
     WalletService walletService;
 
+    ComplaintRepository complaintRepository;
+
+    EscrowRepository escrowRepository;
+
+    EscrowService escrowService;
+
     @Scheduled(cron = "0 */10 * * * *")
     public void autoRefund() {
         int CHECK_DAYS = 7;
@@ -37,23 +50,41 @@ public class RefundScheduler {
         List<OrderDelivery> odList = orderDeliveryRepository.findByStatus(DeliveryStatus.DELIVERED);
         log.info("Running refund job for {} orders", odList.size());
 
-        try {
-            for (OrderDelivery od : odList) {
+        if (odList.isEmpty()) {
+            log.info("No orders to process");
+            return; // KHÔNG LÀM GÌ CẢ
+        }
+
+        for (OrderDelivery od : odList) {
+            try {
                 if (ChronoUnit.DAYS.between(od.getCreatedAt(), today) >= CHECK_DAYS) {
                     Optional<Order> orderOpt = orderRepository.findById(od.getOrder().getId());
-                    if(orderOpt.isEmpty()) {
-                       throw new BusinessException("Order not found", 404);
+                    if (orderOpt.isEmpty()) {
+                        log.warn("Order not found for OrderDelivery {}", od.getId());
+                        continue;
                     }
                     Order order = orderOpt.get();
 
-                    walletService.refundToWallet(order.getSeller(), order.getPost().getPrice());
+                    Optional<Complaint> complaintOptional = complaintRepository.findByOrder_Id(order.getId());
+                    if (complaintOptional.isEmpty() || complaintOptional.get().getStatus() == ComplaintStatus.CLOSED_NO_REFUND) {
+                        Optional<Escrow> escrowOptional = escrowRepository.findByOrder_Id(order.getId());
+                        if (escrowOptional.isEmpty()) {
+                            log.warn("Escrow not found for Order {}", order.getId());
+                            continue;
+                        }
+                        // TODO: logic refund bắt đầu từ đây
+                        Escrow escrow = escrowOptional.get();
+
+                        escrowService.switchStatus(EscrowStatus.RELEASE_TO_SELLER, order.getId());
+                        walletService.refundToWallet(order.getSeller(), escrow.getTotalAmount());
+                    }
                 }
+            } catch (Exception e) {
+                log.error("Error while processing OrderDelivery {}: {}",
+                        od.getId(), e.getMessage());
             }
-            log.info("Refunded {} orders", odList.size());
-            odList.clear();
-            log.info("Clearing order delivery list");
-        } catch (Exception e) {
-            log.error("Error while processing order {}: {}", odList.getFirst().getId(), e.getMessage());
         }
+
+        log.info("Refund job finished");
     }
 }
