@@ -1,33 +1,43 @@
 package com.example.SWP.service.escrow;
 
+import com.example.SWP.dto.response.admin.EscrowResponse;
+import com.example.SWP.dto.response.admin.EscrowTransactionResponse;
 import com.example.SWP.entity.Order;
+import com.example.SWP.entity.User;
 import com.example.SWP.entity.escrow.Escrow;
 import com.example.SWP.entity.escrow.EscrowTransaction;
 import com.example.SWP.enums.EscrowStatus;
 import com.example.SWP.enums.EscrowType;
 import com.example.SWP.exception.BusinessException;
+import com.example.SWP.repository.UserRepository;
 import com.example.SWP.repository.escrow.EscrowRepository;
 import com.example.SWP.repository.escrow.EscrowTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class EscrowService {
 
     EscrowRepository escrowRepository;
 
     EscrowTransactionRepository escrowTransactionRepository;
+    private final UserRepository userRepository;
 
     public void createEscrow(Long sellerId, Long buyerId, Order order, boolean isDeposit, BigDecimal amount) {
-        if (sellerId == null || order.getId() == null) {
-            throw new BusinessException("ID của seller hoặc đơn hàng bị thiếu", 404);
+        log.warn("Creating escrow for buyer {} and seller {} for order {}", buyerId, sellerId, order.getId());
+        if (sellerId == null) {
+            throw new BusinessException("ID của seller bị thiếu", 404);
         }
 
         Optional<Escrow> escrowOptional = escrowRepository.findByOrder_Id(order.getId());
@@ -130,5 +140,48 @@ public class EscrowService {
         }
 
         escrowRepository.save(escrow);
+    }
+
+    public List<EscrowResponse> getEscrowList() {
+        List<Escrow> escrowList = escrowRepository.findAll();
+        List<EscrowResponse> responseList = new ArrayList<>();
+        for (Escrow escrow : escrowList) {
+            EscrowResponse escrowResponse = EscrowResponse.builder()
+                    .escrowId(escrow.getId())
+                    .orderId(escrow.getId())
+                    .buyerName(escrow.getOrder().getBuyer().getFullName())
+                    .sellerName(escrow.getOrder().getSeller().getFullName())
+                    .depositAmount(escrow.getDepositAmount())
+                    .paymentAmount(escrow.getPaymentAmount())
+                    .totalAmount(escrow.getTotalAmount())
+                    .status(escrow.getStatus())
+                    .createdAt(escrow.getCreatedAt())
+                    .updatedAt(escrow.getUpdatedAt())
+                    .build();
+            responseList.add(escrowResponse);
+        }
+        return responseList;
+    }
+
+    public List<EscrowTransactionResponse> getEscrowTransactionList() {
+        List<EscrowTransaction> escrowTransactionList = escrowTransactionRepository.findAll();
+        List<EscrowTransactionResponse> responseList = new ArrayList<>();
+        for (EscrowTransaction escrowTransaction : escrowTransactionList) {
+            Optional<User> user = userRepository.findById(escrowTransaction.getReceiverId());
+            if (user.isEmpty()) {
+                throw new BusinessException("Không tìm thấy người dùng, hãy thử lại", 404);
+            }
+            EscrowTransactionResponse escrowTransactionResponse = EscrowTransactionResponse.builder()
+                    .etId(escrowTransaction.getId())
+                    .escrowId(escrowTransaction.getEscrow().getId())
+                    .orderId(escrowTransaction.getEscrow().getId())
+                    .receiverName(user.get().getFullName())
+                    .amount(escrowTransaction.getAmount())
+                    .type(escrowTransaction.getType())
+                    .createdAt(escrowTransaction.getCreatedAt())
+                    .build();
+            responseList.add(escrowTransactionResponse);
+        }
+        return responseList;
     }
 }

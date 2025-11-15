@@ -377,7 +377,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         if (!postRepository.existsByVehicleBrand("Mejiro")) {
-            Optional<User> user = userRepository.findByEmail("seller@gmail.com");
+            Optional<User> user = userRepository.findByEmail("minedungytb@gmail.com");
             if (user.isEmpty()) {
                 log.error("Seller user not found, cannot create posts.");
                 return;
