@@ -42,10 +42,11 @@ public class EscrowService {
                     .order(order)
                     .depositAmount(isDeposit ? amount : BigDecimal.ZERO)
                     .paymentAmount(isDeposit ? BigDecimal.ZERO : amount)
-                    .totalAmount(amount)
                     .status(EscrowStatus.LOCKED)
                     .createdAt(LocalDateTime.now())
                     .build();
+
+            escrow.setTotalAmount(escrow.getPaymentAmount().add(escrow.getDepositAmount()));
 
             escrowRepository.save(escrow);
 
