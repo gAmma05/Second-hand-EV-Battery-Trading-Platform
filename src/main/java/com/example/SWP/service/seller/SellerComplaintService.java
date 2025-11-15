@@ -34,8 +34,6 @@ public class SellerComplaintService {
 
     NotificationService notificationService;
 
-    WalletService walletService;
-
     public void responseComplaint(Authentication authentication, ComplaintRequest request) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(
@@ -50,32 +48,29 @@ public class SellerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
-        if (Objects.equals(complaint.getStatus(), ComplaintStatus.REJECTED)) {
-            complaint.setStatus(ComplaintStatus.PENDING);
+        if (Objects.equals(complaint.getStatus(), ComplaintStatus.BUYER_REJECTED)) {
+            complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
             complaintRepository.save(complaint);
         }
 
         if (request.isAccepted()) {
             complaintMapper.updateComplaint(request, complaint);
-            complaint.setStatus(ComplaintStatus.RESOLUTION_GIVEN);
-            complaint.setUpdatedAt(LocalDateTime.now());
+            complaint.setStatus(ComplaintStatus.SELLER_RESOLVED);
+            notificationService.sendNotificationToOneUser(
+                    complaint.getOrder().getBuyer().getEmail(),
+                    "Về khiếu nại của bạn",
+                    "Người bán đã đưa ra hướng giải quyết cho khiếu nại của bạn. Nội dung: " + complaint.getResolutionNotes() + "."
+            );
         } else {
             complaint.setResolutionNotes(request.getResolution());
             if (request.isRequestToAdmin()) {
-                complaint.setStatus(ComplaintStatus.ADMIN_SOLVING);
+                complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
             } else {
-                complaint.setStatus(ComplaintStatus.REJECTED);
-                walletService.refundToWallet(complaint.getOrder().getBuyer(), complaint.getOrder().getPost().getPrice());
+                complaint.setStatus(ComplaintStatus.SELLER_REJECTED);
             }
         }
         complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
-
-        notificationService.sendNotificationToOneUser(
-                complaint.getOrder().getBuyer().getEmail(),
-                "Về khiếu nại của bạn",
-                "Người bán đã đưa ra hướng giải quyết cho khiếu nại của bạn. Nội dung: " + complaint.getResolutionNotes() + "."
-        );
     }
 
     public void requestToAdmin(Authentication authentication, Long contractId) {
@@ -88,12 +83,16 @@ public class SellerComplaintService {
                 () -> new BusinessException("Không tìm thấy khiếu nại", 404)
         );
 
-        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.REJECTED) &&
-                !Objects.equals(complaint.getStatus(), ComplaintStatus.PENDING)) {
+        if (!Objects.equals(complaint.getOrder().getSeller().getId(), user.getId())) {
+            throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
+        }
+
+        if (!Objects.equals(complaint.getStatus(), ComplaintStatus.BUYER_REJECTED) &&
+                !Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_REVIEWING)) {
             throw new BusinessException("Không thể gửi yêu cầu đến quản trị viên. Khiếu nại phải ở trạng thái bị từ chối hoặc đang xử lý mới có thể yêu cầu", 400);
         }
 
-        complaint.setStatus(ComplaintStatus.ADMIN_SOLVING);
+        complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
         complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
 

@@ -22,7 +22,7 @@ public class ComplaintScheduler {
 
     ComplaintRepository complaintRepository;
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 */10 * * * *")
     public void autoReqComplaintToAdmin() {
         int CHECK_DAYS = 7;
         LocalDateTime today = LocalDateTime.now();
@@ -31,18 +31,27 @@ public class ComplaintScheduler {
 
         for (Complaint complaint : complaintList) {
             try {
-                if (complaint.getStatus() == ComplaintStatus.PENDING || complaint.getStatus() == ComplaintStatus.REJECTED) {
+                if (complaint.getStatus() == ComplaintStatus.SELLER_REVIEWING
+                        || complaint.getStatus() == ComplaintStatus.BUYER_REJECTED) {
+
                     if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) > CHECK_DAYS) {
-                        complaint.setStatus(ComplaintStatus.ADMIN_SOLVING); //comment before I forgot to mention this in commit
+                        complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
                     }
                     complaint.setUpdatedAt(LocalDateTime.now());
+
+                } else if (complaint.getStatus() == ComplaintStatus.SELLER_REJECTED
+                        || complaint.getStatus() == ComplaintStatus.SELLER_RESOLVED) {
+
+                    if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) > CHECK_DAYS) {
+                        complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
+                    }
                 }
+
                 complaintRepository.save(complaint);
                 log.info("Updated complaint {} status to {}", complaint.getId(), complaint.getStatus());
-                complaintList.clear();
-                log.info("Clearing complaint list");
+
             } catch (Exception e) {
-                log.error("Error while processing order {}: {}", complaint.getId(), e.getMessage());
+                log.error("Error while processing complaint {}: {}", complaint.getId(), e.getMessage());
             }
         }
     }

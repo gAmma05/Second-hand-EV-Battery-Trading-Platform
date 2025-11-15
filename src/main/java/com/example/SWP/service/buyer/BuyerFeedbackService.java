@@ -1,6 +1,7 @@
 package com.example.SWP.service.buyer;
 
 import com.example.SWP.dto.request.buyer.FeedbackRequest;
+import com.example.SWP.entity.Complaint;
 import com.example.SWP.entity.Feedback;
 import com.example.SWP.entity.Order;
 import com.example.SWP.entity.User;
@@ -38,13 +39,9 @@ public class BuyerFeedbackService {
     ComplaintRepository complaintRepository;
 
     public void addFeedback(Authentication authentication, FeedbackRequest request) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
-                () -> new BusinessException("Không tìm thấy thông tin user", 404)
-        );
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new BusinessException("Không tìm thấy thông tin user", 404));
 
-        Order order = orderRepository.findById(request.getOrderId()).orElseThrow(
-                () -> new BusinessException("Không tìm thấy order", 404)
-        );
+        Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new BusinessException("Không tìm thấy order", 404));
 
         if (!Objects.equals(order.getBuyer().getId(), user.getId())) {
             throw new BusinessException("Order này không phải của bạn", 400);
@@ -54,10 +51,12 @@ public class BuyerFeedbackService {
             throw new BusinessException("Đơn hàng của bạn chưa được giao hoặc bạn chưa nhận, bạn không thể feedback trên order này", 400);
         }
 
-        if (complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.PENDING) > 0
-                || complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.ADMIN_SOLVING) > 0
-                || complaintRepository.countComplaintByOrderIdAndStatus(request.getOrderId(), ComplaintStatus.REJECTED) > 0) {
-            throw new BusinessException("Đơn hàng này đang có khiếu nại, chưa thể feedback", 400);
+        Optional<Complaint> complaintOptional = complaintRepository.findByOrder_Id(request.getOrderId());
+        if (complaintOptional.isPresent()) {
+            Complaint complaint = complaintOptional.get();
+            if (complaint.getStatus() != ComplaintStatus.CLOSED_NO_REFUND && complaint.getStatus() != ComplaintStatus.CLOSED_REFUND) {
+                throw new BusinessException("Đơn hàng này đang có khiếu nại, chưa thể feedback", 400);
+            }
         }
 
         checkCurrentFeedback(request.getOrderId());
@@ -76,9 +75,7 @@ public class BuyerFeedbackService {
     }
 
     public void deleteFeedback(Authentication authentication, Long feedbackId) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
-                () -> new BusinessException("Không tìm thấy thông tin user", 404)
-        );
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new BusinessException("Không tìm thấy thông tin user", 404));
 
         Optional<Feedback> feedbackOptional = feedbackRepository.findById(feedbackId);
         if (feedbackOptional.isEmpty()) {

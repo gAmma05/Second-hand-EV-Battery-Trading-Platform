@@ -51,8 +51,6 @@ public class AdminStatsService {
         statsResponse.setTotalCancelledContract(contractRepository.countContractByStatus(ContractStatus.CANCELLED));
 
         statsResponse.setTotalComplaint((int) complaintRepository.count());
-        statsResponse.setTotalPendingComplaint(complaintRepository.countComplaintByStatus(ComplaintStatus.PENDING));
-        statsResponse.setTotalResolvedComplaint(complaintRepository.countComplaintByStatus(ComplaintStatus.RESOLVED));
 
         return statsResponse;
     }
