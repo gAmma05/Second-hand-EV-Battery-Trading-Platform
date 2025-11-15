@@ -167,10 +167,16 @@ public class EscrowService {
         List<EscrowTransaction> escrowTransactionList = escrowTransactionRepository.findAll();
         List<EscrowTransactionResponse> responseList = new ArrayList<>();
         for (EscrowTransaction escrowTransaction : escrowTransactionList) {
-            Optional<User> user = userRepository.findById(escrowTransaction.getReceiverId());
+            Optional<User> user = null;
+            if (escrowTransaction.getReceiverId() == null) {
+
+            } else {
+                user = userRepository.findById(escrowTransaction.getReceiverId());
+            }
             if (user.isEmpty()) {
                 throw new BusinessException("Không tìm thấy người dùng, hãy thử lại", 404);
             }
+            Long receiverId = user.get().getId();
             EscrowTransactionResponse escrowTransactionResponse = EscrowTransactionResponse.builder()
                     .etId(escrowTransaction.getId())
                     .escrowId(escrowTransaction.getEscrow().getId())
