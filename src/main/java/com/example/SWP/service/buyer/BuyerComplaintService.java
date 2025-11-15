@@ -7,15 +7,15 @@ import com.example.SWP.entity.Complaint;
 import com.example.SWP.entity.ComplaintImage;
 import com.example.SWP.entity.OrderDelivery;
 import com.example.SWP.entity.User;
-import com.example.SWP.enums.ComplaintStatus;
-import com.example.SWP.enums.DeliveryStatus;
-import com.example.SWP.enums.OrderStatus;
-import com.example.SWP.enums.PostStatus;
+import com.example.SWP.entity.escrow.Escrow;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ComplaintMapper;
 import com.example.SWP.repository.ComplaintRepository;
 import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.repository.UserRepository;
+import com.example.SWP.repository.escrow.EscrowRepository;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +46,10 @@ public class BuyerComplaintService {
     NotificationService notificationService;
 
     WalletService walletService;
+
+    EscrowService escrowService;
+
+    EscrowRepository escrowRepository;
 
     public void createComplaint(Authentication authentication, CreateComplaintRequest request) {
 
@@ -84,6 +88,14 @@ public class BuyerComplaintService {
 
         complaintRepository.save(complaint);
 
+        Optional<Escrow> escrowOptional = escrowRepository.findByOrder_Id(request.getOrderId());
+        if (escrowOptional.isPresent()) {
+            escrowService.switchStatus(EscrowStatus.DISPUTED, request.getOrderId());
+        } else {
+            throw new BusinessException("Không tìm thấy tiền trữ trong hệ thống, hãy thử lại!!", 404);
+        }
+
+
         notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(),
                 "Về sản phẩm của bạn",
                 "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng.");
@@ -111,7 +123,7 @@ public class BuyerComplaintService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
 
         OrderDelivery orderDelivery = orderDeliveryRepository.findByOrderId(request.getOrderId());
-        
+
         if (!Objects.equals(orderDelivery.getOrder().getBuyer().getId(), user.getId())) {
             throw new BusinessException("Đơn hàng này không thuộc về bạn", 400);
         }

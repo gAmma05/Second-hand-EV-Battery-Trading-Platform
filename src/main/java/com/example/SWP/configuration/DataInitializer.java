@@ -1,9 +1,11 @@
 package com.example.SWP.configuration;
 
 import com.example.SWP.entity.*;
+import com.example.SWP.entity.escrow.Escrow;
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.enums.*;
 import com.example.SWP.repository.*;
+import com.example.SWP.repository.escrow.EscrowRepository;
 import com.example.SWP.repository.wallet.WalletRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class DataInitializer implements CommandLineRunner {
     final OrderDeliveryRepository orderDeliveryRepository;
     final WalletRepository walletRepository;
     final AppConfigRepository appConfigRepository;
+    final EscrowRepository escrowRepository;
 
     @Value("${seller-package.basic.price}")
     BigDecimal basicPrice_sellerPackage;
@@ -292,7 +295,7 @@ public class DataInitializer implements CommandLineRunner {
                             .serviceTypeId(null)
                             .shippingFee(BigDecimal.valueOf(200000.0))
                             .depositPercentage(null)
-                            .wantDeposit(true)
+                            .wantDeposit(false)
                             .status(OrderStatus.APPROVED)
                             .createdAt(LocalDateTime.now().minusDays(7))
                             .build();
@@ -334,6 +337,19 @@ public class DataInitializer implements CommandLineRunner {
                             .build();
 
                     orderDeliveryRepository.save(orderDelivery);
+
+                    Escrow escrow = Escrow.builder()
+                            .depositAmount(BigDecimal.ZERO)
+                            .order(order)
+                            .paymentAmount(p.getPrice())
+                            .createdAt(invoice.getPaidAt())
+                            .sellerId(p.getUser().getId())
+                            .buyerId(u.getId())
+                            .status(EscrowStatus.LOCKED)
+                            .build();
+
+                    escrow.setTotalAmount(escrow.getDepositAmount().add(escrow.getPaymentAmount()));
+                    escrowRepository.save(escrow);
                 }
 
             } else {
