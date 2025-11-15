@@ -80,24 +80,24 @@ public class SellerPostService {
                 request.getVoltage()
         );
 
-        AiProductRequest aiProductRequest = AiProductRequest.builder()
-                .productType(request.getProductType())
-                .vehicleBrand(request.getVehicleBrand())
-                .model(request.getModel())
-                .yearOfManufacture(request.getYearOfManufacture())
-                .color(request.getColor())
-                .mileage(request.getMileage())
-                .batteryType(request.getBatteryType())
-                .capacity(request.getCapacity())
-                .voltage(request.getVoltage())
-                .batteryBrand(request.getBatteryBrand())
-                .build();
-
-        boolean isValid = aiService.validateProduct(aiProductRequest);
-
-        if (!isValid) {
-            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
-        }
+//        AiProductRequest aiProductRequest = AiProductRequest.builder()
+//                .productType(request.getProductType())
+//                .vehicleBrand(request.getVehicleBrand())
+//                .model(request.getModel())
+//                .yearOfManufacture(request.getYearOfManufacture())
+//                .color(request.getColor())
+//                .mileage(request.getMileage())
+//                .batteryType(request.getBatteryType())
+//                .capacity(request.getCapacity())
+//                .voltage(request.getVoltage())
+//                .batteryBrand(request.getBatteryBrand())
+//                .build();
+//
+//        boolean isValid = aiService.validateProduct(aiProductRequest);
+//
+//        if (!isValid) {
+//            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
+//        }
 
         Post.PostBuilder postBuilder = Post.builder()
                 .user(user)
@@ -210,24 +210,24 @@ public class SellerPostService {
                 request.getVoltage()
         );
 
-        AiProductRequest aiProductRequest = AiProductRequest.builder()
-                .productType(request.getProductType())
-                .vehicleBrand(request.getVehicleBrand())
-                .model(request.getModel())
-                .yearOfManufacture(request.getYearOfManufacture())
-                .color(request.getColor())
-                .mileage(request.getMileage())
-                .batteryType(request.getBatteryType())
-                .capacity(request.getCapacity())
-                .voltage(request.getVoltage())
-                .batteryBrand(request.getBatteryBrand())
-                .build();
-
-        boolean isValid = aiService.validateProduct(aiProductRequest);
-
-        if (!isValid) {
-            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
-        }
+//        AiProductRequest aiProductRequest = AiProductRequest.builder()
+//                .productType(request.getProductType())
+//                .vehicleBrand(request.getVehicleBrand())
+//                .model(request.getModel())
+//                .yearOfManufacture(request.getYearOfManufacture())
+//                .color(request.getColor())
+//                .mileage(request.getMileage())
+//                .batteryType(request.getBatteryType())
+//                .capacity(request.getCapacity())
+//                .voltage(request.getVoltage())
+//                .batteryBrand(request.getBatteryBrand())
+//                .build();
+//
+//        boolean isValid = aiService.validateProduct(aiProductRequest);
+//
+//        if (!isValid) {
+//            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
+//        }
 
         post.setProductType(request.getProductType());
         post.setTitle(request.getTitle());
