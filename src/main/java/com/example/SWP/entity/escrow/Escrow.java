@@ -8,6 +8,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -21,7 +23,7 @@ public class Escrow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     Order order;
 
@@ -38,4 +40,7 @@ public class Escrow {
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "escrow", cascade = CascadeType.ALL)
+    List<EscrowTransaction> escrowTransactions = new ArrayList<>();
 }

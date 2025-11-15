@@ -1,5 +1,6 @@
 package com.example.SWP.entity;
 
+import com.example.SWP.entity.escrow.Escrow;
 import com.example.SWP.enums.DeliveryMethod;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.PaymentMethod;
@@ -10,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -58,4 +60,7 @@ public class Order {
     OrderStatus status;
 
     LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<Escrow> escrows = new ArrayList<>();
 }
