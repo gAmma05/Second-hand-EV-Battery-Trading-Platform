@@ -165,7 +165,7 @@ public class BuyerInvoiceService {
                 user.getId(),
                 invoice.getContract().getOrder(),
                 false,
-                invoice.getTotalPrice());
+                invoice.getTotalPrice().subtract(invoice.getContract().getOrder().getShippingFee()));
 
         // Cập nhật trạng thái hóa đơn sau khi thanh toán thành công
         invoice.setPaidAt(LocalDateTime.now());

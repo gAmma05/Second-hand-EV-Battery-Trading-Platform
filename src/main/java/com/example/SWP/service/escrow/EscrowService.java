@@ -45,7 +45,6 @@ public class EscrowService {
                     .totalAmount(amount)
                     .status(EscrowStatus.LOCKED)
                     .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
                     .build();
 
             escrowRepository.save(escrow);
@@ -74,12 +73,10 @@ public class EscrowService {
 
         escrow.setUpdatedAt(LocalDateTime.now());
 
-        // Add to payment amount instead of overriding
-        BigDecimal newPayment = escrow.getPaymentAmount().add(amount);
-        escrow.setPaymentAmount(newPayment);
+        escrow.setPaymentAmount(amount);
 
         // Update total
-        escrow.setTotalAmount(escrow.getDepositAmount().add(newPayment));
+        escrow.setTotalAmount(escrow.getDepositAmount().add(amount));
 
         escrowRepository.save(escrow);
 
