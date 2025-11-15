@@ -103,25 +103,25 @@ public class EscrowService {
         escrow.setStatus(status);
         escrow.setUpdatedAt(LocalDateTime.now());
 
-        if (status == EscrowStatus.REFUND_TO_BUYER) {
+        if (status == EscrowStatus.REFUNDED_TO_BUYER) {
             escrowTransactionRepository.save(
                     new EscrowTransaction(
                             null,
                             escrow,
                             escrow.getBuyerId(),
                             escrow.getTotalAmount(),
-                            EscrowType.REFUNDED_TO_BUYER,
+                            EscrowType.REFUND_TO_BUYER,
                             LocalDateTime.now()
                     )
             );
-        } else if (status == EscrowStatus.RELEASE_TO_SELLER) {
+        } else if (status == EscrowStatus.RELEASED_TO_SELLER) {
             escrowTransactionRepository.save(
                     new EscrowTransaction(
                             null,
                             escrow,
                             escrow.getSellerId(),
                             escrow.getTotalAmount(),
-                            EscrowType.RELEASED_TO_SELLER,
+                            EscrowType.RELEASE_TO_SELLER,
                             LocalDateTime.now()
                     )
             );

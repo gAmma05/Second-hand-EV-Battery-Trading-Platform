@@ -75,7 +75,7 @@ public class RefundScheduler {
                         // TODO: logic refund bắt đầu từ đây
                         Escrow escrow = escrowOptional.get();
 
-                        escrowService.switchStatus(EscrowStatus.RELEASE_TO_SELLER, order.getId());
+                        escrowService.switchStatus(EscrowStatus.RELEASED_TO_SELLER, order.getId());
                         walletService.refundToWallet(order.getSeller(), escrow.getTotalAmount());
                     }
                 }

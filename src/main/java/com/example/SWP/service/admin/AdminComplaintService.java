@@ -62,7 +62,7 @@ public class AdminComplaintService {
             }
             Escrow escrow = escrowOptional.get();
             walletService.refundToWallet(complaint.getOrder().getBuyer(), escrow.getTotalAmount());
-            escrowService.switchStatus(EscrowStatus.REFUND_TO_BUYER, complaint.getOrder().getId());
+            escrowService.switchStatus(EscrowStatus.REFUNDED_TO_BUYER, complaint.getOrder().getId());
         } else if (Objects.equals(request.getResolutionType(), ResolutionType.NO_REFUND)) {
             complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND); //admin dung ve phia seller
         }

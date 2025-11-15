@@ -169,7 +169,7 @@ public class BuyerContractService {
         if (order.getWantDeposit()) {
             BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
             walletService.refundToWallet(buyer, refundAmount);
-            escrowService.switchStatus(EscrowStatus.REFUND_TO_BUYER, order.getId());
+            escrowService.switchStatus(EscrowStatus.REFUNDED_TO_BUYER, order.getId());
 
             // Thông báo hoàn cọc
             notificationService.sendNotificationToOneUser(
