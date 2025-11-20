@@ -36,6 +36,17 @@ public class BuyerComplaintController {
         );
     }
 
+    @PatchMapping("/continue")
+    public ResponseEntity<?> continueComplaint(Authentication authentication, @RequestParam Long complaintId){
+        buyerComplaintService.continueComplaintIfRejected(authentication, complaintId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Cập nhật khiếu nại thành công")
+                        .build()
+        );
+    }
+
     @PostMapping("/admin-request")
     public ResponseEntity<?> adminRequestComplaint(Authentication authentication, @Valid @RequestBody CreateComplaintRequest request) {
         buyerComplaintService.requestToAdmin(authentication, request);

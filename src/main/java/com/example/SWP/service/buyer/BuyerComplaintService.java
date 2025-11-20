@@ -51,9 +51,9 @@ public class BuyerComplaintService {
 
     EscrowRepository escrowRepository;
 
-    public void createComplaint(Authentication authentication, CreateComplaintRequest request) {
+    public int DUE_DATE = 7;
 
-        int DUE_DATE = 7;
+    public void createComplaint(Authentication authentication, CreateComplaintRequest request) {
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
@@ -99,6 +99,24 @@ public class BuyerComplaintService {
         notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getSeller().getEmail(),
                 "Về sản phẩm của bạn",
                 "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng.");
+    }
+
+    public void continueComplaintIfRejected(Authentication authentication, Long complaintId) {
+        Optional<Complaint> complaintOptional = complaintRepository.findById(complaintId);
+        if (complaintOptional.isEmpty()) {
+            throw new BusinessException("Không tìm thấy khiếu nại để tiếp tục", 404);
+        }
+
+        Complaint complaint = complaintOptional.get();
+        if (Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_REJECTED)) {
+            if (ChronoUnit.DAYS.between(LocalDateTime.now(), complaint.getCreatedAt()) >= DUE_DATE) {
+                throw new BusinessException("Vì đã quá " + DUE_DATE + " ngày kể từ khi tạo", 400);
+            }
+
+            complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
+            complaint.setUpdatedAt(LocalDateTime.now());
+            complaintRepository.save(complaint);
+        }
     }
 
     private void checkCurrentComplaint(Long orderId) {
