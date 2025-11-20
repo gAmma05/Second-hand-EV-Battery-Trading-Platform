@@ -184,7 +184,7 @@ public class BuyerComplaintService {
         }
 
         if (!Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_RESOLVED)) {
-            throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối bài post này", 400);
+            throw new BusinessException("Bạn không thể chấp nhận hoặc từ chối khiếu nạiit a này", 400);
         }
 
         complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
