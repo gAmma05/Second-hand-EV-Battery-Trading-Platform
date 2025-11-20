@@ -8,7 +8,6 @@ import com.example.SWP.entity.User;
 import com.example.SWP.enums.Role;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.repository.*;
-import com.example.SWP.service.ghn.GhnService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -36,8 +35,15 @@ public class SellerService {
 
         user.setRole(Role.SELLER);
         user.setStoreName(request.getShopName());
-        user.setStoreDescription(request.getShopDescription());
-        user.setSocialMedia(request.getSocialMedia());
+
+        if(request.getShopDescription() != null) {
+            user.setStoreDescription(request.getShopDescription());
+        }
+
+        if(request.getSocialMedia() != null) {
+            user.setSocialMedia(request.getSocialMedia());
+        }
+
         user.setRemainingBasicPosts(3);
         userRepository.save(user);
     }
@@ -55,8 +61,7 @@ public class SellerService {
     }
 
     public boolean checkIfSeller(User user) {
-        return user.getStoreName() != null && user.getStoreDescription() != null
-                && user.getSocialMedia() != null;
+        return user.getStoreName() != null;
     }
 
 
