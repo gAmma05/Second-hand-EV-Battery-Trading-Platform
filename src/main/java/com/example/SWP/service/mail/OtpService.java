@@ -129,15 +129,11 @@ public class OtpService {
         try {
             String key = getRegistrationKey(email);
 
-            // Kiểm tra xem email này đã có đăng ký đang chờ xác minh hay chưa
-            Boolean exists = redisTemplate.hasKey(key);
-            if (exists) {
-                throw new BusinessException("Email này đã có một đăng ký đang chờ xác minh OTP. Vui lòng xác minh trước khi tiếp tục.", 400);
-            }
-
-            // Lưu thông tin đăng ký tạm thời vào Redis
+            // Lưu thông tin đăng ký tạm thời vào Redis (Ghi đè nếu đã tồn tại)
             String json = objectMapper.writeValueAsString(request);
-            redisTemplate.opsForValue().setIfAbsent(
+
+            // Luôn cập nhật thông tin mới nhất
+            redisTemplate.opsForValue().set(
                     key,
                     json,
                     otpExpireMinutes,
