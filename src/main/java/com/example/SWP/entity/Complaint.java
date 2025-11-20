@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "complaints")
 @NoArgsConstructor
@@ -22,6 +23,7 @@ public class Complaint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "order_id", nullable = false)
     Order order;
