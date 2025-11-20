@@ -2,10 +2,12 @@ package com.example.SWP.configuration;
 
 import com.example.SWP.entity.*;
 import com.example.SWP.entity.escrow.Escrow;
+import com.example.SWP.entity.escrow.EscrowTransaction;
 import com.example.SWP.entity.wallet.Wallet;
 import com.example.SWP.enums.*;
 import com.example.SWP.repository.*;
 import com.example.SWP.repository.escrow.EscrowRepository;
+import com.example.SWP.repository.escrow.EscrowTransactionRepository;
 import com.example.SWP.repository.wallet.WalletRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
     final WalletRepository walletRepository;
     final AppConfigRepository appConfigRepository;
     final EscrowRepository escrowRepository;
+    final EscrowTransactionRepository escrowTransactionRepository;
 
     @Value("${seller-package.basic.price}")
     BigDecimal basicPrice_sellerPackage;
@@ -350,6 +353,16 @@ public class DataInitializer implements CommandLineRunner {
 
                     escrow.setTotalAmount(escrow.getDepositAmount().add(escrow.getPaymentAmount()));
                     escrowRepository.save(escrow);
+
+                    EscrowTransaction escrowTransaction = EscrowTransaction.builder()
+                            .escrow(escrow)
+                            .receiverId(null)
+                            .type(EscrowType.HOLD_PAYMENT)
+                            .amount(p.getPrice())
+                            .createdAt(escrow.getCreatedAt())
+                            .build();
+
+                    escrowTransactionRepository.save(escrowTransaction);
                 }
 
             } else {
