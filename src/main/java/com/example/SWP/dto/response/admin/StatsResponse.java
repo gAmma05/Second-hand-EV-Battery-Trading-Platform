@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,4 +39,7 @@ public class StatsResponse {
     int totalComplaint;
     int totalPendingComplaint;
     int totalResolvedComplaint;
+
+    BigDecimal totalRevenue;
+
 }

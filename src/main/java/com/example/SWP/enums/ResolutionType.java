@@ -2,6 +2,5 @@ package com.example.SWP.enums;
 
 public enum ResolutionType {
     REFUND,
-    NO_REFUND,
-    PENDING
+    NO_REFUND
 }

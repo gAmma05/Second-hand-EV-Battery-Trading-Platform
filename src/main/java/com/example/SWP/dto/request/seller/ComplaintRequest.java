@@ -17,6 +17,8 @@ public class ComplaintRequest {
 
     String resolution;
 
+    String reason;
+
     @NotNull(message = "Bạn chỉ có thể chấp nhận hoặc từ chối xử lí đơn khiếu nại này")
     boolean isAccepted;
 

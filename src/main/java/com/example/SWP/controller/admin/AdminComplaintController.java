@@ -24,7 +24,7 @@ public class AdminComplaintController {
     ComplaintService complaintService;
 
     @PatchMapping("/handle")
-    public ResponseEntity<?> approveComplaint(@RequestBody HandleComplaintRequest request) {
+    public ResponseEntity<?> handleComplaint(@RequestBody HandleComplaintRequest request) {
         adminComplaintService.handleComplaint(request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()

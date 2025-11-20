@@ -35,6 +35,17 @@ public class SellerComplaintController {
         );
     }
 
+    @PatchMapping("/admin-request")
+    public ResponseEntity<?> adminRequestComplaint(Authentication authentication, @RequestParam Long complaintId) {
+        sellerComplaintService.requestToAdmin(authentication, complaintId);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Đã cập nhật khiếu nại")
+                        .build()
+        );
+    }
+
     @GetMapping("/detail")
     public ResponseEntity<?> getComplaintDetail(Authentication authentication, @RequestParam Long complaintId) {
         ComplaintResponse response = complaintService.getComplaintDetail(authentication, complaintId);

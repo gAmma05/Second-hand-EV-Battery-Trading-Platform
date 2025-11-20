@@ -1,5 +1,6 @@
 package com.example.SWP.controller.buyer;
 
+import com.example.SWP.dto.request.buyer.ContinueComplaintRequest;
 import com.example.SWP.dto.request.buyer.CreateComplaintRequest;
 import com.example.SWP.dto.request.buyer.RejectComplaintRequest;
 import com.example.SWP.dto.response.ApiResponse;
@@ -32,6 +33,17 @@ public class BuyerComplaintController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Tạo khiếu nại thành công")
+                        .build()
+        );
+    }
+
+    @PatchMapping("/continue")
+    public ResponseEntity<?> continueComplaint(@RequestBody ContinueComplaintRequest request) {
+        buyerComplaintService.continueComplaintIfRejected(request);
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Cập nhật khiếu nại thành công")
                         .build()
         );
     }

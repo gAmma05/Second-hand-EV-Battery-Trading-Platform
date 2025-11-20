@@ -6,10 +6,12 @@ import com.example.SWP.entity.Order;
 import com.example.SWP.entity.Post;
 import com.example.SWP.entity.User;
 import com.example.SWP.entity.wallet.Wallet;
+import com.example.SWP.enums.EscrowStatus;
 import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.OrderMapper;
 import com.example.SWP.repository.OrderRepository;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.user.FeeService;
 import com.example.SWP.service.user.WalletService;
@@ -34,6 +36,7 @@ public class SellerOrderService {
     OrderMapper orderMapper;
     FeeService feeService;
     WalletService walletService;
+    EscrowService escrowService;
 
     /**
      * Lấy chi tiết 1 đơn hàng của người bán
@@ -93,6 +96,8 @@ public class SellerOrderService {
         if(depositedOrder != null) {
             BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
             walletService.refundToWallet(depositedOrder.getBuyer(), refundAmount);
+
+            escrowService.switchStatus(EscrowStatus.REFUNDED_TO_BUYER, depositedOrder.getId());
 
             // Thông báo hoàn tiền cọc
             notificationService.sendNotificationToOneUser(
@@ -154,6 +159,8 @@ public class SellerOrderService {
             Post post = order.getPost();
             BigDecimal refundAmount = feeService.calculateDepositAmount(post.getPrice());
             walletService.refundToWallet(order.getBuyer(), refundAmount);
+
+            escrowService.switchStatus(EscrowStatus.REFUNDED_TO_BUYER, order.getId());
 
             // Gửi thông báo hoàn tiền
             notificationService.sendNotificationToOneUser(
