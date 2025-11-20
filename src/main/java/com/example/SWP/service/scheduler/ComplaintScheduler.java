@@ -1,8 +1,11 @@
 package com.example.SWP.service.scheduler;
 
 import com.example.SWP.entity.*;
+import com.example.SWP.entity.escrow.Escrow;
 import com.example.SWP.enums.ComplaintStatus;
+import com.example.SWP.enums.EscrowStatus;
 import com.example.SWP.repository.*;
+import com.example.SWP.service.escrow.EscrowService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,6 +24,8 @@ import java.util.List;
 public class ComplaintScheduler {
 
     ComplaintRepository complaintRepository;
+
+    EscrowService escrowService;
 
     @Scheduled(cron = "0 */10 * * * *")
     public void autoReqComplaintToAdmin() {
@@ -45,6 +50,9 @@ public class ComplaintScheduler {
                     if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) > CHECK_DAYS) {
                         complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
                     }
+
+                    escrowService.switchStatus(EscrowStatus.RELEASED_TO_SELLER, complaint.getOrder().getId());
+
                 }
 
                 complaintRepository.save(complaint);
