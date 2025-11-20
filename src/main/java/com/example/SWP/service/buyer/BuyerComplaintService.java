@@ -1,5 +1,6 @@
 package com.example.SWP.service.buyer;
 
+import com.example.SWP.dto.request.buyer.ContinueComplaintRequest;
 import com.example.SWP.dto.request.buyer.CreateComplaintRequest;
 import com.example.SWP.dto.request.buyer.RejectComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
@@ -101,17 +102,20 @@ public class BuyerComplaintService {
                 "Có người mua đã gửi khiếu nại về sản phẩm của bạn. Vui lòng kiểm tra trong ứng dụng.");
     }
 
-    public void continueComplaintIfRejected(Authentication authentication, Long complaintId) {
-        Optional<Complaint> complaintOptional = complaintRepository.findById(complaintId);
+    public void continueComplaintIfRejected(ContinueComplaintRequest request) {
+        Optional<Complaint> complaintOptional = complaintRepository.findById(request.getComplaintId());
         if (complaintOptional.isEmpty()) {
             throw new BusinessException("Không tìm thấy khiếu nại để tiếp tục", 404);
         }
 
         Complaint complaint = complaintOptional.get();
+
         if (Objects.equals(complaint.getStatus(), ComplaintStatus.SELLER_REJECTED)) {
             if (ChronoUnit.DAYS.between(LocalDateTime.now(), complaint.getCreatedAt()) >= DUE_DATE) {
                 throw new BusinessException("Vì đã quá " + DUE_DATE + " ngày kể từ khi tạo", 400);
             }
+
+            complaint.setDescription(request.getReDescription()); //desc mới
 
             complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
             complaint.setUpdatedAt(LocalDateTime.now());

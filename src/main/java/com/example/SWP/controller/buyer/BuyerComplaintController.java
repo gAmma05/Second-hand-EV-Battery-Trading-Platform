@@ -1,5 +1,6 @@
 package com.example.SWP.controller.buyer;
 
+import com.example.SWP.dto.request.buyer.ContinueComplaintRequest;
 import com.example.SWP.dto.request.buyer.CreateComplaintRequest;
 import com.example.SWP.dto.request.buyer.RejectComplaintRequest;
 import com.example.SWP.dto.response.ApiResponse;
@@ -37,8 +38,8 @@ public class BuyerComplaintController {
     }
 
     @PatchMapping("/continue")
-    public ResponseEntity<?> continueComplaint(Authentication authentication, @RequestParam Long complaintId){
-        buyerComplaintService.continueComplaintIfRejected(authentication, complaintId);
+    public ResponseEntity<?> continueComplaint(@RequestBody ContinueComplaintRequest request) {
+        buyerComplaintService.continueComplaintIfRejected(request);
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
                         .success(true)
