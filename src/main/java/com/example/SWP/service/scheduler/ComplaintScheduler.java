@@ -52,12 +52,11 @@ public class ComplaintScheduler {
                     if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) > CHECK_DAYS) {
                         complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
                         escrowService.switchStatus(EscrowStatus.RELEASED_TO_SELLER, complaint.getOrder().getId());
+                        complaint.setUpdatedAt(LocalDateTime.now());
                         log.info("Updated complaint {} status to {}", complaint.getId(), complaint.getStatus());
                     } else {
                         log.info("Keep complaint {} status as {}", complaint.getId(), complaint.getStatus());
-
                     }
-
                 }
 
                 complaintRepository.save(complaint);
