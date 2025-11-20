@@ -20,5 +20,5 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     Page<WalletTransaction> findByWalletAndStatus(Wallet wallet, PaymentStatus status, Pageable pageable);
 
-    List<WalletTransaction> findByStatusOrStatus(TransactionType type1, TransactionType type2);
+    List<WalletTransaction> findByTypeOrType(TransactionType type1, TransactionType type2);
 }

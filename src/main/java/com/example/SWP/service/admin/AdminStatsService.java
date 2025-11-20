@@ -66,7 +66,7 @@ public class AdminStatsService {
 
     private BigDecimal getTransactionStats() {
         BigDecimal total = BigDecimal.ZERO;
-        List<WalletTransaction> list = walletTransactionRepository.findByStatusOrStatus(TransactionType.PURCHASE_PRIORITY_PACKAGE, TransactionType.PURCHASE_SELLER_PACKAGE);
+        List<WalletTransaction> list = walletTransactionRepository.findByTypeOrType(TransactionType.PURCHASE_PRIORITY_PACKAGE, TransactionType.PURCHASE_SELLER_PACKAGE);
         for (WalletTransaction transaction : list) {
             total = total.add(transaction.getAmount());
         }
