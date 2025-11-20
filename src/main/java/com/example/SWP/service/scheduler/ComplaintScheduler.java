@@ -49,9 +49,8 @@ public class ComplaintScheduler {
 
                     if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) > CHECK_DAYS) {
                         complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
+                        escrowService.switchStatus(EscrowStatus.RELEASED_TO_SELLER, complaint.getOrder().getId());
                     }
-
-                    escrowService.switchStatus(EscrowStatus.RELEASED_TO_SELLER, complaint.getOrder().getId());
 
                 }
 

@@ -90,7 +90,7 @@ public class BuyerComplaintService {
 
         Optional<Escrow> escrowOptional = escrowRepository.findByOrder_Id(request.getOrderId());
         if (escrowOptional.isPresent()) {
-            escrowService.switchStatus(EscrowStatus.DISPUTED, request.getOrderId());
+            escrowService.switchStatus(EscrowStatus.DISPUTED, request.getOrderId()); //neu co khieu nai he thong lap tuc chan tien khong cho di ra
         } else {
             throw new BusinessException("Không tìm thấy tiền trữ trong hệ thống, hãy thử lại!!", 404);
         }
