@@ -167,21 +167,20 @@ public class EscrowService {
         List<EscrowTransaction> escrowTransactionList = escrowTransactionRepository.findAll();
         List<EscrowTransactionResponse> responseList = new ArrayList<>();
         for (EscrowTransaction escrowTransaction : escrowTransactionList) {
-            Optional<User> user = null;
-            if (escrowTransaction.getReceiverId() == null) {
-
-            } else {
-                user = userRepository.findById(escrowTransaction.getReceiverId());
+            String name = null;
+            if (escrowTransaction.getReceiverId() != null) {
+                Optional<User> user = userRepository.findById(escrowTransaction.getReceiverId());
+                if (user.isEmpty()) {
+                    log.warn("User not found for escrow transaction {}", escrowTransaction.getId());
+                    continue;
+                }
+                name = user.get().getFullName();
             }
-            if (user.isEmpty()) {
-                throw new BusinessException("Không tìm thấy người dùng, hãy thử lại", 404);
-            }
-            Long receiverId = user.get().getId();
             EscrowTransactionResponse escrowTransactionResponse = EscrowTransactionResponse.builder()
                     .etId(escrowTransaction.getId())
                     .escrowId(escrowTransaction.getEscrow().getId())
                     .orderId(escrowTransaction.getEscrow().getId())
-                    .receiverName(user.get().getFullName())
+                    .receiverName(name)
                     .amount(escrowTransaction.getAmount())
                     .type(escrowTransaction.getType())
                     .createdAt(escrowTransaction.getCreatedAt())

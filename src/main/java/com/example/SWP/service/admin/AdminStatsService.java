@@ -2,11 +2,16 @@ package com.example.SWP.service.admin;
 
 import com.example.SWP.configuration.onlineusertracker.OnlineUserTracker;
 import com.example.SWP.dto.response.admin.StatsResponse;
+import com.example.SWP.entity.wallet.WalletTransaction;
 import com.example.SWP.enums.*;
 import com.example.SWP.repository.*;
+import com.example.SWP.repository.wallet.WalletTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +29,8 @@ public class AdminStatsService {
     ContractRepository contractRepository;
 
     ComplaintRepository complaintRepository;
+
+    WalletTransactionRepository walletTransactionRepository;
 
     public StatsResponse getStats() {
         StatsResponse statsResponse = new StatsResponse();
@@ -52,6 +59,17 @@ public class AdminStatsService {
 
         statsResponse.setTotalComplaint((int) complaintRepository.count());
 
+        statsResponse.setTotalRevenue(getTransactionStats());
+
         return statsResponse;
+    }
+
+    private BigDecimal getTransactionStats() {
+        BigDecimal total = BigDecimal.ZERO;
+        List<WalletTransaction> list = walletTransactionRepository.findByStatusOrStatus(TransactionType.PURCHASE_PRIORITY_PACKAGE, TransactionType.PURCHASE_SELLER_PACKAGE);
+        for (WalletTransaction transaction : list) {
+            total = total.add(transaction.getAmount());
+        }
+        return total;
     }
 }

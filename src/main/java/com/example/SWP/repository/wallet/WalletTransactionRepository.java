@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface WalletTransactionRepository extends JpaRepository<WalletTransaction, Long> {
@@ -18,4 +19,6 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     Page<WalletTransaction> findByWalletAndType(Wallet wallet, TransactionType type, Pageable pageable);
 
     Page<WalletTransaction> findByWalletAndStatus(Wallet wallet, PaymentStatus status, Pageable pageable);
+
+    List<WalletTransaction> findByStatusOrStatus(TransactionType type1, TransactionType type2);
 }
