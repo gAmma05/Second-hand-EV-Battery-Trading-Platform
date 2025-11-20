@@ -120,6 +120,8 @@ public class BuyerComplaintService {
             complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
             complaint.setUpdatedAt(LocalDateTime.now());
             complaintRepository.save(complaint);
+        }else{
+            throw new BusinessException("Khiếu nại đang trong quá trình xử lí", 400);
         }
     }
 
