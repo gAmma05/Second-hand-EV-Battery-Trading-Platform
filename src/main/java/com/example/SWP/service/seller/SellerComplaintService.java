@@ -79,6 +79,7 @@ public class SellerComplaintService {
                 if (request.getReason().isEmpty()) {
                     throw new BusinessException("Không được để trống lý do tại sao từ chối", 400);
                 }
+                complaint.setResolutionNotes(request.getReason());
                 complaint.setStatus(ComplaintStatus.SELLER_REJECTED);
                 notification = "Khiếu nại của bạn đã bị người bán từ chối, bạn có thể tiếp tục khiếu nại đến người bán hoặc gửi cho admin xử lí nếu cần";
             }
