@@ -56,14 +56,14 @@ public class SellerComplaintService {
             throw new BusinessException("Bạn chỉ có thể chọn 1 trong 3 lựa chọn", 400);
         }
 
-        if (Objects.equals(request.isAccepted(), true) && !request.getReason().isEmpty()){
+        if (Objects.equals(request.isAccepted(), true) && !request.getReason().isEmpty()) {
             throw new BusinessException("Bạn không thể chấp nhận khiếu nại nếu thêm lý do, chỉ có thể thêm khi bạn từ chối đơn hàng", 400);
         }
 
-            if (Objects.equals(complaint.getStatus(), ComplaintStatus.BUYER_REJECTED)) {
-                complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
-                complaintRepository.save(complaint);
-            }
+        if (Objects.equals(complaint.getStatus(), ComplaintStatus.BUYER_REJECTED)) {
+            complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
+            complaintRepository.save(complaint);
+        }
 
         String notification = null;
 
@@ -72,11 +72,13 @@ public class SellerComplaintService {
             complaint.setStatus(ComplaintStatus.SELLER_RESOLVED);
             notification = "Người bán đã đưa ra hướng giải quyết cho khiếu nại của bạn. Nội dung: " + complaint.getResolutionNotes() + ".";
         } else {
-            complaint.setResolutionNotes(request.getResolution());
             if (request.isRequestToAdmin()) {
                 complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
                 notification = "Khiếu nại của bạn đã được đưa đến admin xử lý";
             } else {
+                if (request.getReason().isEmpty()) {
+                    throw new BusinessException("Không được để trống lý do tại sao từ chối", 400);
+                }
                 complaint.setStatus(ComplaintStatus.SELLER_REJECTED);
                 notification = "Khiếu nại của bạn đã bị người bán từ chối, bạn có thể tiếp tục khiếu nại đến người bán hoặc gửi cho admin xử lí nếu cần";
             }
