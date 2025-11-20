@@ -17,11 +17,7 @@ public class UpgradeToSellerRequest {
     @Size(max = 100, message = "Shop name must not exceed 100 characters")
     String shopName;
 
-    @NotBlank(message = "Shop description is required")
-    @Size(max = 500, message = "Shop description must not exceed 500 characters")
     String shopDescription;
 
-    @NotBlank(message = "Social media is required")
-    @Size(max = 200, message = "Social media must not exceed 200 characters")
     String socialMedia;
 }
