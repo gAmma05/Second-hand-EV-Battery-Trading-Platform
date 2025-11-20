@@ -48,29 +48,37 @@ public class SellerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
+        if (Objects.equals(request.isAccepted(), false) && !request.getResolution().isEmpty()) {
+            throw new BusinessException("Bạn không thể từ chối mà lại thêm hướng giải quyết, hãy sử dụng lý do khi từ chối", 400);
+        }
+
         if (Objects.equals(complaint.getStatus(), ComplaintStatus.BUYER_REJECTED)) {
             complaint.setStatus(ComplaintStatus.SELLER_REVIEWING);
             complaintRepository.save(complaint);
         }
 
+        String notification = null;
+
         if (request.isAccepted()) {
             complaintMapper.updateComplaint(request, complaint);
             complaint.setStatus(ComplaintStatus.SELLER_RESOLVED);
-            notificationService.sendNotificationToOneUser(
-                    complaint.getOrder().getBuyer().getEmail(),
-                    "Về khiếu nại của bạn",
-                    "Người bán đã đưa ra hướng giải quyết cho khiếu nại của bạn. Nội dung: " + complaint.getResolutionNotes() + "."
-            );
+            notification = "Người bán đã đưa ra hướng giải quyết cho khiếu nại của bạn. Nội dung: " + complaint.getResolutionNotes() + ".";
         } else {
             complaint.setResolutionNotes(request.getResolution());
             if (request.isRequestToAdmin()) {
                 complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
+                notification = "Khiếu nại của bạn đã được đưa đến admin xử lý";
             } else {
                 complaint.setStatus(ComplaintStatus.SELLER_REJECTED);
+                notification = "Khiếu nại của bạn đã bị người bán từ chối, bạn có thể tiếp tục khiếu nại đến người bán hoặc gửi cho admin xử lí nếu cần";
             }
         }
+
         complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
+
+        notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "Về khiếu nại của bạn", notification);
+
     }
 
     public void requestToAdmin(Authentication authentication, Long contractId) {

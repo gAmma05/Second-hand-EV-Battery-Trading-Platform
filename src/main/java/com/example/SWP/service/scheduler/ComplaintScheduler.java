@@ -41,8 +41,10 @@ public class ComplaintScheduler {
 
                     if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) > CHECK_DAYS) {
                         complaint.setStatus(ComplaintStatus.ADMIN_REVIEWING);
+                        log.info("Keep complaint {} status as {}", complaint.getId(), complaint.getStatus());
+                        complaint.setUpdatedAt(LocalDateTime.now());
                     }
-                    complaint.setUpdatedAt(LocalDateTime.now());
+
 
                 } else if (complaint.getStatus() == ComplaintStatus.SELLER_REJECTED
                         || complaint.getStatus() == ComplaintStatus.SELLER_RESOLVED) {
@@ -50,12 +52,16 @@ public class ComplaintScheduler {
                     if (ChronoUnit.DAYS.between(complaint.getCreatedAt(), today) > CHECK_DAYS) {
                         complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
                         escrowService.switchStatus(EscrowStatus.RELEASED_TO_SELLER, complaint.getOrder().getId());
+                        log.info("Updated complaint {} status to {}", complaint.getId(), complaint.getStatus());
+                    } else {
+                        log.info("Keep complaint {} status as {}", complaint.getId(), complaint.getStatus());
+
                     }
 
                 }
 
                 complaintRepository.save(complaint);
-                log.info("Updated complaint {} status to {}", complaint.getId(), complaint.getStatus());
+
 
             } catch (Exception e) {
                 log.error("Error while processing complaint {}: {}", complaint.getId(), e.getMessage());
