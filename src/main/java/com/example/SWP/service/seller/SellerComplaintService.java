@@ -48,16 +48,8 @@ public class SellerComplaintService {
             throw new BusinessException("Khiếu nại này không thuộc về bạn", 400);
         }
 
-        if (Objects.equals(request.isAccepted(), false) && !request.getResolution().isEmpty()) {
-            throw new BusinessException("Bạn không thể từ chối mà lại thêm hướng giải quyết, hãy sử dụng lý do khi từ chối", 400);
-        }
-
         if (Objects.equals(request.isAccepted(), true) && Objects.equals(request.isRequestToAdmin(), true)) {
             throw new BusinessException("Bạn chỉ có thể chọn 1 trong 3 lựa chọn", 400);
-        }
-
-        if (Objects.equals(request.isAccepted(), true) && !request.getReason().isEmpty()) {
-            throw new BusinessException("Bạn không thể chấp nhận khiếu nại nếu thêm lý do, chỉ có thể thêm khi bạn từ chối đơn hàng", 400);
         }
 
         if (Objects.equals(complaint.getStatus(), ComplaintStatus.BUYER_REJECTED)) {
