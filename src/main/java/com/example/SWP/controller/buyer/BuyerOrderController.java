@@ -27,7 +27,7 @@ public class BuyerOrderController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<Void>> createOrder(
             Authentication authentication,
-            @Valid CreateOrderRequest request
+            @Valid @RequestBody CreateOrderRequest request
     ) {
         buyerOrderService.createOrder(authentication, request);
         return ResponseEntity.ok(

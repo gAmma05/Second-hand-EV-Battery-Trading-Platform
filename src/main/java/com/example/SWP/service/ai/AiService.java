@@ -1,6 +1,7 @@
 package com.example.SWP.service.ai;
 
 import com.example.SWP.dto.request.user.ai.AiProductRequest;
+import com.example.SWP.dto.response.AiValidationResult;
 import com.example.SWP.enums.ProductType;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,17 +34,44 @@ public class AiService {
         }
     }
 
-    public boolean validateProduct(AiProductRequest request) {
+    public AiValidationResult validateProduct(AiProductRequest request) {
         String prompt = aiBuildPromptService.buildPromptValidateProduct(request);
+
         String response = chatClient.prompt(prompt).call().content();
 
         if (response == null || response.isBlank()) {
-            return false;
+            return AiValidationResult.builder()
+                    .isValid(false)
+                    .reason("Lỗi hệ thống: AI không phản hồi.")
+                    .build();
         }
 
-        response = response.trim().toLowerCase();
+        String cleanResponse = response.trim();
 
-        return response.equals("valid");
+        // TRƯỜNG HỢP 3: AI TRẢ PHẢN HỒI BÀI ĐĂNG HỢP LỆ
+        if (cleanResponse.equalsIgnoreCase("Valid")) {
+            return AiValidationResult.builder()
+                    .isValid(true)
+                    .reason("Sản phẩm hợp lệ.")
+                    .build();
+        }
+
+        // TRƯỜNG HỢP 3: AI TRẢ PHẢN HỒI BÀI ĐĂNG KHÔNG HỢP LỆ
+        // AI trả về dạng "Invalid: <Lý do>"
+        if (cleanResponse.startsWith("Invalid:")) {
+            // Cắt bỏ chữ "Invalid:" (độ dài là 8) để lấy nội dung phía sau
+            String reason = cleanResponse.substring("Invalid:".length()).trim();
+            return AiValidationResult.builder()
+                    .isValid(false)
+                    .reason(reason)
+                    .build();
+        }
+
+        // TRƯỜNG HỢP 3: AI TRẢ LỜI LINH TINH
+        return AiValidationResult.builder()
+                .isValid(false)
+                .reason("Phản hồi không xác định từ AI: " + cleanResponse)
+                .build();
     }
 
     public String compareProduct(AiProductRequest request1, AiProductRequest request2) {

@@ -197,6 +197,10 @@ public class SellerOrderDeliveryService {
             throw new BusinessException("Chỉ có thể cập nhật trạng thái đơn GHN", 400);
         }
 
+        if(orderDelivery.getStatus() == DeliveryStatus.DELIVERED || orderDelivery.getStatus() == DeliveryStatus.RECEIVED) {
+            throw new BusinessException("Đơn hàng đã ở trạng thái " + orderDelivery.getStatus().getVietnameseName() + ", không thể cập nhật thêm.", 400);
+        }
+
         // Lấy trạng thái mới từ GHN
         DeliveryStatus ghnStatus = ghnService.getOrderStatus(orderDelivery.getDeliveryTrackingNumber());
         orderDelivery.setStatus(ghnStatus);
