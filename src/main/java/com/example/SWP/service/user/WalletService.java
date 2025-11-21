@@ -51,7 +51,7 @@ public class WalletService {
     public void createWallet(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
 
-        if(walletRepository.existsByUser(user)) {
+        if (walletRepository.existsByUser(user)) {
             throw new BusinessException("Người dùng đã có ví, không thể tạo thêm", 400);
         }
 
@@ -112,11 +112,16 @@ public class WalletService {
 
             wallet.setBalance(newBalance);
             walletRepository.save(wallet);
+            notificationService.sendNotificationToOneUser(transaction.getWallet().getUser().getEmail(), "Biến động số dư",
+                    "Bạn đã nạp " + transaction.getAmount() + " vào ví của bạn");
+
         } else {
             transaction.setStatus(PaymentStatus.FAILED);
         }
 
         transaction.setUpdatedAt(LocalDateTime.now());
+
+
         return walletTransactionRepository.save(transaction);
     }
 
@@ -156,6 +161,10 @@ public class WalletService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+
+        notificationService.sendNotificationToOneUser(transaction.getWallet().getUser().getEmail(), "Biến động số dư",
+                "Bạn đã rút " + transaction.getAmount() + " từ ví của bạn");
+
         return walletTransactionRepository.save(transaction);
     }
 
@@ -183,6 +192,9 @@ public class WalletService {
                 .balanceAfter(balanceAfter)
                 .createdAt(LocalDateTime.now())
                 .build();
+
+        notificationService.sendNotificationToOneUser(wallet.getUser().getEmail(), "Biến động số dư",
+                "Ví của bạn đã được cộng " + transaction.getAmount() + " từ hoàn tiền");
 
         walletTransactionRepository.save(transaction);
     }
@@ -212,7 +224,7 @@ public class WalletService {
     }
 
     //Loc lich su giao dich theo loai giao dich
-    public List<WalletTransaction>  getTransactionsByType(
+    public List<WalletTransaction> getTransactionsByType(
             Authentication authentication, TransactionType type, int page, int size
     ) {
         User user = validateService.validateCurrentUser(authentication);
@@ -270,14 +282,15 @@ public class WalletService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        notificationService.sendNotificationToOneUser(user.getEmail(), "Biến động số dư", "Ví của bạn đã bị trừ " + transaction.getAmount() + " từ việc thanh toán");
+        
         walletTransactionRepository.save(transaction);
     }
 
     public List<WalletTransaction> getTransactionsByStatus(
             Authentication authentication,
             PaymentStatus status,
-            int page, int size)
-    {
+            int page, int size) {
         User user = validateService.validateCurrentUser(authentication);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());

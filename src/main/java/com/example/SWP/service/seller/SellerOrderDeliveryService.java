@@ -13,6 +13,7 @@ import com.example.SWP.repository.InvoiceRepository;
 import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.service.ghn.GhnService;
+import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.validate.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +35,7 @@ public class SellerOrderDeliveryService {
     InvoiceRepository invoiceRepository;
     ContractRepository contractRepository;
     OrderRepository orderRepository;
+    NotificationService notificationService;
 
     /**
      * Tạo trạng thái giao hàng cho một đơn hàng.
@@ -170,6 +172,9 @@ public class SellerOrderDeliveryService {
                         invoiceRepository.save(invoice);
                     });
         }
+        notificationService.sendNotificationToOneUser(orderDelivery.getOrder().getBuyer().getEmail(),
+                "Về đơn hàng của bạn",
+                "Đơn hàng của bạn đã được cập nhật trạng thái, hãy kiểm tra");
 
         // Lưu OrderDelivery sau khi cập nhật
         orderDeliveryRepository.save(orderDelivery);
