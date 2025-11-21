@@ -2,6 +2,7 @@ package com.example.SWP.entity.escrow;
 
 import com.example.SWP.entity.Order;
 import com.example.SWP.enums.EscrowStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -25,6 +26,7 @@ public class Escrow {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
+    @JsonIgnore
     Order order;
 
     @Enumerated(EnumType.STRING)

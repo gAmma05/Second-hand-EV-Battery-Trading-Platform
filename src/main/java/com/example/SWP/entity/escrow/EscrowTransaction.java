@@ -1,6 +1,7 @@
 package com.example.SWP.entity.escrow;
 
 import com.example.SWP.enums.EscrowType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +26,7 @@ public class EscrowTransaction {
 
     @ManyToOne
     @JoinColumn(name = "escrow_id", nullable = false)
+    @JsonIgnore
     Escrow escrow;
 
     Long receiverId;
