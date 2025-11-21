@@ -222,7 +222,7 @@ public class SellerOrderDeliveryService {
                         invoice.setDueDate(LocalDateTime.now().plusDays(7));
                         invoice.setPaidAt(LocalDateTime.now());
                         invoiceRepository.save(invoice);
-                        escrowService.createEscrow(order.getSeller().getId(), order.getBuyer().getId(), order, false, invoice.getTotalPrice());
+                        escrowService.createEscrow(order.getSeller().getId(), order.getBuyer().getId(), order, false, invoice.getTotalPrice().subtract(order.getShippingFee()));
                     });
 
 
