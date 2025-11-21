@@ -68,7 +68,7 @@ public class AdminComplaintService {
         }
 
         notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "Về khiếu nại của bạn", "Khiếu nại của bạn đã được admin cập nhật");
-        notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "Về khiếu nại trên đơn hàng của bạn", "Khiếu nại đã được admin cập nhật");
+        notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về khiếu nại trên đơn hàng của bạn", "Khiếu nại đã được admin cập nhật");
 
         complaint.setUpdatedAt(LocalDateTime.now());
         complaintRepository.save(complaint);
