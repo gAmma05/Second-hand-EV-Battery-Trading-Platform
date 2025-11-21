@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
-                .password(user.getPassword())
+                .password(user.getPassword() != null ? user.getPassword() : "{noop}google_oauth_user")
                 .roles(user.getRole().name())
                 .disabled(!user.isStatus())
                 .build();
