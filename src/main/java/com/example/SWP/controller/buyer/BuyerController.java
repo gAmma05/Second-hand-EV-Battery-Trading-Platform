@@ -43,4 +43,19 @@ public class BuyerController {
                 .build());
     }
 
+    @GetMapping("/upgraded-to-seller")
+    public ResponseEntity<ApiResponse<Boolean>> upgradedToSeller(Authentication authentication) {
+
+        boolean upgraded = sellerService.upgradedToSeller(authentication);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Boolean>builder()
+                        .success(true)
+                        .message(upgraded
+                                ? "Người dùng đã năng cấp thành người bán"
+                                : "Ngươi dùng chưa nâng cấp thành người bán")
+                        .data(upgraded)
+                        .build()
+        );
+    }
 }
