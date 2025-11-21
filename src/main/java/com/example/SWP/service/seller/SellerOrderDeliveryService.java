@@ -12,6 +12,7 @@ import com.example.SWP.repository.ContractRepository;
 import com.example.SWP.repository.InvoiceRepository;
 import com.example.SWP.repository.OrderDeliveryRepository;
 import com.example.SWP.repository.OrderRepository;
+import com.example.SWP.service.escrow.EscrowService;
 import com.example.SWP.service.ghn.GhnService;
 import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.validate.ValidateService;
@@ -36,6 +37,7 @@ public class SellerOrderDeliveryService {
     ContractRepository contractRepository;
     OrderRepository orderRepository;
     NotificationService notificationService;
+    EscrowService escrowService;
 
     /**
      * Tạo trạng thái giao hàng cho một đơn hàng.
@@ -122,7 +124,7 @@ public class SellerOrderDeliveryService {
                 if (currentStatus != DeliveryStatus.READY) {
                     throw new BusinessException(
                             "Chỉ có thể cập nhật trạng thái " + DeliveryStatus.PICKUP_PENDING.getVietnameseName() +
-                            " từ trạng thái " + DeliveryStatus.READY.getVietnameseName(),
+                                    " từ trạng thái " + DeliveryStatus.READY.getVietnameseName(),
                             400
                     );
                 }
@@ -216,7 +218,10 @@ public class SellerOrderDeliveryService {
                         invoice.setDueDate(LocalDateTime.now().plusDays(7));
                         invoice.setPaidAt(LocalDateTime.now());
                         invoiceRepository.save(invoice);
+                        escrowService.createEscrow(order.getSeller().getId(), order.getBuyer().getId(), order, false, invoice.getTotalPrice());
                     });
+
+
         }
 
         // Trả về DTO
