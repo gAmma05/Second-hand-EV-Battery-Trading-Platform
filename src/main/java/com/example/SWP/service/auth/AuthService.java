@@ -147,6 +147,8 @@ public class AuthService {
             String accessToken = jwtService.generateAccessToken(newUser);
             body.put("accessToken", accessToken);
             body.put("user", newUser);
+            userRepository.save(newUser);
+            notificationService.sendNotificationToOneUser(newUser.getEmail(), "Chào mừng đến với SEBTP", "Chúc bạn có trải nghiệm tốt đẹp tại hệ thống của chúng tôi!");
             return body;
         }
     }
