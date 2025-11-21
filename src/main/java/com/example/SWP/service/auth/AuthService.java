@@ -109,8 +109,8 @@ public class AuthService {
 
     //GOOGLE (Dung)
     @Transactional
-    public List<String> processGoogleToken(GoogleLoginRequest googleLoginRequest) {
-        List<String> tokenList = new ArrayList<>();
+    public Map<String, Object> processGoogleToken(GoogleLoginRequest googleLoginRequest) {
+        Map<String, Object> body = new HashMap<>();
 
         GoogleIdToken.Payload payload = googleClientService.verifyGoogleIdToken(googleLoginRequest);
 
@@ -131,32 +131,24 @@ public class AuthService {
 
             user.setFullName(fullName);
             userRepository.save(user);
-            tokenList.add(jwtService.generateAccessToken(user));
-            tokenList.add(jwtService.generateRefreshToken(user));
+            String accessToken = jwtService.generateAccessToken(user);
+            body.put("accessToken", accessToken);
+            body.put("user", user);
+            return body;
+        } else {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setGoogleId(userId);
+            newUser.setFullName(fullName);
+            newUser.setProvider(AuthProvider.GOOGLE);
+            newUser.setStatus(true);
+            newUser.setRole(Role.valueOf(Role.BUYER.name()));
 
-            return tokenList;
+            String accessToken = jwtService.generateAccessToken(newUser);
+            body.put("accessToken", accessToken);
+            body.put("user", newUser);
+            return body;
         }
-        User newUser = new User();
-        newUser.setEmail(email);
-        newUser.setGoogleId(userId);
-        newUser.setFullName(fullName);
-        newUser.setProvider(AuthProvider.GOOGLE);
-        newUser.setRole(Role.valueOf(Role.BUYER.name()));
-
-        userRepository.save(newUser);
-
-        createNotification(newUser, "Welcome to Second-hand EV Battery Trading Platform!", "You have successfully registered to our platform. " +
-                "Please fill in your profile information to complete your profile before purchasing. " +
-                "Thank you!");
-
-        tokenList.add(jwtService.generateAccessToken(newUser));
-        tokenList.add(jwtService.generateRefreshToken(newUser));
-
-        return tokenList;
-    }
-
-    private void createNotification(User user, String title, String content) {
-        notificationService.sendNotificationToOneUser(user.getEmail(), title, content);
     }
 
     public String forgotPassword(String email) {
@@ -181,8 +173,6 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-
-        createNotification(user, "Reset password", "You have successfully changed the password");
 
         return "Password has been reset successfully!";
     }

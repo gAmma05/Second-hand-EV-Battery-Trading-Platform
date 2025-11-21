@@ -116,6 +116,7 @@ public class BuyerOrderService {
                 .deliveryMethod(request.getDeliveryMethod())
                 .paymentType(request.getPaymentType())
                 .createdAt(LocalDateTime.now())
+                .wantDeposit(request.getWantDeposit())
                 .status(OrderStatus.PENDING);
 
         BigDecimal depositAmount = BigDecimal.ZERO;

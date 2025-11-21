@@ -25,9 +25,6 @@ public class AiBuildPromptService {
                             - Condition from description and color (scratches, battery condition, performance)
                             - Typical depreciation rate of electric motorcycles in Vietnam: 10–25%% per year
                             
-                            If any field is invalid, inconsistent (brand not in VN, year > current year, unrealistic mileage),
-                            or the description is unrelated to electric motorcycles, respond only with "0".
-                            
                             Electric Motorcycle:
                             Brand: %s
                             Model: %s
@@ -47,7 +44,7 @@ public class AiBuildPromptService {
             );
         }
 
-        if (request.getProductType() == ProductType.BATTERY) {
+        else {
             return String.format("""
                             You are an expert in Vietnam's used electric motorcycle battery market.
                             Your task is to **estimate the fair resale price (in Vietnamese Dong)** for this used motorcycle battery.
@@ -57,9 +54,6 @@ public class AiBuildPromptService {
                             - Capacity (Ah) and voltage (V) as direct price factors
                             - Age & condition from description
                             - Typical depreciation of 15–30%% per year
-                            
-                            If any information is unrealistic (invalid brand, impossible specs, unrelated description),
-                            respond only with "0".
                             
                             Battery details:
                             Brand: %s
@@ -77,45 +71,64 @@ public class AiBuildPromptService {
                     request.getDescription()
             );
         }
-
-        return "Please return 0.";
     }
 
     public String buildPromptValidateProduct(AiProductRequest request) {
         if (request.getProductType() == ProductType.VEHICLE) {
             return String.format("""
-                            You are a strict validator for electric motorcycle listings in Vietnam.
-                            Verify whether this listing describes a *real, existing electric motorcycle* sold in Vietnam (2025).
-                            
-                            Brand: %s
-                            Model: %s
-                            
-                            Validation rules:
-                            - Accept only real brands/models sold in Vietnam (VinFast, Yadea, Pega, Dat Bike, Anbico, Detech, Dibao…)
-                            
-                            Respond ONLY with one word:
-                            Valid
-                            Invalid
-                            """,
+            Role: You are a strict Database Auditor for the Vietnamese Electric Motorcycle Market (Year 2025).
+            Task: Verify if the following Brand and Model combination exists as a real commercial product.
+
+            Input Data:
+            - Brand: "%s"
+            - Model: "%s"
+
+            STRICT VALIDATION LOGIC:
+            1. NONSENSE FILTER: Reject toys, gibberish, or non-vehicle names.
+            2. FUEL TYPE CHECK: Reject gasoline motorcycles (Vision, AirBlade, Wave, SH...) immediately.
+            3. CATALOG MATCH: Ensure the Brand officially manufactures this specific Model.
+
+            ---
+            ABSOLUTE INSTRUCTION:
+            1. RETURN ONLY ONE LINE.
+            2. If VALID: Output the single word "Valid" and NOTHING ELSE.
+            3. If INVALID: Output "Invalid: [Reason in Vietnamese]".
+            ---
+
+            RESPONSE FORMAT:
+            - If passed: Return exactly "Valid".
+            - If failed: Return "Invalid: [Reason in Vietnamese]".
+            
+            """,
                     request.getVehicleBrand(),
                     request.getModel()
             );
         }
 
         return String.format("""
-                        You are a strict validator for electric motorcycle battery listings in Vietnam.
-                        Verify whether this describes a *real, commercially available motorcycle battery*.
-                        
-                        Brand: %s
-                        Type: %s
-                        
-                        Validation rules:
-                        - Accept only real battery brands used in Vietnam (VinFast, Dat Bike, Anbico, CATL, Lishen, LG…)
-                        
-                        Respond ONLY with:
-                        Valid
-                        Invalid
-                        """,
+            Role: You are a Technical Safety Inspector for EV Batteries in Vietnam.
+            Task: Verify if the Brand and Type describe a legitimate traction battery.
+
+            Input Data:
+            - Brand: "%s"
+            - Type: "%s"
+
+            STRICT VALIDATION LOGIC:
+            1. BRAND CHECK: Must be a real battery/EV brand.
+            2. TYPE CHECK: Must be a valid spec/model.
+            3. PAIRING CHECK: Brand must produce this Type.
+
+            ---
+            ABSOLUTE INSTRUCTION:
+            1. RETURN ONLY ONE LINE.
+            2. If VALID: Output the single word "Valid" and NOTHING ELSE.
+            3. If INVALID: Output "Invalid: [Reason in Vietnamese]".
+            ---
+            
+            RESPONSE FORMAT:
+            - If passed: Return exactly "Valid".
+            - If failed: Return "Invalid: [Reason in Vietnamese]".
+            """,
                 request.getBatteryBrand(),
                 request.getBatteryType()
         );
@@ -123,13 +136,13 @@ public class AiBuildPromptService {
 
     public String buildPromptCompare(AiProductRequest r1, AiProductRequest r2) {
         if (r1.getProductType() != r2.getProductType()) {
-            return "Both posts must have the same product type to compare.";
+            return "Cả hai bài đăng phải cùng loại sản phẩm để so sánh.";
         }
 
         if (r1.getProductType() == ProductType.VEHICLE) {
             return String.format("""
                             You are an expert in Vietnam's electric motorcycle market.
-                            Compare these two electric motorcycles (max 5 sentences), focusing on:
+                            Compare these two electric motorcycles (max 5 sentences and only using Vietnamese), focusing on:
                             - Year
                             - Mileage
                             - Brand reputation
@@ -152,7 +165,7 @@ public class AiBuildPromptService {
 
         return String.format("""
                         You are an expert in electric motorcycle batteries in Vietnam.
-                        Compare these two batteries (max 5 sentences), focusing on:
+                        Compare these two batteries (max 5 sentences only using Vietnamese), focusing on:
                         - Capacity
                         - Voltage
                         - Brand reputation
