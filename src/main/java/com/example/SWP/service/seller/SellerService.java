@@ -60,6 +60,11 @@ public class SellerService {
         userRepository.save(user);
     }
 
+    public boolean upgradedToSeller(Authentication authentication) {
+        User user = validateService.validateCurrentUser(authentication);
+        return  checkIfSeller(user);
+    }
+
     public boolean checkIfSeller(User user) {
         return user.getStoreName() != null;
     }
