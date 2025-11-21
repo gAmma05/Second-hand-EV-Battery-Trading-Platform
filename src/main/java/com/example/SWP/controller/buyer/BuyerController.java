@@ -43,7 +43,7 @@ public class BuyerController {
                 .build());
     }
 
-    @PostMapping("/upgraded-to-seller")
+    @GetMapping("/upgraded-to-seller")
     public ResponseEntity<ApiResponse<Boolean>> upgradedToSeller(Authentication authentication) {
 
         boolean upgraded = sellerService.upgradedToSeller(authentication);
