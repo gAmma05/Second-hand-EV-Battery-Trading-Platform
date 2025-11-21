@@ -12,6 +12,7 @@ import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.UserMapper;
 import com.example.SWP.repository.UserRepository;
 import com.example.SWP.service.ghn.GhnService;
+import com.example.SWP.service.notification.NotificationService;
 import com.example.SWP.service.validate.ValidateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class UserService {
     UserMapper userMapper;
     GhnService ghnService;
     ValidateService validateService;
+    NotificationService notificationService;
 
     public UserResponse getUserProfile(Authentication authentication) {
         User user = validateService.validateCurrentUser(authentication);
@@ -113,6 +115,7 @@ public class UserService {
                 .status(true)
                 .build();
         userRepository.save(user);
+        notificationService.sendNotificationToOneUser(user.getEmail(), "Chào mừng đến với SEBTP", "Chúc bạn có trải nghiệm tốt đẹp tại hệ thống của chúng tôi!");
     }
 }
 
