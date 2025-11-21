@@ -23,7 +23,7 @@ public class NotificationController {
 
     @GetMapping("/unread-list")
     public ResponseEntity<?> getUnreadNotification(Authentication authentication) {
-        List<NotificationResponse> responses = notificationService.getUnreadNotifications(authentication);
+        List<NotificationResponse> responses = notificationService.getNotifications(authentication);
         if (responses == null || responses.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.<List<NotificationResponse>>builder()

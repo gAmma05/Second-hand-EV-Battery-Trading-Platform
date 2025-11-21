@@ -100,23 +100,24 @@ public class NotificationService {
         userNotificationRepository.save(userNotification);
     }
 
-    public List<NotificationResponse> getUnreadNotifications(Authentication authentication) {
+    public List<NotificationResponse> getNotifications(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User does not exist", 404));
 
-        return getNotificationResponseList(userNotificationRepository.findAllByUserAndIsRead(user, false));
+        return getNotificationResponseList(userNotificationRepository.findAllByUser(user));
 
     }
 
     private List<NotificationResponse> getNotificationResponseList(List<UserNotification> notificationsList) {
         List<NotificationResponse> notificationResponseList = new ArrayList<>();
-        for(UserNotification one : notificationsList) {
+        for (UserNotification one : notificationsList) {
             NotificationResponse response = new NotificationResponse();
             response.setId(one.getNotification().getId());
             response.setTitle(one.getNotification().getTitle());
             response.setContent(one.getNotification().getContent());
             response.setCreatedAt(one.getNotification().getCreatedAt());
+            response.setRead(one.isRead());
             notificationResponseList.add(response);
         }
 
