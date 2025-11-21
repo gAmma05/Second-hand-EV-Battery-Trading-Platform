@@ -118,20 +118,6 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Admin user created with email 'admin@gmail.com' and password 'admin'. Please change the password after first login.");
         }
 
-        //Tao seller
-        if (!userRepository.existsByRole(Role.SELLER)) {
-            User seller = User.builder()
-                    .email("luatluat304@gmail.com")
-                    .password(passwordEncoder.encode("seller"))
-                    .fullName("Luậtkitty")
-                    .status(true)
-                    .role(Role.SELLER)
-                    .provider(AuthProvider.MANUAL)
-                    .build();
-
-            userRepository.save(seller);
-        }
-
         if (!appConfigRepository.existsByConfigKey("DEPOSIT_PERCENTAGE_KEY")) {
 
             AppConfig depositConfig = AppConfig.builder()
