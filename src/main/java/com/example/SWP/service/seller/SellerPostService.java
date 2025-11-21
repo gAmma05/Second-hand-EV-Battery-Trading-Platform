@@ -3,6 +3,7 @@ package com.example.SWP.service.seller;
 import com.example.SWP.dto.request.seller.CreatePostRequest;
 import com.example.SWP.dto.request.seller.UpdatePostRequest;
 import com.example.SWP.dto.request.user.ai.AiProductRequest;
+import com.example.SWP.dto.response.AiValidationResult;
 import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.*;
 import com.example.SWP.enums.PostStatus;
@@ -80,24 +81,25 @@ public class SellerPostService {
                 request.getVoltage()
         );
 
-//        AiProductRequest aiProductRequest = AiProductRequest.builder()
-//                .productType(request.getProductType())
-//                .vehicleBrand(request.getVehicleBrand())
-//                .model(request.getModel())
-//                .yearOfManufacture(request.getYearOfManufacture())
-//                .color(request.getColor())
-//                .mileage(request.getMileage())
-//                .batteryType(request.getBatteryType())
-//                .capacity(request.getCapacity())
-//                .voltage(request.getVoltage())
-//                .batteryBrand(request.getBatteryBrand())
-//                .build();
-//
-//        boolean isValid = aiService.validateProduct(aiProductRequest);
-//
-//        if (!isValid) {
-//            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
-//        }
+        AiProductRequest aiProductRequest = AiProductRequest.builder()
+                .productType(request.getProductType())
+                .vehicleBrand(request.getVehicleBrand())
+                .model(request.getModel())
+                .yearOfManufacture(request.getYearOfManufacture())
+                .color(request.getColor())
+                .mileage(request.getMileage())
+                .batteryType(request.getBatteryType())
+                .capacity(request.getCapacity())
+                .voltage(request.getVoltage())
+                .batteryBrand(request.getBatteryBrand())
+                .build();
+
+        AiValidationResult result= aiService.validateProduct(aiProductRequest);
+
+        if (!result.isValid()) {
+            String errorMsg = result.getReason();
+            throw new BusinessException("Bài đăng bị từ chối vì: " + errorMsg, 400);
+        }
 
         Post.PostBuilder postBuilder = Post.builder()
                 .user(user)
@@ -210,24 +212,25 @@ public class SellerPostService {
                 request.getVoltage()
         );
 
-//        AiProductRequest aiProductRequest = AiProductRequest.builder()
-//                .productType(request.getProductType())
-//                .vehicleBrand(request.getVehicleBrand())
-//                .model(request.getModel())
-//                .yearOfManufacture(request.getYearOfManufacture())
-//                .color(request.getColor())
-//                .mileage(request.getMileage())
-//                .batteryType(request.getBatteryType())
-//                .capacity(request.getCapacity())
-//                .voltage(request.getVoltage())
-//                .batteryBrand(request.getBatteryBrand())
-//                .build();
-//
-//        boolean isValid = aiService.validateProduct(aiProductRequest);
-//
-//        if (!isValid) {
-//            throw new BusinessException("Thông tin sản phẩm có vẻ không chính xác hoặc không liên quan. Vui lòng kiểm tra lại.", 400);
-//        }
+        AiProductRequest aiProductRequest = AiProductRequest.builder()
+                .productType(request.getProductType())
+                .vehicleBrand(request.getVehicleBrand())
+                .model(request.getModel())
+                .yearOfManufacture(request.getYearOfManufacture())
+                .color(request.getColor())
+                .mileage(request.getMileage())
+                .batteryType(request.getBatteryType())
+                .capacity(request.getCapacity())
+                .voltage(request.getVoltage())
+                .batteryBrand(request.getBatteryBrand())
+                .build();
+
+        AiValidationResult result= aiService.validateProduct(aiProductRequest);
+
+        if (!result.isValid()) {
+            String errorMsg = result.getReason();
+            throw new BusinessException("Bài đăng bị từ chối vì: " + errorMsg, 400);
+        }
 
         post.setProductType(request.getProductType());
         post.setTitle(request.getTitle());
