@@ -33,14 +33,9 @@ public class AuthController {
     ValidateService validateService;
 
     @PostMapping("/google")
-    private ResponseEntity googleLogin(@RequestBody GoogleLoginRequest glr) {
-        List<String> tokens = authService.processGoogleToken(glr);
-        String accessToken = tokens.get(0);
-        String refreshToken = tokens.get(1);
-        Map<String, Object> tokenBody = new HashMap<>();
-        tokenBody.put("accessToken", accessToken);
-        tokenBody.put("refreshToken", refreshToken);
-        return ResponseEntity.status(HttpStatus.OK).body(tokenBody);
+    private Map<String, Object> googleLogin(@RequestBody GoogleLoginRequest glr) {
+        Map<String, Object> response = authService.processGoogleToken(glr);
+        return ResponseEntity.status(HttpStatus.OK).body(response).getBody();
     }
 
 
