@@ -2,6 +2,7 @@ package com.example.SWP.entity;
 
 import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.enums.ComplaintType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,7 +24,6 @@ public class Complaint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "order_id", nullable = false)
     Order order;
@@ -37,6 +37,7 @@ public class Complaint {
 
     @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "image_order")
+    @JsonIgnore
     List<ComplaintImage> complaintImages = new ArrayList<>();
 
     @Column(columnDefinition = "NVARCHAR(1000)")

@@ -31,7 +31,12 @@ public class ComplaintScheduler {
     public void autoReqComplaintToAdmin() {
         int CHECK_DAYS = 7;
         LocalDateTime today = LocalDateTime.now();
-        List<Complaint> complaintList = complaintRepository.findAll();
+        List<Complaint> complaintList = complaintRepository.findByStatusIn(List.of(
+                ComplaintStatus.SELLER_REVIEWING,
+                ComplaintStatus.BUYER_REJECTED,
+                ComplaintStatus.SELLER_REJECTED,
+                ComplaintStatus.SELLER_RESOLVED
+        ));
         log.info("Running complaint auto-request job for {} complaints", complaintList.size());
 
         for (Complaint complaint : complaintList) {
