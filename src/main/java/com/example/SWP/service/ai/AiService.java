@@ -18,6 +18,12 @@ public class AiService {
     AiBuildPromptService aiBuildPromptService;
 
     public double suggestPrice(AiProductRequest request) {
+        AiValidationResult validate = validateProduct(request);
+
+        if(!validate.isValid()) {
+            return 0.0;
+        }
+
         String prompt = aiBuildPromptService.buildPromptSuggestPrice(request);
 
         String response = chatClient.prompt(prompt).call().content();
