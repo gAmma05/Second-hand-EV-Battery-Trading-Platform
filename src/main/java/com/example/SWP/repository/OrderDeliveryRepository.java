@@ -18,4 +18,6 @@ public interface OrderDeliveryRepository extends JpaRepository<OrderDelivery, Lo
     List<OrderDelivery> findAllByOrder_Seller_Id(Long id);
 
     List<OrderDelivery> findByStatus(DeliveryStatus status);
+
+    List<OrderDelivery> findByStatusOrStatus(DeliveryStatus status, DeliveryStatus status1);
 }

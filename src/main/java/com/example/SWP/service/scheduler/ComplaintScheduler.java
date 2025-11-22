@@ -27,7 +27,7 @@ public class ComplaintScheduler {
 
     EscrowService escrowService;
 
-    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void autoReqComplaintToAdmin() {
         int CHECK_DAYS = 7;
         LocalDateTime today = LocalDateTime.now();
