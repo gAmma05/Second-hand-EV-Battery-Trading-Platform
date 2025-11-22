@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "escrow")
 @NoArgsConstructor
@@ -27,6 +28,7 @@ public class Escrow {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     @JsonIgnore
+    @ToString.Exclude
     Order order;
 
     @Enumerated(EnumType.STRING)

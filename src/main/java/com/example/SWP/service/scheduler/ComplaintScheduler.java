@@ -4,6 +4,8 @@ import com.example.SWP.entity.*;
 import com.example.SWP.entity.escrow.Escrow;
 import com.example.SWP.enums.ComplaintStatus;
 import com.example.SWP.enums.EscrowStatus;
+import com.example.SWP.enums.OrderStatus;
+import com.example.SWP.enums.PostStatus;
 import com.example.SWP.repository.*;
 import com.example.SWP.service.escrow.EscrowService;
 import lombok.AccessLevel;
@@ -58,6 +60,8 @@ public class ComplaintScheduler {
                         complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);
                         escrowService.switchStatus(EscrowStatus.RELEASED_TO_SELLER, complaint.getOrder().getId());
                         complaint.setUpdatedAt(LocalDateTime.now());
+                        complaint.getOrder().getPost().setStatus(PostStatus.SOLD);
+                        complaint.getOrder().setStatus(OrderStatus.DONE);
                         log.info("Updated complaint {} status to {}", complaint.getId(), complaint.getStatus());
                     } else {
                         log.info("Keep complaint {} status as {}", complaint.getId(), complaint.getStatus());
