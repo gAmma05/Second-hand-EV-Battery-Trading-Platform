@@ -43,11 +43,11 @@ public class RefundScheduler {
 
     EscrowService escrowService;
 
-    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void autoRefund() {
         int CHECK_DAYS = 7;
         LocalDateTime today = LocalDateTime.now();
-        List<OrderDelivery> odList = orderDeliveryRepository.findByStatus(DeliveryStatus.DELIVERED);
+        List<OrderDelivery> odList = orderDeliveryRepository.findByStatusOrStatus(DeliveryStatus.DELIVERED, DeliveryStatus.RECEIVED);
         log.info("Running refund job for {} orders", odList.size());
 
         if (odList.isEmpty()) {
