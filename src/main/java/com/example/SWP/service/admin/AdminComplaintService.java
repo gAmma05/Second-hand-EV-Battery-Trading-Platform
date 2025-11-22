@@ -4,9 +4,7 @@ import com.example.SWP.dto.request.admin.HandleComplaintRequest;
 import com.example.SWP.dto.response.ComplaintResponse;
 import com.example.SWP.entity.Complaint;
 import com.example.SWP.entity.escrow.Escrow;
-import com.example.SWP.enums.ComplaintStatus;
-import com.example.SWP.enums.EscrowStatus;
-import com.example.SWP.enums.ResolutionType;
+import com.example.SWP.enums.*;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.ComplaintMapper;
 import com.example.SWP.repository.ComplaintRepository;
@@ -64,8 +62,11 @@ public class AdminComplaintService {
             walletService.refundToWallet(complaint.getOrder().getBuyer(), escrow.getTotalAmount());
             escrowService.switchStatus(EscrowStatus.REFUNDED_TO_BUYER, complaint.getOrder().getId());
         } else if (Objects.equals(request.getResolutionType(), ResolutionType.NO_REFUND)) {
-            complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND); //admin dung ve phia seller
+            complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);//admin dung ve phia seller
+            complaint.getOrder().getPost().setStatus(PostStatus.SOLD);
         }
+
+        complaint.getOrder().setStatus(OrderStatus.DONE);
 
         notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "Về khiếu nại của bạn", "Khiếu nại của bạn đã được admin cập nhật");
         notificationService.sendNotificationToOneUser(complaint.getOrder().getSeller().getEmail(), "Về khiếu nại trên đơn hàng của bạn", "Khiếu nại đã được admin cập nhật");
