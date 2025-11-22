@@ -63,5 +63,7 @@ public class Order {
     LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Escrow> escrows = new ArrayList<>();
 }
