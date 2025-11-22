@@ -43,8 +43,8 @@ public class RefundScheduler {
 
     @Scheduled(cron = "0 */1 * * * *")
     public void autoRefund() {
-        int CHECK_DAYS = 7;
-//        int CHECK_MINUTES = 5;
+//        int CHECK_DAYS = 7;
+        int CHECK_MINUTES = 5;
         LocalDateTime today = LocalDateTime.now();
         List<OrderDelivery> odList = orderDeliveryRepository.findByStatusOrStatus(DeliveryStatus.DELIVERED, DeliveryStatus.RECEIVED);
         log.info("Running refund job for {} orders", odList.size());
@@ -56,8 +56,8 @@ public class RefundScheduler {
 
         for (OrderDelivery od : odList) {
             try {
-                if (ChronoUnit.DAYS.between(od.getCreatedAt(), today) >= CHECK_DAYS) {
-//                if (ChronoUnit.MINUTES.between(od.getCreatedAt(), today) >= CHECK_MINUTES) {
+//                if (ChronoUnit.DAYS.between(od.getCreatedAt(), today) >= CHECK_DAYS) {
+                if (ChronoUnit.MINUTES.between(od.getCreatedAt(), today) >= CHECK_MINUTES) {
                     Optional<Order> orderOpt = orderRepository.findById(od.getOrder().getId());
                     if (orderOpt.isEmpty()) {
                         log.warn("Order not found for OrderDelivery {}", od.getId());

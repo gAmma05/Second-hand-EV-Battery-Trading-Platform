@@ -63,9 +63,9 @@ public class AdminComplaintService {
             escrowService.switchStatus(EscrowStatus.REFUNDED_TO_BUYER, complaint.getOrder().getId());
         } else if (Objects.equals(request.getResolutionType(), ResolutionType.NO_REFUND)) {
             complaint.setStatus(ComplaintStatus.CLOSED_NO_REFUND);//admin dung ve phia seller
-            complaint.getOrder().getPost().setStatus(PostStatus.SOLD);
-        }
 
+        }
+        complaint.getOrder().getPost().setStatus(PostStatus.SOLD);
         complaint.getOrder().setStatus(OrderStatus.DONE);
 
         notificationService.sendNotificationToOneUser(complaint.getOrder().getBuyer().getEmail(), "Về khiếu nại của bạn", "Khiếu nại của bạn đã được admin cập nhật");
