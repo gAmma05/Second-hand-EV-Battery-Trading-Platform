@@ -6,10 +6,12 @@ import com.example.SWP.dto.request.user.ai.AiProductRequest;
 import com.example.SWP.dto.response.AiValidationResult;
 import com.example.SWP.dto.response.seller.PostResponse;
 import com.example.SWP.entity.*;
+import com.example.SWP.enums.OrderStatus;
 import com.example.SWP.enums.PostStatus;
 import com.example.SWP.enums.ProductType;
 import com.example.SWP.exception.BusinessException;
 import com.example.SWP.mapper.PostMapper;
+import com.example.SWP.repository.OrderRepository;
 import com.example.SWP.repository.PostRepository;
 import com.example.SWP.repository.PriorityPackagePaymentRepository;
 import com.example.SWP.repository.UserRepository;
@@ -39,6 +41,7 @@ public class SellerPostService {
     PriorityPackagePaymentRepository priorityPackagePaymentRepository;
     AiService aiService;
     PostMapper postMapper;
+    OrderRepository orderRepository;
 
     @NonFinal
     @Value("${post.expire.days}")
@@ -301,6 +304,10 @@ public class SellerPostService {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài đăng", 404));
+
+        if(orderRepository.existsByPost_IdAndStatus(post.getId(), OrderStatus.APPROVED)) {
+            throw new BusinessException("Bài đăng này đang có đơn hàng đang xử lý, không thể xóa", 400);
+        }
 
         if (!post.getUser().getId().equals(user.getId())) {
             throw new BusinessException("Bạn không có quyền xóa bài đăng này", 403);
