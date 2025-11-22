@@ -44,7 +44,7 @@ public class SellerService {
             user.setSocialMedia(request.getSocialMedia());
         }
 
-        user.setRemainingBasicPosts(3);
+        user.setRemainingBasicPosts(2);
         userRepository.save(user);
     }
 
