@@ -99,7 +99,7 @@ public class PublicPostService {
     public List<PostResponse> getAllPosts() {
         LocalDateTime now = LocalDateTime.now();
         List<Post> allPosts = postRepository.findByStatusAndExpiryDateAfterOrderByPostDateDesc(PostStatus.POSTED, now);
-        return sortPostsByPriorityTrustedNormal(allPosts);
+        return postMapper.toPostResponseList(allPosts);
     }
 
     // Lấy post theo ProductType
